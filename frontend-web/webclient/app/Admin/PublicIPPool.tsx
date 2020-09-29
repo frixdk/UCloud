@@ -17,8 +17,7 @@ import {ListRow} from "ui-components/List";
 import {SidebarPages, useSidebarPage} from "ui-components/Sidebar";
 import {defaultModalStyle} from "Utilities/ModalUtilities";
 import {capitalized, errorMessageOrDefault} from "UtilityFunctions";
-import { dialogStore } from "Dialog/DialogStore";
-import { addStandardDialog } from "UtilityComponents";
+import {addStandardDialog} from "UtilityComponents";
 
 // https://stackoverflow.com/questions/49306970/correct-input-type-for-ip-address
 const cidrRegex =
@@ -99,7 +98,7 @@ export function PublicIPPool(): JSX.Element | null {
                                             <Text>{address.ipAddress}</Text>
                                         </Flex>
                                     }
-                                    select={() => 
+                                    select={() =>
                                         setSelectedIp(address.id)
                                     }
                                     leftSub={
@@ -124,17 +123,17 @@ export function PublicIPPool(): JSX.Element | null {
                                     <Wrapper>
                                         <Heading.h3>Ports open for {address.ipAddress} ({address.openPorts.length})</Heading.h3>
                                         <InnerWrapper>
-                                                {address.openPorts.length > 0 ? (
-                                                    <List mt={20}>
-                                                        {address.openPorts.map(port => 
-                                                            <ListRow
-                                                                key={port.protocol + port.port}
-                                                                left={port.port}
-                                                                right={port.protocol}
-                                                            />
-                                                        )}
-                                                    </List>                                          
-                                                ) : (
+                                            {address.openPorts.length > 0 ? (
+                                                <List mt={20}>
+                                                    {address.openPorts.map(port =>
+                                                        <ListRow
+                                                            key={port.protocol + port.port}
+                                                            left={port.port}
+                                                            right={port.protocol}
+                                                        />
+                                                    )}
+                                                </List>
+                                            ) : (
                                                     <Text mt={40} textAlign="center">No open ports</Text>
                                                 )}
                                         </InnerWrapper>
@@ -214,8 +213,14 @@ function IPModal(props: {state: PoolManagement; closeModal: () => void; refresh:
         const validCIDRs = exclusions
             .filter(it => regex.test(it.current?.value ?? "")).map(it => it.current?.value ?? "").filter(it => it);
 
+        if (validCIDRs.length + validIPs.length === 0) {
+            snackbarStore.addFailure("No valid IPs or CIDRs entered.", false);
+            return;
+        }
+
         try {
             await sendCommand(addToPool({addresses: validIPs, exceptions: validCIDRs}));
+            snackbarStore.addSuccess("Added to pool.", false);
             props.refresh();
             props.closeModal();
         } catch (e) {
@@ -230,8 +235,15 @@ function IPModal(props: {state: PoolManagement; closeModal: () => void; refresh:
         const matchCIDR = RegExp(cidrRegex);
         const validCIDRs = exclusions
             .filter(it => matchCIDR.test(it.current?.value ?? "")).map(it => it.current?.value ?? "").filter(it => it);
+
+        if (validCIDRs.length + validIPs.length === 0) {
+            snackbarStore.addFailure("No valid IPs or CIDRs entered.", false);
+            return;
+        }
+
         try {
             await sendCommand(removeFromPool({addresses: validIPs, exceptions: validCIDRs}));
+            snackbarStore.addSuccess("Removed from pool.", false);
             props.refresh();
             props.closeModal();
         } catch (e) {
