@@ -7,7 +7,7 @@ import {
     listMyAddresses,
     PortAndProtocol,
     PublicIP, releaseAddress,
-    openPorts, closePorts, ApplicationStatus, readableApplicationStatus
+    openPorts, closePorts, readableApplicationStatus
 } from "Applications/IPAddresses/index";
 import styled from "styled-components";
 import Spinner from "LoadingIcon/LoadingIcon";
@@ -66,7 +66,7 @@ export const IPAddressManagement: React.FunctionComponent<IPAddressManagementPro
     const PAGE_REQUESTS = 1;
     const PAGE_EDIT = 2;
     const PAGE_NEW_REQUEST = 3;
-    const PAGE_CLOSED = 4
+    const PAGE_CLOSED = 4;
 
     const projectId = useProjectId();
     const [activePage, setActivePage] = useState<number>(PAGE_AVAILABLE);
@@ -75,7 +75,7 @@ export const IPAddressManagement: React.FunctionComponent<IPAddressManagementPro
         {noop: true},
         emptyPage
     );
-    const [myClosedApplications, fetchMyClosedApplications, myClosedApplicationsParams] = useCloudAPI<Page<AddressApplication>>(
+    const [myClosedApplications, fetchMyClosedApplications] = useCloudAPI<Page<AddressApplication>>(
         {noop: true},
         emptyPage
     );
@@ -83,7 +83,7 @@ export const IPAddressManagement: React.FunctionComponent<IPAddressManagementPro
     const [editingIp, setEditingIp] = useState<string | null>(null);
     const [editingProtocol, setEditingProtocol] = useState<InternetProtocol>(InternetProtocol.TCP);
     const editing = myAddresses.data.items.find(it => it.ipAddress === editingIp);
-    const [commandLoading, invokeCommand] = useAsyncCommand();
+    const [, invokeCommand] = useAsyncCommand();
     const requestRef = useRef<HTMLTextAreaElement>(null);
 
     useEffect(() => {
@@ -127,6 +127,21 @@ export const IPAddressManagement: React.FunctionComponent<IPAddressManagementPro
         }
 
         await invokeCommand(closePorts({id: editing.id, portList: [portAndProtocol]}));
+        fetchMyAddresses({...myAddressesParams});
+    };
+
+    const onCloseMultiplePorts = async (rangedPorts: RangedPortAndProtocol): Promise<void> => {
+        if (editing === undefined) {
+            snackbarStore.addFailure("Could not close port (internal error)", false);
+            return;
+        }
+
+        const ports: PortAndProtocol[] = [];
+        for (let port = rangedPorts.from; port <= rangedPorts.to; port++) {
+            ports.push({port, protocol: rangedPorts.protocol});
+        }
+
+        await invokeCommand(closePorts({id: editing.id, portList: ports}));
         fetchMyAddresses({...myAddressesParams});
     };
 
@@ -192,17 +207,17 @@ export const IPAddressManagement: React.FunctionComponent<IPAddressManagementPro
                                                     {addr.openPorts.length === 0 ?
                                                         "No open ports! You will not be able to access any services." :
                                                         <ul>
-                                                            {addr.openPorts.map(it => (
-                                                                <li key={it.port}>{it.port}/{it.protocol}</li>
+                                                            {squishPorts(addr.openPorts).map(it => (
+                                                                <li key={it.from}>{it.from}{it.from !== it.to ? `-${it.to}` : null}/{it.protocol}</li>
                                                             ))}
                                                         </ul>
                                                     }
                                                 </TableCell>
-                                                <TableCell textAlign={"right"}>
+                                                <TableCell textAlign="right">
                                                     <ButtonGroup>
-                                                        <Button color={"purple"} type={"button"} onClick={onEdit(addr)}>
+                                                        <Button color="purple" type="button" onClick={onEdit(addr)}>
                                                             Edit
-                                                    </Button>
+                                                        </Button>
                                                         <ConfirmButton
                                                             color={"red"}
                                                             type={"button"}
@@ -214,10 +229,10 @@ export const IPAddressManagement: React.FunctionComponent<IPAddressManagementPro
                                                                         If you delete this you will no longer be able to
                                                                         use this
                                                                         in applications!
-                                                                </Text>
+                                                                    </Text>
                                                                     <Button color={"red"} onClick={onDelete(addr)}>
                                                                         Confirm deletion
-                                                                </Button>
+                                                                    </Button>
                                                                 </>
                                                             }
                                                         >
@@ -266,6 +281,23 @@ export const IPAddressManagement: React.FunctionComponent<IPAddressManagementPro
                             </TableRow>
                         </TableHeader>
                         <tbody>
+                            {squishPorts(editing.openPorts).filter(it => it.from !== it.to).map(it =>
+                                <TableRow key={`${it.from}..${it.to}`}>
+                                    <TableCell>{it.from}-{it.to}</TableCell>
+                                    <TableCell>{it.protocol}</TableCell>
+                                    <TableCell textAlign={"right"}>
+                                        <Button
+                                            color={"red"}
+                                            type={"button"}
+                                            paddingLeft={10}
+                                            paddingRight={10}
+                                            onClick={() => onCloseMultiplePorts(it)}
+                                        >
+                                            <Icon size={16} name="trash" />
+                                        </Button>
+                                    </TableCell>
+                                </TableRow>
+                            )}
                             {editing.openPorts.map(it => (
                                 <TableRow key={it.port}>
                                     <TableCell>{it.port}</TableCell>
@@ -349,8 +381,8 @@ export const IPAddressManagement: React.FunctionComponent<IPAddressManagementPro
 
             {activePage !== PAGE_REQUESTS ? null : (
                 <Flex height={"100%"} flexDirection={"column"}>
-                    {!myPendingApplications.error ? null : <Error error={myPendingApplications.error.why}/>}
-                    {!myPendingApplications.loading ? null : <Spinner/>}
+                    {!myPendingApplications.error ? null : <Error error={myPendingApplications.error.why} />}
+                    {!myPendingApplications.loading ? null : <Spinner />}
 
                     <Pagination.List
                         page={myPendingApplications.data}
@@ -370,14 +402,14 @@ export const IPAddressManagement: React.FunctionComponent<IPAddressManagementPro
                                     </TableRow>
                                 </TableHeader>
                                 <tbody>
-                                {myPendingApplications.data.items.map(it => {
-                                    return <TableRow key={it.id}>
-                                        <TableCell>
-                                            {formatRelative(it.createdAt, new Date(), {locale: enGB})}
-                                        </TableCell>
-                                        <TableCell>{it.application}</TableCell>
-                                    </TableRow>;
-                                })}
+                                    {myPendingApplications.data.items.map(it =>
+                                        <TableRow key={it.id}>
+                                            <TableCell>
+                                                {formatRelative(it.createdAt, new Date(), {locale: enGB})}
+                                            </TableCell>
+                                            <TableCell>{it.application}</TableCell>
+                                        </TableRow>
+                                    )}
                                 </tbody>
                             </Table>
                         )}
@@ -393,20 +425,20 @@ export const IPAddressManagement: React.FunctionComponent<IPAddressManagementPro
 
             {activePage !== PAGE_CLOSED ? null : (
                 <Flex height={"100%"} flexDirection={"column"}>
-                    {!myClosedApplications.error ? null : <Error error={myClosedApplications.error.why}/>}
-                    {!myClosedApplications.loading ? null : <Spinner/>}
+                    {!myClosedApplications.error ? null : <Error error={myClosedApplications.error.why} />}
+                    {!myClosedApplications.loading ? null : <Spinner />}
 
                     <Pagination.List
                         page={myClosedApplications.data}
                         loading={myClosedApplications.loading}
                         customEmptyPage={
-                            <NoResultsCardBody title={"No active requests"}/>
+                            <NoResultsCardBody title={"No active requests"} />
                         }
                         onPageChanged={newPage => {
                             fetchMyClosedApplications(listAddressApplications({pending: false, itemsPerPage: 25, page: newPage}));
                         }}
-                        pageRenderer={() => {
-                            return <Table>
+                        pageRenderer={() =>
+                            <Table>
                                 <TableHeader>
                                     <TableRow>
                                         <TableHeaderCell textAlign={"left"}>Submitted at</TableHeaderCell>
@@ -415,21 +447,21 @@ export const IPAddressManagement: React.FunctionComponent<IPAddressManagementPro
                                     </TableRow>
                                 </TableHeader>
                                 <tbody>
-                                {myClosedApplications.data.items.map(it => {
-                                    return <TableRow key={it.id}>
-                                        <TableCell>
-                                            {formatRelative(it.createdAt, new Date(), {locale: enGB})}
-                                        </TableCell>
-                                        <TableCell>{it.application}</TableCell>
-                                        <TableCell textAlign={"right"}>{readableApplicationStatus(it.status)}</TableCell>
-                                    </TableRow>;
-                                })}
+                                    {myClosedApplications.data.items.map(it =>
+                                        <TableRow key={it.id}>
+                                            <TableCell>
+                                                {formatRelative(it.createdAt, new Date(), {locale: enGB})}
+                                            </TableCell>
+                                            <TableCell>{it.application}</TableCell>
+                                            <TableCell textAlign={"right"}>{readableApplicationStatus(it.status)}</TableCell>
+                                        </TableRow>
+                                    )}
                                 </tbody>
-                            </Table>;
-                        }}
+                            </Table>
+                        }
                     />
 
-                    <Box flexGrow={1}/>
+                    <Box flexGrow={1} />
 
                     <Button type={"button"} onClick={() => setActivePage(PAGE_NEW_REQUEST)}>
                         Apply for new address
@@ -454,3 +486,46 @@ export const IPAddressManagement: React.FunctionComponent<IPAddressManagementPro
         </InnerWrapper>
     </Wrapper>;
 };
+
+interface RangedPortAndProtocol {
+    from: number;
+    to: number;
+    protocol: InternetProtocol;
+}
+
+function squishPorts(ports: PortAndProtocol[]): RangedPortAndProtocol[] {
+    if (ports.length === 0) return [];
+    const squishedPorts: RangedPortAndProtocol[] = [];
+    let currentIndex = 0;
+    const tcpPorts = ports.filter(it => it.protocol === "TCP");
+    if (tcpPorts.length) {
+        squishedPorts.push({from: tcpPorts[0].port, to: tcpPorts[0].port, protocol: tcpPorts[0].protocol});
+        tcpPorts.forEach(port => {
+            const currentSquishedPort = squishedPorts[currentIndex];
+            if (currentSquishedPort.to >= port.port) return;
+            else if (currentSquishedPort.to + 1 === port.port) {
+                currentSquishedPort.to = port.port;
+            } else {
+                squishedPorts.push({from: port.port, to: port.port, protocol: port.protocol});
+                currentIndex++;
+            }
+        });
+    }
+
+    const udpPorts = ports.filter(it => it.protocol === "UDP");
+    if (udpPorts.length) {
+        squishedPorts.push({from: udpPorts[0].port, to: udpPorts[0].port, protocol: udpPorts[0].protocol});
+        currentIndex = squishedPorts.length - 1;
+        udpPorts.forEach(port => {
+            const currentSquishedPort = squishedPorts[currentIndex];
+            if (currentSquishedPort.to >= port.port) return;
+            else if (currentSquishedPort.to + 1 === port.port) {
+                currentSquishedPort.to = port.port;
+            } else {
+                squishedPorts.push({from: port.port, to: port.port, protocol: port.protocol});
+                currentIndex++;
+            }
+        });
+    }
+    return squishedPorts;
+}
