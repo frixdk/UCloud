@@ -9,7 +9,7 @@ import {useTitle} from "Navigation/Redux/StatusActions";
 import * as React from "react";
 import {useDispatch} from "react-redux";
 import styled from "styled-components";
-import {Button, ButtonGroup, Flex, Icon, List, Text, Truncate} from "ui-components";
+import {Button, ButtonGroup, Flex, Heading, Icon, List, Text, Truncate} from "ui-components";
 import {ListRow} from "ui-components/List";
 import {SidebarPages, useSidebarPage} from "ui-components/Sidebar";
 import {addStandardDialog} from "UtilityComponents";
@@ -62,7 +62,8 @@ export function PublicIPManagement(): JSX.Element | null {
     if (!Client.userIsAdmin) return null;
 
     return (<MainContainer
-        main={
+        main={<>
+            {!ipsForApproval.loading && ipsForApproval.data.items.length === 0 ? <Heading>No new applications</Heading> : null}
             <List>
                 {ipsForApproval.data.items.map(it =>
                     <ListRow
@@ -105,7 +106,7 @@ export function PublicIPManagement(): JSX.Element | null {
                     />
                 )}
             </List >
-        }
+        </>}
     />);
 }
 

@@ -66,7 +66,7 @@ export function PublicIPPool(): JSX.Element | null {
     const refresh = (): void => {
         setAssignedAddressesParams({...assignedAddressesParams});
         setAvailableAddressesParams({...availableAddressesParams});
-    }
+    };
 
     React.useEffect(() => {
         dispatch(setRefreshFunction(refresh));
@@ -90,17 +90,13 @@ export function PublicIPPool(): JSX.Element | null {
                             <>
                                 <ListRow
                                     key={address.id}
-                                    navigate={() =>
-                                        setSelectedIp(address.id)
-                                    }
+                                    navigate={() => setSelectedIp(address.id)}
                                     left={
                                         <Flex>
                                             <Text>{address.ipAddress}</Text>
                                         </Flex>
                                     }
-                                    select={() =>
-                                        setSelectedIp(address.id)
-                                    }
+                                    select={() => setSelectedIp(address.id)}
                                     leftSub={
                                         <>
                                             <Text fontSize={1} color="gray" pr={1}>{capitalized(address.entityType)}:</Text>
@@ -134,8 +130,8 @@ export function PublicIPPool(): JSX.Element | null {
                                                     )}
                                                 </List>
                                             ) : (
-                                                    <Text mt={40} textAlign="center">No open ports</Text>
-                                                )}
+                                                <Text mt={40} textAlign="center">No open ports</Text>
+                                            )}
                                         </InnerWrapper>
                                         <Button onClick={() => setSelectedIp(0)} width="100%" mt={20}>Close</Button>
                                     </Wrapper>
