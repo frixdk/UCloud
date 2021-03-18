@@ -12,7 +12,7 @@ import {Dispatch} from "redux";
 import {setRefreshFunction} from "Navigation/Redux/HeaderActions";
 import {loadingAction} from "Loading";
 import {dispatchSetProjectAction} from "Project/Redux";
-import {DashboardCard} from "Dashboard/Dashboard";
+import {HighlightedCard} from "Dashboard/Dashboard";
 import {GridCardGroup} from "ui-components/Grid";
 import {ProjectBreadcrumbs} from "Project/Breadcrumbs";
 import {useCloudAPI} from "Authentication/DataHook";
@@ -134,7 +134,7 @@ const ProjectDashboard: React.FunctionComponent<ProjectDashboardOperations> = ()
                 <>
                     <ProjectDashboardGrid minmax={300}>
                         {projectId !== undefined && projectId !== "" ? (
-                            <DashboardCard
+                            <HighlightedCard
                                 subtitle={<RightArrow />}
                                 onClick={() => history.push("/project/members")}
                                 title="Members"
@@ -159,9 +159,9 @@ const ProjectDashboard: React.FunctionComponent<ProjectDashboardOperations> = ()
                                     <Box color="red" mt={16}><Icon name="warning" mr="4px" /> Attention required</Box> :
                                     null
                                 }
-                            </DashboardCard>
+                            </HighlightedCard>
                         ) : null}
-                        <DashboardCard
+                        <HighlightedCard
                             title={"Resource Allocation"}
                             icon="grant"
                             color="purple"
@@ -178,9 +178,9 @@ const ProjectDashboard: React.FunctionComponent<ProjectDashboardOperations> = ()
                                         </TableRow>
                                     </tbody>) : null}
                             </Table> : null}
-                        </DashboardCard>
+                        </HighlightedCard>
 
-                        <DashboardCard title="Usage" icon="hourglass" color="green"
+                        <HighlightedCard title="Usage" icon="hourglass" color="green"
                             isLoading={false}
                             subtitle={<RightArrow />}
                             onClick={() => history.push("/project/usage")}
@@ -200,9 +200,9 @@ const ProjectDashboard: React.FunctionComponent<ProjectDashboardOperations> = ()
                                     </TableRow>
                                 </tbody>
                             </Table>
-                        </DashboardCard>
+                        </HighlightedCard>
                         {isPersonalProjectActive(projectId) || !isAdminOrPI(projectRole) || noSubprojectsAndGrantsAreDisallowed(subprojectsCount.data, settings.data) ? null :
-                            <DashboardCard
+                            <HighlightedCard
                                 subtitle={<RightArrow />}
                                 onClick={() => history.push("/project/grants/ingoing")}
                                 title="Grant Applications"
@@ -218,9 +218,9 @@ const ProjectDashboard: React.FunctionComponent<ProjectDashboardOperations> = ()
                                         </TableRow>
                                     </tbody>
                                 </Table>
-                            </DashboardCard>}
+                            </HighlightedCard>}
                         {isPersonalProjectActive(projectId) || !isAdminOrPI(projectRole) ? null : (
-                            <DashboardCard
+                            <HighlightedCard
                                 subtitle={<RightArrow />}
                                 onClick={() => history.push("/project/settings")}
                                 title="Settings"
@@ -238,7 +238,7 @@ const ProjectDashboard: React.FunctionComponent<ProjectDashboardOperations> = ()
                                         </TableRow>
                                     </tbody>
                                 </Table>
-                            </DashboardCard>
+                            </HighlightedCard>
                         )}
                     </ProjectDashboardGrid>
                 </>

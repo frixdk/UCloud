@@ -32,7 +32,7 @@ import {
     WalletBalance
 } from "Accounting";
 import styled from "styled-components";
-import {DashboardCard} from "Dashboard/Dashboard";
+import {HighlightedCard} from "Dashboard/Dashboard";
 import {
     approveGrantApplication,
     closeGrantApplication,
@@ -455,7 +455,7 @@ const StorageRequestCard: React.FunctionComponent<{
     };
 
     return <RequestForSingleResourceWrapper>
-        <DashboardCard color="blue" isLoading={false}>
+        <HighlightedCard color="blue" isLoading={false}>
             <table>
                 <tbody>
                     <tr>
@@ -569,7 +569,7 @@ const StorageRequestCard: React.FunctionComponent<{
                     </tr>
                 </tbody>
             </table>
-        </DashboardCard>
+        </HighlightedCard>
     </RequestForSingleResourceWrapper>;
 };
 
@@ -582,7 +582,7 @@ const GenericRequestCard: React.FunctionComponent<{
 }> = ({wb, state, grantFinalized, isLocked, icon}) => {
     if (wb.isFreeWithBalanceCheck) {
         return <RequestForSingleResourceWrapper>
-            <DashboardCard color={"blue"} isLoading={false}>
+            <HighlightedCard color={"blue"} isLoading={false}>
                 <Flex flexDirection={"row"} alignItems={"center"}>
                     <Box flexGrow={1}>
                         <Label>
@@ -624,11 +624,11 @@ const GenericRequestCard: React.FunctionComponent<{
                     type="hidden"
                     min={0}
                 />
-            </DashboardCard>
+            </HighlightedCard>
         </RequestForSingleResourceWrapper>
     } else {
         return <RequestForSingleResourceWrapper>
-            <DashboardCard color="blue" isLoading={false}>
+            <HighlightedCard color="blue" isLoading={false}>
                 <table>
                     <tbody>
                         <tr>
@@ -685,7 +685,7 @@ const GenericRequestCard: React.FunctionComponent<{
                         </tr>
                     </tbody>
                 </table>
-            </DashboardCard>
+            </HighlightedCard>
         </RequestForSingleResourceWrapper>;
     }
 };
@@ -981,7 +981,7 @@ export const GrantApplicationEditor: (target: RequestTarget) =>
 
                             {target !== RequestTarget.VIEW_APPLICATION ? null : (
                                 <>
-                                    <DashboardCard color="blue" isLoading={false}>
+                                    <HighlightedCard color="blue" isLoading={false}>
                                         <Heading.h4 mb={16}>Metadata</Heading.h4>
 
                                         <Text mb={16}>
@@ -1116,7 +1116,7 @@ export const GrantApplicationEditor: (target: RequestTarget) =>
                                                 </TableRow>
                                             </tbody>
                                         </Table>
-                                    </DashboardCard>
+                                    </HighlightedCard>
                                 </>
                             )}
 

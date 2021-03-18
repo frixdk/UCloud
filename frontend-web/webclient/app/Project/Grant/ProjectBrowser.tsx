@@ -15,7 +15,7 @@ import * as Pagination from "Pagination";
 import {useRefreshFunction} from "Navigation/Redux/HeaderActions";
 import {Box, Card, Icon, Text} from "ui-components";
 import {useHistory, useParams} from "react-router";
-import {DashboardCard} from "Dashboard/Dashboard";
+import {HighlightedCard} from "Dashboard/Dashboard";
 import styled from "styled-components";
 import {GridCardGroup} from "ui-components/Grid";
 import {useState} from "react";
@@ -114,7 +114,7 @@ const AffiliationLink: React.FunctionComponent<{action: string, projectId: strin
         }), {description: ""}
     );
 
-    return <DashboardCard
+    return <HighlightedCard
         color={"purple"}
         isLoading={description.loading}
         title={<>
@@ -127,7 +127,7 @@ const AffiliationLink: React.FunctionComponent<{action: string, projectId: strin
         <Box pt={8} pb={16}>
             {description.data.description}
         </Box>
-    </DashboardCard>;
+    </HighlightedCard>;
 };
 
 const AffiliationGrid = styled(GridCardGroup)`

@@ -58,7 +58,7 @@ import {isRunExpired} from "Utilities/ApplicationUtilities";
 import formatDistanceToNow from "date-fns/formatDistanceToNow";
 import {jobAppTitle, jobTitle} from "Applications/Jobs";
 
-export const DashboardCard: React.FunctionComponent<{
+export const HighlightedCard: React.FunctionComponent<{
     title?: React.ReactNode;
     subtitle?: React.ReactNode;
     color: ThemeColor;
@@ -219,7 +219,7 @@ const DashboardFavoriteFiles = ({files, isLoading, favorite, error}: {
     favorite: (file: File) => void;
     error?: string
 }): JSX.Element => (
-    <DashboardCard
+    <HighlightedCard
         title={<Link to={fileTablePage(Client.favoritesFolder)}><Heading.h3>Favorite Files</Heading.h3></Link>}
         color="blue"
         isLoading={isLoading}
@@ -251,7 +251,7 @@ const DashboardFavoriteFiles = ({files, isLoading, favorite, error}: {
                 </Flex>
             ))}
         </List>
-    </DashboardCard>
+    </HighlightedCard>
 );
 
 const ListFileContent = ({file, pixelsWide}: {file: File; pixelsWide: number}): JSX.Element => {
@@ -270,7 +270,7 @@ const ListFileContent = ({file, pixelsWide}: {file: File; pixelsWide: number}): 
 };
 
 const DashboardAnalyses: React.FunctionComponent<{runs: APICallState<PageV2<UCloud.compute.Job>>}> = ({runs}) => (
-    <DashboardCard
+    <HighlightedCard
         title={<Link to={"/applications/results"}><Heading.h3>Recent Runs</Heading.h3></Link>}
         color="purple"
         isLoading={runs.loading}
@@ -314,7 +314,7 @@ const DashboardAnalyses: React.FunctionComponent<{runs: APICallState<PageV2<UClo
                 </Flex>
             ))}
         </List>
-    </DashboardCard>
+    </HighlightedCard>
 );
 
 interface DashboardNotificationProps {
@@ -324,7 +324,7 @@ interface DashboardNotificationProps {
 }
 
 const DashboardNotifications = (props: DashboardNotificationProps): JSX.Element => (
-    <DashboardCard
+    <HighlightedCard
         color="darkGreen"
         isLoading={false}
         icon="notification"
@@ -359,7 +359,7 @@ const DashboardNotifications = (props: DashboardNotificationProps): JSX.Element 
                 </Flex>
             ))}
         </List>
-    </DashboardCard>
+    </HighlightedCard>
 );
 
 export interface NewsPost {
@@ -425,7 +425,7 @@ function DashboardProjectUsage(): JSX.Element | null {
     const storageCreditsUsedInPeriod = computeUsageInPeriod(storageCharts);
 
     return (
-        <DashboardCard title={<Link to={"/project/usage"}><Heading.h3>Usage</Heading.h3></Link>}
+        <HighlightedCard title={<Link to={"/project/usage"}><Heading.h3>Usage</Heading.h3></Link>}
             icon="hourglass"
             color="yellow"
             isLoading={false}
@@ -445,7 +445,7 @@ function DashboardProjectUsage(): JSX.Element | null {
                     </TableRow>
                 </tbody>
             </Table>
-        </DashboardCard>
+        </HighlightedCard>
     );
 }
 function DashboardResources({products, loading, quota}: {
@@ -471,7 +471,7 @@ function DashboardResources({products, loading, quota}: {
     </Link>;
 
     return (
-        <DashboardCard
+        <HighlightedCard
             title={<Link to={"/project/subprojects"}><Heading.h3>Resources</Heading.h3></Link>}
             color="red"
             isLoading={loading}
@@ -527,7 +527,7 @@ function DashboardResources({products, loading, quota}: {
                     </Flex>
                 </>
             }
-        </DashboardCard>
+        </HighlightedCard>
     );
 }
 
@@ -546,7 +546,7 @@ const DashboardGrantApplications: React.FunctionComponent<{
             </Link>
     );
 
-    return <DashboardCard
+    return <HighlightedCard
         title={title}
         color="green"
         minWidth="450px"
@@ -580,12 +580,12 @@ const DashboardGrantApplications: React.FunctionComponent<{
                 <GrantApplicationList applications={outgoingApps.data.items.slice(0, 5)} slim />
             </>
         )}
-    </DashboardCard>;
+    </HighlightedCard>;
 };
 
 function DashboardNews({news, loading}: {news: NewsPost[]; loading: boolean}): JSX.Element | null {
     return (
-        <DashboardCard
+        <HighlightedCard
             title={<Link to="/news/list/"><Heading.h3>News</Heading.h3></Link>}
             color="orange"
             isLoading={loading}
@@ -618,7 +618,7 @@ function DashboardNews({news, loading}: {news: NewsPost[]; loading: boolean}): J
                 left={null}
                 right={<Link to="/news/list/">View more</Link>}
             />
-        </DashboardCard>
+        </HighlightedCard>
     );
 }
 

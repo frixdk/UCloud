@@ -9,7 +9,7 @@ import {Dispatch} from "redux";
 import {setRefreshFunction} from "Navigation/Redux/HeaderActions";
 import {loadingAction} from "Loading";
 import {dispatchSetProjectAction} from "Project/Redux";
-import {Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis} from "recharts";
+import {Area, AreaChart, Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis} from "recharts";
 import Table, {TableCell, TableHeader, TableHeaderCell, TableRow} from "ui-components/Table";
 import {
     ProductArea, productAreas,
@@ -32,6 +32,9 @@ import {useTitle} from "Navigation/Redux/StatusActions";
 import {useSidebarPage, SidebarPages} from "ui-components/Sidebar";
 import {Dropdown} from "ui-components/Dropdown";
 import {capitalized} from "UtilityFunctions";
+import {GridCardGroup} from "ui-components/Grid";
+import {HighlightedCard} from "Dashboard/Dashboard";
+import {Spacer} from "ui-components/Spacer";
 
 function dateFormatter(timestamp: number): string {
     const date = new Date(timestamp);
@@ -237,7 +240,7 @@ const ProjectUsage: React.FunctionComponent<ProjectUsageOperations> = props => {
                         <ProjectBreadcrumbs allowPersonalProject crumbs={[{title: "Usage"}]} />
                         <ClickableDropdown
                             trigger={
-                                <Flex alignItems={"center"}>
+                                <Flex style={{border: "1px solid gray"}} alignItems={"center"}>
                                     <Heading.h4 mr={8}>{durationOption.text}</Heading.h4>
                                     <Icon name="chevronDown" size={16} />
                                 </Flex>
@@ -246,34 +249,143 @@ const ProjectUsage: React.FunctionComponent<ProjectUsageOperations> = props => {
                             options={durationOptions.map((it, idx) => ({text: it.text, value: `${idx}`}))}
                         />
                     </UsageHeader>
-                    <SelectableTextWrapper>
-                        {productAreas.map((area: ProductArea) => (
-                            <SelectableText
-                                key={area}
-                                mr="1em"
-                                fontSize={3}
-                                onClick={() => setProductArea(area)}
-                                selected={productArea === area}
-                            >{capitalized(area === "INGRESS" ? "public link" : area)}</SelectableText>
-                        ))}
-                    </SelectableTextWrapper>
                 </Box>
             }
             sidebar={null}
-            main={
-                <Box mt="8px">
-                    <VisualizationForArea
-                        area={productArea}
-                        projectId={projectId}
-                        usageResponse={usageResponse}
-                        durationOption={durationOption}
-                        balance={balance}
-                    />
-                </Box>
-            }
+            main={<UsageVisualization />}
         />
     );
 };
+
+const data = [
+    {
+        name: "Timestamp to be added",
+        Usage: 1000,
+        Usage2: Math.floor(Math.random() * 5000),
+        Usage3: Math.floor(Math.random() * 5000),
+        Usage4: Math.floor(Math.random() * 5000),
+        Usage5: Math.floor(Math.random() * 5000),
+    },
+    {
+        name: "Timestamp to be added",
+        Usage: 1500,
+        Usage2: Math.floor(Math.random() * 5000),
+        Usage3: Math.floor(Math.random() * 5000),
+        Usage4: Math.floor(Math.random() * 5000),
+        Usage5: Math.floor(Math.random() * 5000),
+    },
+    {
+        name: "Timestamp to be added",
+        Usage: 1700,
+        Usage2: Math.floor(Math.random() * 5000),
+        Usage3: Math.floor(Math.random() * 5000),
+        Usage4: Math.floor(Math.random() * 5000),
+        Usage5: Math.floor(Math.random() * 5000),
+    },
+    {
+        name: "Timestamp to be added",
+        Usage: 1900,
+        Usage2: Math.floor(Math.random() * 5000),
+        Usage3: Math.floor(Math.random() * 5000),
+        Usage4: Math.floor(Math.random() * 5000),
+        Usage5: Math.floor(Math.random() * 5000),
+    },
+    {
+        name: "Timestamp to be added",
+        Usage: 2050,
+        Usage2: Math.floor(Math.random() * 5000),
+        Usage3: Math.floor(Math.random() * 5000),
+        Usage4: Math.floor(Math.random() * 5000),
+        Usage5: Math.floor(Math.random() * 5000),
+    },
+    {
+        name: "Timestamp to be added",
+        Usage: 2390,
+        Usage2: Math.floor(Math.random() * 5000),
+        Usage3: Math.floor(Math.random() * 5000),
+        Usage4: Math.floor(Math.random() * 5000),
+        Usage5: Math.floor(Math.random() * 5000),
+    },
+    {
+        name: "Timestamp to be added",
+        Usage: 3000,
+        Usage2: Math.floor(Math.random() * 5000),
+        Usage3: Math.floor(Math.random() * 5000),
+        Usage4: Math.floor(Math.random() * 5000),
+        Usage5: Math.floor(Math.random() * 5000),
+    },
+];
+
+function UsageVisualization() {
+    const areas = ["Storage", "Usage"];
+
+    return (
+        <GridCardGroup minmax={435} gridGap={16}>
+            {areas.map(area => (
+                <HighlightedCard key={area} color="green">
+                    <Spacer
+                        left={
+                            <Box>
+                                <Text color="gray">{area}</Text>
+                                <Text bold my="-6px" fontSize="24px">{area === "Storage" ? "239 GB used" : "1.038 DKK used"}</Text>
+                                <Text fontSize="14px">Remaining{area === "Storage" ? " Remaining 200 GB" : " 5.000 DKK"}</Text>
+                            </Box>
+                        }
+                        right={
+                            <ClickableDropdown
+                                trigger={<Box mr="-14px" mt="2px"><Icon rotation={90} name="ellipsis" /></Box>}
+                                left="-112px"
+                                top="-4px"
+                                options={[{text: "Storage (GB)", value: "storage_gb"}, {text: "Storage (DKK)", value: "storage_price"}, {text: "Compute (DKK)", value: "compute"}]}
+                                onChange={it => console.log(it)}
+                            />
+                        }
+                    />
+                    {area === "Storage" ? (
+                        <AreaChart
+                            style={{marginLeft: "-17px", marginBottom: "-4px"}}
+                            width={458}
+                            height={320}
+                            data={data}
+                            margin={{
+                                top: 0,
+                                right: 0,
+                                left: 0,
+                                bottom: 0,
+                            }}
+                        >
+                            <Tooltip />
+                            <Area type="linear" opacity={1} dataKey="Usage" strokeWidth="2px" stroke={getCssVar("darkBlue")} fill={getCssVar("blue")} />
+                        </AreaChart>
+                    ) : (
+                        <AreaChart
+                            style={{marginLeft: "-17px", marginBottom: "-4px"}}
+                            width={458}
+                            height={320}
+                            data={data}
+                            margin={{
+                                top: 0,
+                                right: 0,
+                                left: 0,
+                                bottom: 0,
+                            }}
+                        >
+                            <Tooltip />
+                            <Area type="linear" dataKey="Usage2" strokeWidth="2px" stroke={getCssVar("darkBlue")} fill={getCssVar("blue")} />
+                            <Area type="linear" dataKey="Usage3" strokeWidth="2px" stroke={getCssVar("darkRed")} fill={getCssVar("red")} />
+                            <Area type="linear" dataKey="Usage4" strokeWidth="2px" stroke={getCssVar("darkGreen")} fill={getCssVar("green")} />
+                            <Area type="linear" dataKey="Usage5" strokeWidth="2px" stroke={getCssVar("darkOrange")} fill={getCssVar("orange")} />
+                        </AreaChart>
+                    )}
+                </HighlightedCard>
+            ))}
+            {areas.map(area =>
+                null
+            )}
+        </GridCardGroup>
+    );
+}
+
 
 const VisualizationForArea: React.FunctionComponent<{
     area: ProductArea,
@@ -453,9 +565,9 @@ const SummaryStat = styled.figure`
     flex-grow: 1;
     text-align: center;
     margin: 0;
-    
+
     figcaption {
-        display: block;
+                            display: block;
         color: var(--gray, #ff0);
         text-transform: uppercase;
         font-size: 12px;
@@ -467,9 +579,9 @@ const SummaryWrapper = styled(Card)`
     padding: 15px;
     margin: 0 15px;
     align-items: center;
-    
+
     h4 {
-        flex-grow: 2;
+                            flex - grow: 2;
     }
 `;
 
