@@ -318,11 +318,12 @@ const data = [
 
 function UsageVisualization() {
     const areas = ["Storage", "Usage"];
-    const pieChartData = [{value: Math.random() * 400}, {value: Math.random() * 400}, {value: Math.random() * 400}, {value: Math.random() * 400}];
+    const pieChartData: {value: number, name: string;}[] = [{value: Math.random() * 400, name: "a1-standard"}, {value: Math.random() * 400, name: "u1-standard"}, {value: Math.random() * 400, name: "u1-gpu"}, {value: Math.random() * 400, name: "u1-storage"}];
+    const pieChartData2: {value: number, name: string;}[] = [{value: Math.random() * 400, name: "u1-standard-64"}, {value: Math.random() * 400, name: "u1-standard-1"}, {value: Math.random() * 400, name: "u1-standard-2"}, {value: Math.random() * 400, name: "u1-standard-16"}];
     return (
         <GridCardGroup minmax={435} gridGap={16}>
             {areas.map(area => (
-                <HighlightedCard key={area} color="green">
+                <HighlightedCard key={area} height="396px" color="green">
                     <Spacer
                         left={
                             <Box>
@@ -380,53 +381,70 @@ function UsageVisualization() {
                 </HighlightedCard>
             ))}
             {areas.map(area => {
-                const totalUsage = pieChartData.reduce((acc, element) => acc + element.value, 0);
+                const donutData = area === "Storage" ? pieChartData : pieChartData2;
+                const totalUsage = donutData.reduce((acc, element) => acc + element.value, 0);
                 return (
-                    <HighlightedCard key={area} color="green">
-                        <Flex>
-                            <Box mr="auto" />
-                            <PieChart key={area} width={300} height={300}>
-                                <Pie
-                                    data={pieChartData}
-                                    fill="#8884d8"
-                                    dataKey="value"
-                                    innerRadius={80}
-                                >
-                                    {data.map((_, index) => (
-                                        <Cell key={`cell-${index}`} fill={getCssVar(COLORS[index % COLORS.length])} />
-                                    ))}
-                                </Pie>
-                            </PieChart>
-                            <Box ml="auto" />
-                        </Flex>
-                        <Flex>
-                            <Box mr="auto" />
-                            <Box mx="4px">
-                                <Text>a1-standard</Text>
-                                <Text textAlign="center" color={getCssVar("red")}>{Math.round(pieChartData[0].value / totalUsage * 10_000) / 100} %</Text>
-                            </Box>
-                            <Box mx="4px">
-                                <Text>u1-standard</Text>
-                                <Text textAlign="center" color={getCssVar("green")}>{Math.round(pieChartData[1].value / totalUsage * 10_000) / 100} %</Text>
-                            </Box>
-                            <Box mx="4px">
-                                <Text>u1-gpu</Text>
-                                <Text textAlign="center" color={getCssVar("blue")}>{Math.round(pieChartData[2].value / totalUsage * 10_000) / 100} %</Text>
-                            </Box>
-                            <Box mx="4px">
-                                <Text>u1-storage</Text>
-                                <Text textAlign="center" color={getCssVar("orange")}>{Math.round(pieChartData[3].value / totalUsage * 10_000) / 100} %</Text>
-                            </Box>
-                            <Box ml="auto" />
-                        </Flex>
-                    </HighlightedCard>
+                    <DonutChart key={area} totalUsage={totalUsage} data={donutData} area={area} />
                 )
             })}
         </GridCardGroup>
     );
 }
 
-const COLORS: ThemeColor[] = ["red", "green", "blue", "orange"];
+const COLORS: [ThemeColor, ThemeColor, ThemeColor, ThemeColor] = ["red", "green", "blue", "orange"];
+
+function DonutChart({area, data, totalUsage}: {area: string; data: {value: number, name: string}[]; totalUsage: number}): JSX.Element {
+    return (
+        <HighlightedCard height="auto" key={area} color="green">
+            <Flex>
+                <Box mr="auto" />
+                <ClickableDropdown
+                    trigger={<Box mr="-14px" mt="2px"><Icon rotation={90} name="ellipsis" /></Box>}
+                    left="-112px"
+                    top="-4px"
+                    options={[{text: "Storage (GB)", value: "storage_gb"}, {text: "Storage (DKK)", value: "storage_price"}, {text: "Compute (DKK)", value: "compute"}]}
+                    onChange={it => console.log(it)}
+                />
+            </Flex>
+            <Flex><Box mr="auto" /><Text fontSize="26px">{capitalized(area)}</Text><Box ml="auto" /></Flex>
+            <Flex>
+                <Box mr="auto" />
+                <PieChart key={area} width={300} height={300}>
+                    <Pie
+                        data={data}
+                        fill="#8884d8"
+                        dataKey="value"
+                        innerRadius={80}
+                    >
+                        {data.map((_, index) => (
+                            <Cell key={`cell-${index}`} fill={getCssVar(COLORS[index % COLORS.length])} />
+                        ))}
+                    </Pie>
+                </PieChart>
+                <Box ml="auto" />
+            </Flex>
+            <Flex pb="12px">
+                <Box mr="auto" />
+                {data.map((it, index) =>
+                    <Box mx="auto" key={it.name}>
+                        <Text textAlign="center" fontSize="14px">{it.name}</Text>
+                        <Text
+                            textAlign="center"
+                            color={getCssVar(COLORS[index % COLORS.length])}
+                        >
+                            {toPercentageString(it.value / totalUsage)}
+                        </Text>
+                    </Box>
+                )}
+                <Box ml="auto" />
+            </Flex>
+        </HighlightedCard>
+    )
+}
+
+function toPercentageString(value: number) {
+    return `${Math.round(value * 10_000) / 100} %`
+}
 
 const VisualizationForArea: React.FunctionComponent<{
     area: ProductArea,
