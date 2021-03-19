@@ -35,6 +35,7 @@ import {capitalized} from "UtilityFunctions";
 import {GridCardGroup} from "ui-components/Grid";
 import {HighlightedCard} from "Dashboard/Dashboard";
 import {Spacer} from "ui-components/Spacer";
+import Subprojects from "./Subprojects";
 
 function dateFormatter(timestamp: number): string {
     const date = new Date(timestamp);
@@ -316,10 +317,25 @@ const data = [
     },
 ];
 
+interface ValueNamePair {
+    value: number;
+    name: string;
+}
+
+function randomVal() {
+    return Math.random() * 100;
+}
+const areas = ["Storage", "Usage"];
+
+const pieChartData: ValueNamePair[] = [{value: Math.random() * 400, name: "a1-standard"}, {value: Math.random() * 400, name: "u1-standard"}, {value: Math.random() * 400, name: "u1-gpu"}, {value: Math.random() * 400, name: "u1-storage"}];
+const pieChartData2: ValueNamePair[] = [{value: Math.random() * 400, name: "u1-standard-64"}, {value: Math.random() * 400, name: "u1-standard-1"}, {value: Math.random() * 400, name: "u1-standard-2"}, {value: Math.random() * 400, name: "u1-standard-16"}];
+
+const subProjects: ValueNamePair[] = [{value: randomVal(), name: "SUND"}, {value: randomVal(), name: "NAT"}, {value: randomVal(), name: "TEK"}, {value: randomVal(), name: "SAMF"}, {value: randomVal(), name: "HUM"}];
+const subProjectTotalUsage = subProjects.reduce((acc, element) => acc + element.value, 0);
+const capacityUsed: ValueNamePair[] = [{value: randomVal(), name: "Capacity"}, {value: randomVal(), name: "Used"}];
+const capacityTotalUsage = capacityUsed.reduce((acc, element) => acc + element.value, 0);
+
 function UsageVisualization() {
-    const areas = ["Storage", "Usage"];
-    const pieChartData: {value: number, name: string;}[] = [{value: Math.random() * 400, name: "a1-standard"}, {value: Math.random() * 400, name: "u1-standard"}, {value: Math.random() * 400, name: "u1-gpu"}, {value: Math.random() * 400, name: "u1-storage"}];
-    const pieChartData2: {value: number, name: string;}[] = [{value: Math.random() * 400, name: "u1-standard-64"}, {value: Math.random() * 400, name: "u1-standard-1"}, {value: Math.random() * 400, name: "u1-standard-2"}, {value: Math.random() * 400, name: "u1-standard-16"}];
     return (
         <GridCardGroup minmax={435} gridGap={16}>
             {areas.map(area => (
@@ -387,13 +403,15 @@ function UsageVisualization() {
                     <DonutChart key={area} totalUsage={totalUsage} data={donutData} area={area} />
                 )
             })}
+            <DonutChart area="Subprojects" data={subProjects} totalUsage={subProjectTotalUsage} />
+            <DonutChart area="Capacity" data={capacityUsed} totalUsage={capacityTotalUsage} />
         </GridCardGroup>
     );
 }
 
 const COLORS: [ThemeColor, ThemeColor, ThemeColor, ThemeColor] = ["red", "green", "blue", "orange"];
 
-function DonutChart({area, data, totalUsage}: {area: string; data: {value: number, name: string}[]; totalUsage: number}): JSX.Element {
+function DonutChart({area, data, totalUsage}: {area: string; data: ValueNamePair[], totalUsage: number}): JSX.Element {
     return (
         <HighlightedCard height="auto" key={area} color="green">
             <Flex>
