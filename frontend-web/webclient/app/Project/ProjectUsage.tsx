@@ -9,7 +9,7 @@ import {Dispatch} from "redux";
 import {setRefreshFunction} from "Navigation/Redux/HeaderActions";
 import {loadingAction} from "Loading";
 import {dispatchSetProjectAction} from "Project/Redux";
-import {Area, AreaChart, Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis} from "recharts";
+import {Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis} from "recharts";
 import Table, {TableCell, TableHeader, TableHeaderCell, TableRow} from "ui-components/Table";
 import {
     ProductArea, productAreas,
@@ -24,7 +24,7 @@ import {
 import {useProjectManagementStatus} from "Project";
 import {ProjectBreadcrumbs} from "Project/Breadcrumbs";
 import styled from "styled-components";
-import {ThemeColor} from "ui-components/theme";
+import {CSSVarThemeColor, ThemeColor} from "ui-components/theme";
 import ClickableDropdown from "ui-components/ClickableDropdown";
 import {Client} from "Authentication/HttpClientInstance";
 import {getCssVar} from "Utilities/StyledComponentsUtilities";
@@ -318,7 +318,7 @@ const data = [
 
 function UsageVisualization() {
     const areas = ["Storage", "Usage"];
-
+    const pieChartData = [{value: Math.random() * 400}, {value: Math.random() * 400}, {value: Math.random() * 400}, {value: Math.random() * 400}];
     return (
         <GridCardGroup minmax={435} gridGap={16}>
             {areas.map(area => (
@@ -343,7 +343,7 @@ function UsageVisualization() {
                     />
                     {area === "Storage" ? (
                         <AreaChart
-                            style={{marginLeft: "-17px", marginBottom: "-4px"}}
+                            style={{marginLeft: "-17px", marginBottom: "-6px"}}
                             width={458}
                             height={320}
                             data={data}
@@ -359,7 +359,7 @@ function UsageVisualization() {
                         </AreaChart>
                     ) : (
                         <AreaChart
-                            style={{marginLeft: "-17px", marginBottom: "-4px"}}
+                            style={{alignItems: "center", marginLeft: "-17px", marginBottom: "-12px"}}
                             width={458}
                             height={320}
                             data={data}
@@ -371,21 +371,62 @@ function UsageVisualization() {
                             }}
                         >
                             <Tooltip />
-                            <Area type="linear" dataKey="Usage2" strokeWidth="2px" stroke={getCssVar("darkBlue")} fill={getCssVar("blue")} />
-                            <Area type="linear" dataKey="Usage3" strokeWidth="2px" stroke={getCssVar("darkRed")} fill={getCssVar("red")} />
-                            <Area type="linear" dataKey="Usage4" strokeWidth="2px" stroke={getCssVar("darkGreen")} fill={getCssVar("green")} />
-                            <Area type="linear" dataKey="Usage5" strokeWidth="2px" stroke={getCssVar("darkOrange")} fill={getCssVar("orange")} />
+                            <Area type="linear" opacity={0.8} dataKey="Usage2" strokeWidth="2px" stroke={getCssVar("darkBlue")} fill={getCssVar("blue")} />
+                            <Area type="linear" opacity={0.8} dataKey="Usage3" strokeWidth="2px" stroke={getCssVar("darkRed")} fill={getCssVar("red")} />
+                            <Area type="linear" opacity={0.8} dataKey="Usage4" strokeWidth="2px" stroke={getCssVar("darkGreen")} fill={getCssVar("green")} />
+                            <Area type="linear" opacity={0.8} dataKey="Usage5" strokeWidth="2px" stroke={getCssVar("darkOrange")} fill={getCssVar("orange")} />
                         </AreaChart>
                     )}
                 </HighlightedCard>
             ))}
-            {areas.map(area =>
-                null
-            )}
+            {areas.map(area => {
+                const totalUsage = pieChartData.reduce((acc, element) => acc + element.value, 0);
+                return (
+                    <HighlightedCard key={area} color="green">
+                        <Flex>
+                            <Box mr="auto" />
+                            <PieChart key={area} width={300} height={300}>
+                                <Pie
+                                    data={pieChartData}
+                                    fill="#8884d8"
+                                    dataKey="value"
+                                    innerRadius={80}
+                                >
+                                    {data.map((_, index) => (
+                                        <Cell key={`cell-${index}`} fill={getCssVar(COLORS[index % COLORS.length])} />
+                                    ))}
+                                </Pie>
+                            </PieChart>
+                            <Box ml="auto" />
+                        </Flex>
+                        <Flex>
+                            <Box mr="auto" />
+                            <Box mx="4px">
+                                <Text>a1-standard</Text>
+                                <Text textAlign="center" color={getCssVar("red")}>{Math.round(pieChartData[0].value / totalUsage * 10_000) / 100} %</Text>
+                            </Box>
+                            <Box mx="4px">
+                                <Text>u1-standard</Text>
+                                <Text textAlign="center" color={getCssVar("green")}>{Math.round(pieChartData[1].value / totalUsage * 10_000) / 100} %</Text>
+                            </Box>
+                            <Box mx="4px">
+                                <Text>u1-gpu</Text>
+                                <Text textAlign="center" color={getCssVar("blue")}>{Math.round(pieChartData[2].value / totalUsage * 10_000) / 100} %</Text>
+                            </Box>
+                            <Box mx="4px">
+                                <Text>u1-storage</Text>
+                                <Text textAlign="center" color={getCssVar("orange")}>{Math.round(pieChartData[3].value / totalUsage * 10_000) / 100} %</Text>
+                            </Box>
+                            <Box ml="auto" />
+                        </Flex>
+                    </HighlightedCard>
+                )
+            })}
         </GridCardGroup>
     );
 }
 
+const COLORS: ThemeColor[] = ["red", "green", "blue", "orange"];
 
 const VisualizationForArea: React.FunctionComponent<{
     area: ProductArea,
