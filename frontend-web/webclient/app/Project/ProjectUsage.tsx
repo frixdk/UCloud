@@ -3,7 +3,7 @@ import {MainContainer} from "MainContainer/MainContainer";
 import * as Heading from "ui-components/Heading";
 import * as React from "react";
 import {useEffect, useState} from "react";
-import {Box, Button, Card, Flex, Icon, SelectableText, SelectableTextWrapper, Text, theme} from "ui-components";
+import {Absolute, Box, Button, Card, Flex, Icon, Input, Relative, SelectableText, SelectableTextWrapper, Text, theme} from "ui-components";
 import {connect} from "react-redux";
 import {Dispatch} from "redux";
 import {setRefreshFunction} from "Navigation/Redux/HeaderActions";
@@ -336,6 +336,9 @@ const capacityUsed: ValueNamePair[] = [{value: randomVal(), name: "Capacity"}, {
 const capacityTotalUsage = capacityUsed.reduce((acc, element) => acc + element.value, 0);
 
 function UsageVisualization() {
+    const [selection, setSelection] = useState("");
+
+    if (selection) return <DetailedView title={selection} />
     return (
         <GridCardGroup minmax={435} gridGap={16}>
             {areas.map(area => (
@@ -360,6 +363,7 @@ function UsageVisualization() {
                     />
                     {area === "Storage" ? (
                         <AreaChart
+                            onClick={() => setSelection("Foo")}
                             style={{marginLeft: "-17px", marginBottom: "-6px"}}
                             width={458}
                             height={320}
@@ -459,6 +463,58 @@ function DonutChart({area, data, totalUsage}: {area: string; data: ValueNamePair
         </HighlightedCard>
     )
 }
+
+function DetailedView({title}): JSX.Element | null {
+    const searchRef = React.useRef<HTMLInputElement>(null);
+
+    return (
+        <Spacer
+            left={
+                <>
+                    <RoundedDropdown initialSelection="Storage" options={["Storage", "Compute"]} />
+                    <RoundedDropdown initialSelection="Past 30 Days" options={["Today", "Last week", "Past 30 days", "Past year"]} />
+                </>
+            }
+            right={
+                <>
+                    <BorderedFlex height="38px" width="38px">
+                        <Icon ml="2px" name="download" />
+                    </BorderedFlex>
+                    <Input pl="30px" autoComplete="off" style={{height: "38px", border: "1px solid var(--gray)"}} ref={searchRef} width="200px" />
+                    <Relative left="-198px">
+                        <Icon size="32px" mt="4px" name="search" color="gray" />
+                    </Relative>
+                </>
+            }
+        />
+    );
+}
+
+function RoundedDropdown({initialSelection, options}: {initialSelection: string, options: string[]}): JSX.Element {
+    const [selection, setSelection] = React.useState(initialSelection);
+
+    return (
+        <ClickableDropdown
+            trigger={
+                <BorderedFlex width="180px">
+                    <Text fontSize="19px" ml="6px" color="black" mr={8}>{selection}</Text>
+                    <Icon ml="auto" mr="6px" name="chevronDown" size={12} />
+                </BorderedFlex>}
+        >
+            {options.map(it => <Text key={it} onClick={() => setSelection(it)}>{it}</Text>)}
+        </ClickableDropdown>
+    )
+}
+
+const BorderedFlex = styled(Flex) <{width: string}>`
+    height: 38px;
+    margin-right: 15px;
+    width: ${p => p.width};
+    border: 1px solid var(--gray);
+    border-radius: 4px;
+    align-items: center;
+`;
+
 
 function toPercentageString(value: number) {
     return `${Math.round(value * 10_000) / 100} %`

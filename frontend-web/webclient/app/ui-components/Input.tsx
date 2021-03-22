@@ -83,7 +83,7 @@ Input.defaultProps = {
 };
 
 export const HiddenInputField = styled(Input)`
-  display: none;
+    display: none;
 `;
 
 export default Input;
@@ -97,9 +97,9 @@ const independent = ({independent}: {independent?: boolean}) => independent ?
 
 
 export interface InputLabelProps extends WidthProps {
-  leftLabel?: boolean;
-  rightLabel?: boolean;
-  independent?: boolean;
+    leftLabel?: boolean;
+    rightLabel?: boolean;
+    independent?: boolean;
 }
 
 export const InputLabel = styled(Text) <InputLabelProps>`
