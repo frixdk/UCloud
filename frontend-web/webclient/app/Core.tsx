@@ -153,7 +153,7 @@ const Core = (): JSX.Element => (
                     <Route exact path="/projects" component={requireAuth(ProjectList)} />
                     <Route exact path="/project/dashboard" component={requireAuth(ProjectDashboard)} />
                     <Route exact path="/project/settings/:page?" component={requireAuth(ProjectSettings)} />
-                    <Route exact path="/project/usage" component={requireAuth(ProjectUsage)} />
+                    <Route exact path="/project/usage/:field?" component={requireAuth(ProjectUsage)} />
                     <Route exact path="/project/subprojects" component={requireAuth(Subprojects)} />
                     <Route
                         exact

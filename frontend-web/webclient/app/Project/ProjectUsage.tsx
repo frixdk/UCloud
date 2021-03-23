@@ -3,7 +3,7 @@ import {MainContainer} from "MainContainer/MainContainer";
 import * as Heading from "ui-components/Heading";
 import * as React from "react";
 import {useEffect, useState} from "react";
-import {Absolute, Box, Button, Card, Flex, Icon, Input, Relative, SelectableText, SelectableTextWrapper, Text, theme} from "ui-components";
+import {Box, Button, Card, Flex, Icon, Input, Relative, Text, theme} from "ui-components";
 import {connect} from "react-redux";
 import {Dispatch} from "redux";
 import {setRefreshFunction} from "Navigation/Redux/HeaderActions";
@@ -12,7 +12,7 @@ import {dispatchSetProjectAction} from "Project/Redux";
 import {Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis} from "recharts";
 import Table, {TableCell, TableHeader, TableHeaderCell, TableRow} from "ui-components/Table";
 import {
-    ProductArea, productAreas,
+    ProductArea,
     productAreaTitle,
     retrieveBalance,
     RetrieveBalanceResponse,
@@ -24,7 +24,7 @@ import {
 import {useProjectManagementStatus} from "Project";
 import {ProjectBreadcrumbs} from "Project/Breadcrumbs";
 import styled from "styled-components";
-import {CSSVarThemeColor, ThemeColor} from "ui-components/theme";
+import { ThemeColor} from "ui-components/theme";
 import ClickableDropdown from "ui-components/ClickableDropdown";
 import {Client} from "Authentication/HttpClientInstance";
 import {getCssVar} from "Utilities/StyledComponentsUtilities";
@@ -35,8 +35,7 @@ import {capitalized} from "UtilityFunctions";
 import {GridCardGroup} from "ui-components/Grid";
 import {HighlightedCard} from "Dashboard/Dashboard";
 import {Spacer} from "ui-components/Spacer";
-import Subprojects from "./Subprojects";
-import {useParams, useRouteMatch} from "react-router";
+import {useHistory, useRouteMatch} from "react-router";
 
 function dateFormatter(timestamp: number): string {
     const date = new Date(timestamp);
@@ -341,10 +340,10 @@ const capacityUsed: ValueNamePair[] = [{value: randomVal(), name: "Capacity"}, {
 const capacityTotalUsage = capacityUsed.reduce((acc, element) => acc + element.value, 0);
 
 function UsageVisualization() {
-    const [selection, setSelection] = useState("");
-    console.log(useRouteMatch());
+    const {field} = useRouteMatch<{field?: string}>().params;
+    const history = useHistory();
 
-    if (selection) return <DetailedView title={selection} />
+    if (field) return <DetailedView title={field} />
     return (
         <GridCardGroup minmax={435} gridGap={16}>
             {areas.map(area => (
@@ -370,7 +369,7 @@ function UsageVisualization() {
                     <ResponsiveContainer>
                         {area === "Storage" ? (
                             <AreaChart
-                                onClick={() => setSelection("Foo")}
+                                onClick={() => history.push(`/project/usage/${area}`)}
                                 data={data}
                             >
                                 <Tooltip />
@@ -378,7 +377,7 @@ function UsageVisualization() {
                             </AreaChart>
                         ) : (
                             <AreaChart
-                                onClick={() => setSelection("Foo")}
+                                onClick={() => history.push(`/project/usage/${area}`)}
                                 data={data}
                             >
                                 <Tooltip />
@@ -496,21 +495,26 @@ function DetailedView({title}): JSX.Element | null {
             <Card my="30px" width="100%" px="10px" py="10">
                 <Table>
                     <TableHeader style={{borderBottom: "1px solid var(--lightGray)"}}>
-                        <TableHeaderCell>
-                            Subproject
-                        </TableHeaderCell>
-                        <TableHeaderCell>
-                            Product breakdown
-                        </TableHeaderCell>
-                        <TableHeaderCell>
-                            Most used product
-                        </TableHeaderCell>
-                        <TableHeaderCell>
-                            Balance
-                        </TableHeaderCell>
-                        <TableHeaderCell>
-                            Active
-                        </TableHeaderCell>
+                        <TableRow>
+                            <TableHeaderCell>
+                                Subproject
+                            </TableHeaderCell>
+                            <TableHeaderCell>
+                                Product breakdown
+                            </TableHeaderCell>
+                            <TableHeaderCell>
+                                Most used product
+                            </TableHeaderCell>
+                            <TableHeaderCell>
+                                Balance used
+                            </TableHeaderCell>
+                            <TableHeaderCell>
+                                Balance remaining
+                            </TableHeaderCell>
+                            <TableHeaderCell>
+                                Active
+                            </TableHeaderCell>
+                        </TableRow>
                     </TableHeader>
                     <tbody>
                         {mockSubprojecs.map(it =>
