@@ -36,6 +36,7 @@ import {GridCardGroup} from "ui-components/Grid";
 import {HighlightedCard} from "Dashboard/Dashboard";
 import {Spacer} from "ui-components/Spacer";
 import Subprojects from "./Subprojects";
+import {useParams, useRouteMatch} from "react-router";
 
 function dateFormatter(timestamp: number): string {
     const date = new Date(timestamp);
@@ -254,9 +255,9 @@ const ProjectUsage: React.FunctionComponent<ProjectUsageOperations> = props => {
             }
             sidebar={null}
             main={
-                /* <Box minWidth={600} width="80%" mt={30} marginLeft="auto" marginRight="auto"> */
+                <Box minWidth={600} width="80%" mt={30} marginLeft="auto" marginRight="auto">
                     <UsageVisualization />
-                /* </Box> */
+                </Box>
             }
         />
     );
@@ -341,12 +342,13 @@ const capacityTotalUsage = capacityUsed.reduce((acc, element) => acc + element.v
 
 function UsageVisualization() {
     const [selection, setSelection] = useState("");
+    console.log(useRouteMatch());
 
     if (selection) return <DetailedView title={selection} />
     return (
         <GridCardGroup minmax={435} gridGap={16}>
             {areas.map(area => (
-                <HighlightedCard key={area} height="396px" color="green">
+                <HighlightedCard key={area} height="437px" color="green">
                     <Spacer
                         left={
                             <Box>
@@ -365,43 +367,28 @@ function UsageVisualization() {
                             />
                         }
                     />
-                    {area === "Storage" ? (
-                        <AreaChart
-                            onClick={() => setSelection("Foo")}
-                            style={{marginLeft: "-17px", marginBottom: "-6px"}}
-                            width={458}
-                            height={320}
-                            data={data}
-                            margin={{
-                                top: 0,
-                                right: 0,
-                                left: 0,
-                                bottom: 0,
-                            }}
-                        >
-                            <Tooltip />
-                            <Area type="linear" opacity={1} dataKey="Usage" strokeWidth="2px" stroke={getCssVar("darkBlue")} fill={getCssVar("blue")} />
-                        </AreaChart>
-                    ) : (
-                        <AreaChart
-                            style={{alignItems: "center", marginLeft: "-17px", marginBottom: "-12px"}}
-                            width={458}
-                            height={320}
-                            data={data}
-                            margin={{
-                                top: 0,
-                                right: 0,
-                                left: 0,
-                                bottom: 0,
-                            }}
-                        >
-                            <Tooltip />
-                            <Area type="linear" opacity={0.8} dataKey="Usage2" strokeWidth="2px" stroke={getCssVar("darkBlue")} fill={getCssVar("blue")} />
-                            <Area type="linear" opacity={0.8} dataKey="Usage3" strokeWidth="2px" stroke={getCssVar("darkRed")} fill={getCssVar("red")} />
-                            <Area type="linear" opacity={0.8} dataKey="Usage4" strokeWidth="2px" stroke={getCssVar("darkGreen")} fill={getCssVar("green")} />
-                            <Area type="linear" opacity={0.8} dataKey="Usage5" strokeWidth="2px" stroke={getCssVar("darkOrange")} fill={getCssVar("orange")} />
-                        </AreaChart>
-                    )}
+                    <ResponsiveContainer>
+                        {area === "Storage" ? (
+                            <AreaChart
+                                onClick={() => setSelection("Foo")}
+                                data={data}
+                            >
+                                <Tooltip />
+                                <Area type="linear" opacity={1} dataKey="Usage" strokeWidth="2px" stroke={getCssVar("darkBlue")} fill={getCssVar("blue")} />
+                            </AreaChart>
+                        ) : (
+                            <AreaChart
+                                onClick={() => setSelection("Foo")}
+                                data={data}
+                            >
+                                <Tooltip />
+                                <Area type="linear" opacity={0.8} dataKey="Usage2" strokeWidth="2px" stroke={getCssVar("darkBlue")} fill={getCssVar("blue")} />
+                                <Area type="linear" opacity={0.8} dataKey="Usage3" strokeWidth="2px" stroke={getCssVar("darkRed")} fill={getCssVar("red")} />
+                                <Area type="linear" opacity={0.8} dataKey="Usage4" strokeWidth="2px" stroke={getCssVar("darkGreen")} fill={getCssVar("green")} />
+                                <Area type="linear" opacity={0.8} dataKey="Usage5" strokeWidth="2px" stroke={getCssVar("darkOrange")} fill={getCssVar("orange")} />
+                            </AreaChart>
+                        )}
+                    </ResponsiveContainer>
                 </HighlightedCard>
             ))}
             {areas.map(area => {
@@ -449,7 +436,7 @@ function DonutChart({area, data, totalUsage}: {area: string; data: ValueNamePair
                 </PieChart>
                 <Box ml="auto" />
             </Flex>
-            <Flex pb="12px">
+            {totalUsage == null ? null : <Flex pb="12px">
                 <Box mr="auto" />
                 {data.map((it, index) =>
                     <Box mx="auto" key={it.name}>
@@ -463,10 +450,24 @@ function DonutChart({area, data, totalUsage}: {area: string; data: ValueNamePair
                     </Box>
                 )}
                 <Box ml="auto" />
-            </Flex>
+            </Flex>}
         </HighlightedCard>
     )
 }
+
+const mockSubprojecs = [{
+    name: "Foo/Bar/Baz",
+    data: pieChartData,
+    mostUsed: "u2-cephfs",
+    balanceUsed: 500_000_000,
+    balanceRemaining: 1_000_000_000,
+}, {
+    name: "Qux/Quaz/Quxx",
+    data: pieChartData2,
+    mostUsed: "u1-cephfs",
+    balanceUsed: 500_000_000,
+    balanceRemaining: 1_000_000_000,
+}];
 
 function DetailedView({title}): JSX.Element | null {
     const searchRef = React.useRef<HTMLInputElement>(null);
@@ -492,9 +493,9 @@ function DetailedView({title}): JSX.Element | null {
                     </>
                 }
             />
-            <Card my="30px" width="100%">
+            <Card my="30px" width="100%" px="10px" py="10">
                 <Table>
-                    <TableHeader>
+                    <TableHeader style={{borderBottom: "1px solid var(--lightGray)"}}>
                         <TableHeaderCell>
                             Subproject
                         </TableHeaderCell>
@@ -507,7 +508,37 @@ function DetailedView({title}): JSX.Element | null {
                         <TableHeaderCell>
                             Balance
                         </TableHeaderCell>
+                        <TableHeaderCell>
+                            Active
+                        </TableHeaderCell>
                     </TableHeader>
+                    <tbody>
+                        {mockSubprojecs.map(it =>
+                            <TableRow style={{borderBottom: "1px solid var(--lightGray)"}} key={it.name}>
+                                <td>{it.name}</td>
+                                <td>
+                                    <Box width="80px" ml="auto" mr="auto">
+                                        <PieChart width={80} height={80}>
+                                            <Pie
+                                                data={it.data}
+                                                fill="#8884d8"
+                                                dataKey="value"
+                                                innerRadius={18}
+                                            >
+                                                {it.data.map((_, index) => (
+                                                    <Cell key={`cell-${index}`} fill={getCssVar(COLORS[index % COLORS.length])} />
+                                                ))}
+                                            </Pie>
+                                        </PieChart>
+                                    </Box>
+                                </td>
+                                <td>{it.mostUsed}</td>
+                                <td>{creditFormatter(it.balanceUsed)}</td>
+                                <td>{creditFormatter(it.balanceRemaining)}</td>
+                                <td><Icon name="check" color="green" /></td>
+                            </TableRow>
+                        )}
+                    </tbody>
                 </Table>
             </Card>
         </>
@@ -724,7 +755,7 @@ const SummaryStat = styled.figure`
     margin: 0;
 
     figcaption {
-                            display: block;
+                                display: block;
         color: var(--gray, #ff0);
         text-transform: uppercase;
         font-size: 12px;
@@ -738,7 +769,7 @@ const SummaryWrapper = styled(Card)`
     align-items: center;
 
     h4 {
-                            flex - grow: 2;
+                                flex - grow: 2;
     }
 `;
 
