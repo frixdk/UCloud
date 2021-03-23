@@ -241,10 +241,10 @@ const ProjectUsage: React.FunctionComponent<ProjectUsageOperations> = props => {
                         <ProjectBreadcrumbs allowPersonalProject crumbs={[{title: "Usage"}]} />
                         <ClickableDropdown
                             trigger={
-                                <Flex style={{border: "1px solid gray"}} alignItems={"center"}>
-                                    <Heading.h4 mr={8}>{durationOption.text}</Heading.h4>
-                                    <Icon name="chevronDown" size={16} />
-                                </Flex>
+                                <BorderedFlex width="180px">
+                                    <Heading.h4 ml="8px">{durationOption.text}</Heading.h4>
+                                    <Icon mr="4px" ml="auto" name="chevronDown" size={16} />
+                                </BorderedFlex>
                             }
                             onChange={opt => setDurationOption(durationOptions[parseInt(opt, 10)])}
                             options={durationOptions.map((it, idx) => ({text: it.text, value: `${idx}`}))}
@@ -253,7 +253,11 @@ const ProjectUsage: React.FunctionComponent<ProjectUsageOperations> = props => {
                 </Box>
             }
             sidebar={null}
-            main={<UsageVisualization />}
+            main={
+                /* <Box minWidth={600} width="80%" mt={30} marginLeft="auto" marginRight="auto"> */
+                    <UsageVisualization />
+                /* </Box> */
+            }
         />
     );
 };
@@ -348,7 +352,7 @@ function UsageVisualization() {
                             <Box>
                                 <Text color="gray">{area}</Text>
                                 <Text bold my="-6px" fontSize="24px">{area === "Storage" ? "239 GB used" : "1.038 DKK used"}</Text>
-                                <Text fontSize="14px">Remaining{area === "Storage" ? " Remaining 200 GB" : " 5.000 DKK"}</Text>
+                                <Text fontSize="14px">Remaining{area === "Storage" ? " 200 GB" : " 5.000 DKK"}</Text>
                             </Box>
                         }
                         right={
@@ -468,25 +472,45 @@ function DetailedView({title}): JSX.Element | null {
     const searchRef = React.useRef<HTMLInputElement>(null);
 
     return (
-        <Spacer
-            left={
-                <>
-                    <RoundedDropdown initialSelection="Storage" options={["Storage", "Compute"]} />
-                    <RoundedDropdown initialSelection="Past 30 Days" options={["Today", "Last week", "Past 30 days", "Past year"]} />
-                </>
-            }
-            right={
-                <>
-                    <BorderedFlex height="38px" width="38px">
-                        <Icon ml="2px" name="download" />
-                    </BorderedFlex>
-                    <Input pl="30px" autoComplete="off" style={{height: "38px", border: "1px solid var(--gray)"}} ref={searchRef} width="200px" />
-                    <Relative left="-198px">
-                        <Icon size="32px" mt="4px" name="search" color="gray" />
-                    </Relative>
-                </>
-            }
-        />
+        <>
+            <Spacer
+                left={
+                    <>
+                        <RoundedDropdown initialSelection="Storage" options={["Storage", "Compute"]} />
+                        <RoundedDropdown initialSelection="Past 30 Days" options={["Today", "Last week", "Past 30 days", "Past year"]} />
+                    </>
+                }
+                right={
+                    <>
+                        <BorderedFlex height="38px" width="38px">
+                            <Icon ml="2px" name="download" />
+                        </BorderedFlex>
+                        <Input pl="30px" autoComplete="off" style={{height: "38px", border: "1px solid var(--gray)"}} ref={searchRef} width="200px" />
+                        <Relative left="-198px">
+                            <Icon size="32px" mt="4px" name="search" color="gray" />
+                        </Relative>
+                    </>
+                }
+            />
+            <Card my="30px" width="100%">
+                <Table>
+                    <TableHeader>
+                        <TableHeaderCell>
+                            Subproject
+                        </TableHeaderCell>
+                        <TableHeaderCell>
+                            Product breakdown
+                        </TableHeaderCell>
+                        <TableHeaderCell>
+                            Most used product
+                        </TableHeaderCell>
+                        <TableHeaderCell>
+                            Balance
+                        </TableHeaderCell>
+                    </TableHeader>
+                </Table>
+            </Card>
+        </>
     );
 }
 
