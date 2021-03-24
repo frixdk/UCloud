@@ -471,7 +471,7 @@ const mockSubprojects = [{
 function DetailedView({title}): JSX.Element | null {
     const searchRef = React.useRef<HTMLInputElement>(null);
     const [selected, setSelected] = React.useState("");
-    const subprojects: typeof mockSubprojects = selected ? [mockSubprojects.find(it => it.name)!] : mockSubprojects;
+    const subprojects: typeof mockSubprojects = selected ? [mockSubprojects.find(it => it.name === selected)!] : mockSubprojects;
     const totalUsage = !selected ? 0 : subprojects[0].data.reduce((acc, element) => acc + element.value, 0);
     return (
         <>
