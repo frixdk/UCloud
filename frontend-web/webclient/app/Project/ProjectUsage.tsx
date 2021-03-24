@@ -3,7 +3,7 @@ import {MainContainer} from "MainContainer/MainContainer";
 import * as Heading from "ui-components/Heading";
 import * as React from "react";
 import {useEffect, useState} from "react";
-import {Box, Button, Card, Flex, Icon, Input, Relative, Text, theme} from "ui-components";
+import {Box, Button, Card, Flex, Icon, Input, Link, Relative, Text, theme} from "ui-components";
 import {connect} from "react-redux";
 import {Dispatch} from "redux";
 import {setRefreshFunction} from "Navigation/Redux/HeaderActions";
@@ -24,7 +24,7 @@ import {
 import {useProjectManagementStatus} from "Project";
 import {ProjectBreadcrumbs} from "Project/Breadcrumbs";
 import styled from "styled-components";
-import { ThemeColor} from "ui-components/theme";
+import {ThemeColor} from "ui-components/theme";
 import ClickableDropdown from "ui-components/ClickableDropdown";
 import {Client} from "Authentication/HttpClientInstance";
 import {getCssVar} from "Utilities/StyledComponentsUtilities";
@@ -32,7 +32,7 @@ import {useTitle} from "Navigation/Redux/StatusActions";
 import {useSidebarPage, SidebarPages} from "ui-components/Sidebar";
 import {Dropdown} from "ui-components/Dropdown";
 import {capitalized} from "UtilityFunctions";
-import {GridCardGroup} from "ui-components/Grid";
+import Grid, {GridCardGroup} from "ui-components/Grid";
 import {HighlightedCard} from "Dashboard/Dashboard";
 import {Spacer} from "ui-components/Spacer";
 import {useHistory, useRouteMatch} from "react-router";
@@ -454,7 +454,7 @@ function DonutChart({area, data, totalUsage}: {area: string; data: ValueNamePair
     )
 }
 
-const mockSubprojecs = [{
+const mockSubprojects = [{
     name: "Foo/Bar/Baz",
     data: pieChartData,
     mostUsed: "u2-cephfs",
@@ -470,7 +470,9 @@ const mockSubprojecs = [{
 
 function DetailedView({title}): JSX.Element | null {
     const searchRef = React.useRef<HTMLInputElement>(null);
-
+    const [selected, setSelected] = React.useState("");
+    const subprojects: typeof mockSubprojects = selected ? [mockSubprojects.find(it => it.name)!] : mockSubprojects;
+    const totalUsage = !selected ? 0 : subprojects[0].data.reduce((acc, element) => acc + element.value, 0);
     return (
         <>
             <Spacer
@@ -485,43 +487,43 @@ function DetailedView({title}): JSX.Element | null {
                         <BorderedFlex height="38px" width="38px">
                             <Icon ml="2px" name="download" />
                         </BorderedFlex>
-                        <Input pl="30px" autoComplete="off" style={{height: "38px", border: "1px solid var(--gray)"}} ref={searchRef} width="200px" />
+                        <Input pl="32px" autoComplete="off" style={{height: "38px", border: "1px solid var(--gray)"}} ref={searchRef} width="200px" />
                         <Relative left="-198px">
                             <Icon size="32px" mt="4px" name="search" color="gray" />
                         </Relative>
                     </>
                 }
             />
-            <Card my="30px" width="100%" px="10px" py="10">
+            <Card my="30px" width="100%" py="10">
                 <Table>
-                    <TableHeader style={{borderBottom: "1px solid var(--lightGray)"}}>
+                    <TableHeader style={{marginLeft: "10px", marginRight: "10px", borderBottom: "1px solid var(--lightGray)"}}>
                         <TableRow>
-                            <TableHeaderCell>
+                            <TableHeaderCell style={{paddingLeft: "4px"}} textAlign="left">
                                 Subproject
                             </TableHeaderCell>
-                            <TableHeaderCell>
+                            <TableHeaderCell textAlign="left">
                                 Product breakdown
                             </TableHeaderCell>
-                            <TableHeaderCell>
+                            <TableHeaderCell textAlign="left">
                                 Most used product
                             </TableHeaderCell>
-                            <TableHeaderCell>
+                            <TableHeaderCell textAlign="left">
                                 Balance used
                             </TableHeaderCell>
-                            <TableHeaderCell>
+                            <TableHeaderCell textAlign="left">
                                 Balance remaining
                             </TableHeaderCell>
-                            <TableHeaderCell>
+                            <TableHeaderCell textAlign="left">
                                 Active
                             </TableHeaderCell>
                         </TableRow>
                     </TableHeader>
                     <tbody>
-                        {mockSubprojecs.map(it =>
-                            <TableRow style={{borderBottom: "1px solid var(--lightGray)"}} key={it.name}>
-                                <td>{it.name}</td>
+                        {subprojects.map(it =>
+                            <TableRow onClick={() => setSelected(it.name)} style={{borderBottom: "1px solid var(--lightGray)"}} key={it.name}>
+                                <td style={{paddingLeft: "4px"}}>{it.name}</td>
                                 <td>
-                                    <Box width="80px" ml="auto" mr="auto">
+                                    <Box ml="auto" mr="auto">
                                         <PieChart width={80} height={80}>
                                             <Pie
                                                 data={it.data}
@@ -544,6 +546,58 @@ function DetailedView({title}): JSX.Element | null {
                         )}
                     </tbody>
                 </Table>
+                {!selected ? null :
+                    <Flex>
+                        <Flex width="66%">
+                            <Box>
+                                <PieChart width={300} height={300}>
+                                    <Pie
+                                        data={subprojects[0].data}
+                                        fill="#8884d8"
+                                        dataKey="value"
+                                        innerRadius={80}
+                                    >
+                                        {subprojects[0].data.map((_, index) => (
+                                            <Cell key={`cell-${index}`} fill={getCssVar(COLORS[index % COLORS.length])} />
+                                        ))}
+                                    </Pie>
+                                </PieChart>
+                            </Box>
+                            <Box mx="auto">
+                                <Grid style={{gap: "10px 20px"}} gridTemplateColumns="auto auto">
+                                    {subprojects[0].data.map((it, index) =>
+                                        <Box key={it.name}>
+                                            <Text textAlign="center" fontSize="14px">{it.name}</Text>
+                                            <Text
+                                                textAlign="center"
+                                                color={getCssVar(COLORS[index % COLORS.length])}
+                                            >
+                                                {toPercentageString(it.value / totalUsage)}
+                                            </Text>
+                                        </Box>
+                                    )}
+                                </Grid>
+                            </Box>
+                        </Flex>
+                        <Box width="34%" style={{border: "1px solid var(--lightGray)"}}>
+                            <Flex m="auto" style={{borderBottom: "1px solid var(--lightGray)", height: "20%"}}>
+                                <Text pl="12px" m="auto" width="60%">Number of members</Text> <Text m="auto" width="40%">{"10 members"}</Text>
+                            </Flex>
+                            <Flex m="auto" style={{border: "1px solid var(--lightGray)", height: "20%"}}>
+                                <Text pl="12px" m="auto" width="60%">Number of groups</Text> <Text m="auto" width="40%">{"5 groups"}</Text>
+                            </Flex>
+                            <Flex m="auto" style={{border: "1px solid var(--lightGray)", height: "20%"}}>
+                                <Text pl="12px" my="auto"><Link to="/">Grant Application</Link></Text>
+                            </Flex>
+                            <Flex m="auto" style={{border: "1px solid var(--lightGray)", height: "20%"}}>
+                                <Text pl="12px" m="auto" width="60%">Data management plan</Text> <Text m="auto" width="40%"><Link to="/">Yes</Link></Text>
+                            </Flex>
+                            <Flex m="auto" style={{height: "20%"}}>
+                                <Text m="auto" width="60%">{/* ??? */}</Text>
+                            </Flex>
+                        </Box>
+                    </Flex>
+                }
             </Card>
         </>
     );
