@@ -494,11 +494,11 @@ function DetailedView({title}): JSX.Element | null {
                     </>
                 }
             />
-            <Card my="30px" width="100%" py="10">
+            <Box my="30px" width="100%" borderRadius="4px" style={{border: "2px solid gray"}}>
                 <Table>
-                    <TableHeader style={{marginLeft: "10px", marginRight: "10px", borderBottom: "1px solid var(--lightGray)"}}>
+                    <TableHeader style={{marginLeft: "10px", marginRight: "10px", borderBottom: "1px solid var(--lightGray)", borderRadius: "6px"}}>
                         <TableRow>
-                            <TableHeaderCell style={{paddingLeft: "4px"}} textAlign="left">
+                            <TableHeaderCell style={{paddingLeft: "12px"}} textAlign="left">
                                 Subproject
                             </TableHeaderCell>
                             <TableHeaderCell textAlign="left">
@@ -520,8 +520,8 @@ function DetailedView({title}): JSX.Element | null {
                     </TableHeader>
                     <tbody>
                         {subprojects.map(it =>
-                            <TableRow onClick={() => setSelected(it.name)} style={{borderBottom: "1px solid var(--lightGray)"}} key={it.name}>
-                                <td style={{paddingLeft: "4px"}}>{it.name}</td>
+                            <TableRow onClick={() => setSelected(s => s ? "" : it.name)} style={{borderBottom: "1px solid var(--lightGray)"}} key={it.name}>
+                                <td style={{paddingLeft: "12px"}}>{it.name}</td>
                                 <td>
                                     <Box ml="auto" mr="auto">
                                         <PieChart width={80} height={80}>
@@ -598,7 +598,7 @@ function DetailedView({title}): JSX.Element | null {
                         </Box>
                     </Flex>
                 }
-            </Card>
+            </Box>
         </>
     );
 }
