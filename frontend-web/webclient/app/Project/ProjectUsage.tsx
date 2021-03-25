@@ -348,7 +348,7 @@ function UsageVisualization() {
     return (
         <GridCardGroup minmax={435} gridGap={16}>
             {areas.map(area => (
-                <HighlightedCard key={area} height="437px" color="green">
+                <HighlightedCard px={0} key={area} height="437px" color="green">
                     <Spacer
                         left={
                             <Box>
@@ -359,17 +359,23 @@ function UsageVisualization() {
                         }
                         right={
                             <ClickableDropdown
-                                trigger={<Box mr="-14px" mt="2px"><Icon rotation={90} name="ellipsis" /></Box>}
-                                left="-112px"
+                                trigger={<Box mr="4px" mt="4px"><Icon rotation={90} name="ellipsis" /></Box>}
+                                left="-111px"
                                 top="-4px"
                                 options={[{text: "Storage (GB)", value: "storage_gb"}, {text: "Storage (DKK)", value: "storage_price"}, {text: "Compute (DKK)", value: "compute"}]}
                                 onChange={it => console.log(it)}
                             />
                         }
                     />
-                    <ResponsiveContainer>
+                    <ResponsiveContainer height={360}>
                         {area === "Storage" ? (
                             <AreaChart
+                                margin={{
+                                    left: 0,
+                                    top: 0,
+                                    right: 0,
+                                    bottom: 0
+                                }}
                                 onClick={() => history.push(`/project/usage/${area}`)}
                                 data={data}
                             >
@@ -489,16 +495,16 @@ function DetailedView({title}): JSX.Element | null {
                         <BorderedFlex height="38px" width="36px">
                             <Icon ml="2px" name="download" />
                         </BorderedFlex>
-                        <Input pl="32px" autoComplete="off" style={{height: "38px", border: "1px solid #d5d8d8"}} ref={searchRef} width="200px" />
+                        <Input pl="32px" autoComplete="off" style={{height: "38px", border: "1px solid var(--usageGray)"}} ref={searchRef} width="200px" />
                         <Relative left="-198px">
                             <Icon size="32px" mt="4px" name="search" color="gray" />
                         </Relative>
                     </>
                 }
             />
-            <Box my="30px" width="100%" borderRadius="4px" style={{border: "2px solid #d5d8d8"}}>
+            <Box my="30px" width="100%" borderRadius="4px" style={{border: "2px solid var(--usageGray)"}}>
                 <Table>
-                    <TableHeader style={{marginLeft: "10px", marginRight: "10px", borderBottom: "1px solid #d5d8d8", borderRadius: "6px"}}>
+                    <TableHeader style={{marginLeft: "10px", marginRight: "10px", borderBottom: "1px solid var(--usageGray)", borderRadius: "6px"}}>
                         <TableRow>
                             <TableHeaderCell style={{paddingLeft: "12px"}} textAlign="left">
                                 Subproject
@@ -549,7 +555,7 @@ function DetailedView({title}): JSX.Element | null {
                     </tbody>
                 </Table>
                 {!selected ? null :
-                    <Flex style={{borderTop: "1px solid #d5d8d8"}}>
+                    <Flex style={{borderTop: "1px solid var(--usageGray)"}}>
                         <Box width="33%">
                             <Box ml="calc(50% - 150px)">
                                 <PieChart width={300} height={300}>
@@ -581,7 +587,7 @@ function DetailedView({title}): JSX.Element | null {
                                 )}
                             </Grid>
                         </Box>
-                        <Box width="34%" style={{borderLeft: "1px solid #d5d8d8"}}>
+                        <Box width="34%" style={{borderLeft: "1px solid var(--usageGray)"}}>
                             <FixedHeightFlex>
                                 <Text pl="12px" m="auto" width="60%">Number of members</Text> <Text m="auto" width="40%">{"10 members"}</Text>
                             </FixedHeightFlex>
@@ -611,7 +617,7 @@ function DetailedView({title}): JSX.Element | null {
 
 const FixedHeightFlex = styled(Flex)`
     &:not(:last-child) {
-        border-bottom: 1px solid #d5d8d8;
+        border-bottom: 1px solid var(--usageGray);
     }
     height: 20%;
     margin: auto;
@@ -619,7 +625,7 @@ const FixedHeightFlex = styled(Flex)`
 
 const BorderedTableRow = styled(TableRow)`
     &:not(:last-child) {
-        border-bottom: 1px solid #d5d8d8;
+        border-bottom: 1px solid var(--usageGray);
     }
 `;
 
@@ -629,9 +635,9 @@ function RoundedDropdown({initialSelection, options}: {initialSelection: string,
     return (
         <ClickableDropdown
             trigger={
-                <BorderedFlex width="180px">
+                <BorderedFlex pl="22px" width="180px">
                     <Text fontSize="19px" ml="6px" color="black" mr={8}>{selection}</Text>
-                    <Icon ml="auto" mr="6px" name="chevronDown" size={12} />
+                    <Icon name="chevronDown" size={12} />
                 </BorderedFlex>}
         >
             {options.map(it => <Text key={it} onClick={() => setSelection(it)}>{it}</Text>)}
@@ -643,7 +649,7 @@ const BorderedFlex = styled(Flex) <{width: string}>`
     height: 38px;
     margin-right: 15px;
     width: ${p => p.width};
-    border: 1px solid #d5d8d8;
+    border: 1px solid var(--usageGray);
     border-radius: 4px;
     align-items: center;
 `;

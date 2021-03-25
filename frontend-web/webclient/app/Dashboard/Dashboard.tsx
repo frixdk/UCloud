@@ -68,8 +68,9 @@ export const HighlightedCard: React.FunctionComponent<{
     minHeight?: string,
     width?: string,
     minWidth?: string,
+    px?: string | number;
     onClick?: () => void;
-}> = ({title, subtitle, onClick, color, isLoading = false, icon = undefined, children, height = "auto", minHeight, width = "100%", minWidth}) => (
+}> = ({title, subtitle, onClick, color, px = 3, isLoading = false, icon = undefined, children, height = "auto", minHeight, width = "100%", minWidth}) => (
     <Card
         onClick={onClick}
         overflow="hidden"
@@ -82,7 +83,7 @@ export const HighlightedCard: React.FunctionComponent<{
         minHeight={minHeight}
     >
         <Box style={{borderTop: `5px solid var(--${color}, #f00)`}} />
-        <Box px={3} py={1} height={"calc(100% - 5px)"} >
+        <Box px={px} py={1} height={"calc(100% - 5px)"} >
             <Flex alignItems="center">
                 {icon !== undefined ? (
                     <Icon
