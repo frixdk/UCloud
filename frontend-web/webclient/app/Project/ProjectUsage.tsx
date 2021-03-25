@@ -36,6 +36,7 @@ import Grid, {GridCardGroup} from "ui-components/Grid";
 import {HighlightedCard} from "Dashboard/Dashboard";
 import {Spacer} from "ui-components/Spacer";
 import {useHistory, useRouteMatch} from "react-router";
+import {PaginationButtons} from "Pagination";
 
 function dateFormatter(timestamp: number): string {
     const date = new Date(timestamp);
@@ -236,7 +237,7 @@ const ProjectUsage: React.FunctionComponent<ProjectUsageOperations> = props => {
     return (
         <MainContainer
             header={
-                <Box>
+                <Box minWidth={600} width="80%" mt={30} marginLeft="auto" marginRight="auto">
                     <UsageHeader>
                         <ProjectBreadcrumbs allowPersonalProject crumbs={[{title: "Usage"}]} />
                         <ClickableDropdown
@@ -403,9 +404,10 @@ function UsageVisualization() {
     );
 }
 
-const COLORS: [ThemeColor, ThemeColor, ThemeColor, ThemeColor] = ["red", "green", "blue", "orange"];
+const COLORS: [ThemeColor, ThemeColor, ThemeColor, ThemeColor, ThemeColor] = ["green", "red", "blue", "orange", "yellow"];
 
 function DonutChart({area, data, totalUsage}: {area: string; data: ValueNamePair[], totalUsage: number}): JSX.Element {
+    const isCapacity = area == "Capacity";
     return (
         <HighlightedCard height="auto" key={area} color="green">
             <Flex>
@@ -484,19 +486,19 @@ function DetailedView({title}): JSX.Element | null {
                 }
                 right={
                     <>
-                        <BorderedFlex height="38px" width="38px">
+                        <BorderedFlex height="38px" width="36px">
                             <Icon ml="2px" name="download" />
                         </BorderedFlex>
-                        <Input pl="32px" autoComplete="off" style={{height: "38px", border: "1px solid var(--gray)"}} ref={searchRef} width="200px" />
+                        <Input pl="32px" autoComplete="off" style={{height: "38px", border: "1px solid #d5d8d8"}} ref={searchRef} width="200px" />
                         <Relative left="-198px">
                             <Icon size="32px" mt="4px" name="search" color="gray" />
                         </Relative>
                     </>
                 }
             />
-            <Box my="30px" width="100%" borderRadius="4px" style={{border: "2px solid gray"}}>
+            <Box my="30px" width="100%" borderRadius="4px" style={{border: "2px solid #d5d8d8"}}>
                 <Table>
-                    <TableHeader style={{marginLeft: "10px", marginRight: "10px", borderBottom: "1px solid var(--lightGray)", borderRadius: "6px"}}>
+                    <TableHeader style={{marginLeft: "10px", marginRight: "10px", borderBottom: "1px solid #d5d8d8", borderRadius: "6px"}}>
                         <TableRow>
                             <TableHeaderCell style={{paddingLeft: "12px"}} textAlign="left">
                                 Subproject
@@ -520,10 +522,10 @@ function DetailedView({title}): JSX.Element | null {
                     </TableHeader>
                     <tbody>
                         {subprojects.map(it =>
-                            <TableRow onClick={() => setSelected(s => s ? "" : it.name)} style={{borderBottom: "1px solid var(--lightGray)"}} key={it.name}>
+                            <BorderedTableRow onClick={() => setSelected(s => s ? "" : it.name)} key={it.name}>
                                 <td style={{paddingLeft: "12px"}}>{it.name}</td>
                                 <td>
-                                    <Box ml="auto" mr="auto">
+                                    <Box pl="auto" pr="auto">
                                         <PieChart width={80} height={80}>
                                             <Pie
                                                 data={it.data}
@@ -542,14 +544,14 @@ function DetailedView({title}): JSX.Element | null {
                                 <td>{creditFormatter(it.balanceUsed)}</td>
                                 <td>{creditFormatter(it.balanceRemaining)}</td>
                                 <td><Icon name="check" color="green" /></td>
-                            </TableRow>
+                            </BorderedTableRow>
                         )}
                     </tbody>
                 </Table>
                 {!selected ? null :
-                    <Flex>
-                        <Flex width="66%">
-                            <Box>
+                    <Flex style={{borderTop: "1px solid #d5d8d8"}}>
+                        <Box width="33%">
+                            <Box ml="calc(50% - 150px)">
                                 <PieChart width={300} height={300}>
                                     <Pie
                                         data={subprojects[0].data}
@@ -563,45 +565,63 @@ function DetailedView({title}): JSX.Element | null {
                                     </Pie>
                                 </PieChart>
                             </Box>
-                            <Box mx="auto">
-                                <Grid style={{gap: "10px 20px"}} gridTemplateColumns="auto auto">
-                                    {subprojects[0].data.map((it, index) =>
-                                        <Box key={it.name}>
-                                            <Text textAlign="center" fontSize="14px">{it.name}</Text>
-                                            <Text
-                                                textAlign="center"
-                                                color={getCssVar(COLORS[index % COLORS.length])}
-                                            >
-                                                {toPercentageString(it.value / totalUsage)}
-                                            </Text>
-                                        </Box>
-                                    )}
-                                </Grid>
-                            </Box>
-                        </Flex>
-                        <Box width="34%" style={{border: "1px solid var(--lightGray)"}}>
-                            <Flex m="auto" style={{borderBottom: "1px solid var(--lightGray)", height: "20%"}}>
+                        </Box>
+                        <Box width="33%" mt="30px">
+                            <Grid style={{gap: "10px 20px"}} gridTemplateColumns="auto auto">
+                                {subprojects[0].data.map((it, index) =>
+                                    <Box key={it.name}>
+                                        <Text textAlign="center" fontSize="14px">{it.name}</Text>
+                                        <Text
+                                            textAlign="center"
+                                            color={getCssVar(COLORS[index % COLORS.length])}
+                                        >
+                                            {toPercentageString(it.value / totalUsage)}
+                                        </Text>
+                                    </Box>
+                                )}
+                            </Grid>
+                        </Box>
+                        <Box width="34%" style={{borderLeft: "1px solid #d5d8d8"}}>
+                            <FixedHeightFlex>
                                 <Text pl="12px" m="auto" width="60%">Number of members</Text> <Text m="auto" width="40%">{"10 members"}</Text>
-                            </Flex>
-                            <Flex m="auto" style={{border: "1px solid var(--lightGray)", height: "20%"}}>
+                            </FixedHeightFlex>
+                            <FixedHeightFlex>
                                 <Text pl="12px" m="auto" width="60%">Number of groups</Text> <Text m="auto" width="40%">{"5 groups"}</Text>
-                            </Flex>
-                            <Flex m="auto" style={{border: "1px solid var(--lightGray)", height: "20%"}}>
-                                <Text pl="12px" my="auto"><Link to="/">Grant Application</Link></Text>
-                            </Flex>
-                            <Flex m="auto" style={{border: "1px solid var(--lightGray)", height: "20%"}}>
+                            </FixedHeightFlex>
+                            <FixedHeightFlex>
+                                <Text pl="12px" my="auto"><Link color="blue" to="/">Grant Application</Link></Text>
+                            </FixedHeightFlex>
+                            <FixedHeightFlex>
                                 <Text pl="12px" m="auto" width="60%">Data management plan</Text> <Text m="auto" width="40%"><Link to="/">Yes</Link></Text>
-                            </Flex>
-                            <Flex m="auto" style={{height: "20%"}}>
+                            </FixedHeightFlex>
+                            <FixedHeightFlex>
                                 <Text m="auto" width="60%">{/* ??? */}</Text>
-                            </Flex>
+                            </FixedHeightFlex>
                         </Box>
                     </Flex>
                 }
             </Box>
+            <Spacer
+                left={null}
+                right={<PaginationButtons totalPages={10} currentPage={2} toPage={() => undefined} />}
+            />
         </>
     );
 }
+
+const FixedHeightFlex = styled(Flex)`
+    &:not(:last-child) {
+        border-bottom: 1px solid #d5d8d8;
+    }
+    height: 20%;
+    margin: auto;
+`;
+
+const BorderedTableRow = styled(TableRow)`
+    &:not(:last-child) {
+        border-bottom: 1px solid #d5d8d8;
+    }
+`;
 
 function RoundedDropdown({initialSelection, options}: {initialSelection: string, options: string[]}): JSX.Element {
     const [selection, setSelection] = React.useState(initialSelection);
@@ -623,7 +643,7 @@ const BorderedFlex = styled(Flex) <{width: string}>`
     height: 38px;
     margin-right: 15px;
     width: ${p => p.width};
-    border: 1px solid var(--gray);
+    border: 1px solid #d5d8d8;
     border-radius: 4px;
     align-items: center;
 `;
