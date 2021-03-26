@@ -91,7 +91,7 @@ html {
     --appStoreFavBg: #e8f1fc
     --invertedThemeColor: #fff;
     --fixedBlack: #000;
-    --usageGray: #d5d8d8:
+    --usageGray: #d5d8d8;
     
     /* TODO This is not currently enforced in the header */
     --headerHeight: 48px;

@@ -346,12 +346,12 @@ function UsageVisualization() {
 
     if (field) return <DetailedView title={field} />
     return (
-        <GridCardGroup minmax={435} gridGap={16}>
+        <Grid px="auto" style={{gap: "30px 30px", justifyContent: "center", alignContent: "center"}} gridTemplateColumns="435px 435px">
             {areas.map(area => (
                 <HighlightedCard px={0} key={area} height="437px" color="green">
                     <Spacer
                         left={
-                            <Box>
+                            <Box ml="4px">
                                 <Text color="gray">{area}</Text>
                                 <Text bold my="-6px" fontSize="24px">{area === "Storage" ? "239 GB used" : "1.038 DKK used"}</Text>
                                 <Text fontSize="14px">Remaining{area === "Storage" ? " 200 GB" : " 5.000 DKK"}</Text>
@@ -376,6 +376,7 @@ function UsageVisualization() {
                                     right: 0,
                                     bottom: 0
                                 }}
+                                style={{cursor: "pointer"}}
                                 onClick={() => history.push(`/project/usage/${area}`)}
                                 data={data}
                             >
@@ -384,7 +385,14 @@ function UsageVisualization() {
                             </AreaChart>
                         ) : (
                             <AreaChart
+                                margin={{
+                                    left: 0,
+                                    top: 0,
+                                    right: 0,
+                                    bottom: 0
+                                }}
                                 onClick={() => history.push(`/project/usage/${area}`)}
+                                style={{cursor: "pointer"}}
                                 data={data}
                             >
                                 <Tooltip />
@@ -406,7 +414,7 @@ function UsageVisualization() {
             })}
             <DonutChart area="Subprojects" data={subProjects} totalUsage={subProjectTotalUsage} />
             <DonutChart area="Capacity" data={capacityUsed} totalUsage={capacityTotalUsage} />
-        </GridCardGroup>
+        </Grid>
     );
 }
 
@@ -624,6 +632,7 @@ const FixedHeightFlex = styled(Flex)`
 `;
 
 const BorderedTableRow = styled(TableRow)`
+    cursor: pointer;
     &:not(:last-child) {
         border-bottom: 1px solid var(--usageGray);
     }
@@ -635,7 +644,7 @@ function RoundedDropdown({initialSelection, options}: {initialSelection: string,
     return (
         <ClickableDropdown
             trigger={
-                <BorderedFlex pl="22px" width="180px">
+                <BorderedFlex width="180px">
                     <Text fontSize="19px" ml="6px" color="black" mr={8}>{selection}</Text>
                     <Icon name="chevronDown" size={12} />
                 </BorderedFlex>}
