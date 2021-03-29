@@ -32,11 +32,13 @@ import {useTitle} from "Navigation/Redux/StatusActions";
 import {useSidebarPage, SidebarPages} from "ui-components/Sidebar";
 import {Dropdown} from "ui-components/Dropdown";
 import {capitalized} from "UtilityFunctions";
-import Grid, {GridCardGroup} from "ui-components/Grid";
+import Grid from "ui-components/Grid";
 import {HighlightedCard} from "Dashboard/Dashboard";
 import {Spacer} from "ui-components/Spacer";
 import {useHistory, useRouteMatch} from "react-router";
 import {PaginationButtons} from "Pagination";
+import * as UCloud from "UCloud";
+import {emptyPage} from "DefaultObjects";
 
 function dateFormatter(timestamp: number): string {
     const date = new Date(timestamp);
@@ -247,8 +249,8 @@ const ProjectUsage: React.FunctionComponent<ProjectUsageOperations> = props => {
                                     <Icon mr="4px" ml="auto" name="chevronDown" size={16} />
                                 </BorderedFlex>
                             }
-                            onChange={opt => setDurationOption(durationOptions[parseInt(opt, 10)])}
-                            options={durationOptions.map((it, idx) => ({text: it.text, value: `${idx}`}))}
+                            onChange={opt => setDurationOption(durationOptions[opt])}
+                            options={durationOptions.map((it, idx) => ({text: it.text, value: idx}))}
                         />
                     </UsageHeader>
                 </Box>
@@ -256,7 +258,7 @@ const ProjectUsage: React.FunctionComponent<ProjectUsageOperations> = props => {
             sidebar={null}
             main={
                 <Box minWidth={600} width="80%" mt={30} marginLeft="auto" marginRight="auto">
-                    <UsageVisualization />
+                    <UsageVisualization durationOption={durationOption} />
                 </Box>
             }
         />
@@ -340,71 +342,107 @@ const subProjectTotalUsage = subProjects.reduce((acc, element) => acc + element.
 const capacityUsed: ValueNamePair[] = [{value: randomVal(), name: "Capacity"}, {value: randomVal(), name: "Used"}];
 const capacityTotalUsage = capacityUsed.reduce((acc, element) => acc + element.value, 0);
 
-function UsageVisualization() {
+function UsageVisualization({durationOption}: {durationOption: Duration}) {
     const {field} = useRouteMatch<{field?: string}>().params;
     const history = useHistory();
+
+    const [balance, fetchBalance, balanceParams] = useCloudAPI<RetrieveBalanceResponse>(
+        retrieveBalance({includeChildren: true}),
+        {wallets: []}
+    );
+
+    const currentTime = new Date();
+    const now = periodStartFunction(currentTime, durationOption);
+
+    const [usageResponse, setUsageParams, usageParams] = useCloudAPI<UsageResponse>(
+        usage({
+            bucketSize: durationOption.bucketSize,
+            periodStart: now - durationOption.timeInPast,
+            periodEnd: now
+        }),
+        {charts: []}
+    );
 
     if (field) return <DetailedView title={field} />
     return (
         <Grid px="auto" style={{gap: "30px 30px", justifyContent: "center", alignContent: "center"}} gridTemplateColumns="435px 435px">
-            {areas.map(area => (
-                <HighlightedCard px={0} key={area} height="437px" color="green">
-                    <Spacer
-                        left={
-                            <Box ml="4px">
-                                <Text color="gray">{area}</Text>
-                                <Text bold my="-6px" fontSize="24px">{area === "Storage" ? "239 GB used" : "1.038 DKK used"}</Text>
-                                <Text fontSize="14px">Remaining{area === "Storage" ? " 200 GB" : " 5.000 DKK"}</Text>
-                            </Box>
-                        }
-                        right={
-                            <ClickableDropdown
-                                trigger={<Box mr="4px" mt="4px"><Icon rotation={90} name="ellipsis" /></Box>}
-                                left="-111px"
-                                top="-4px"
-                                options={[{text: "Storage (GB)", value: "storage_gb"}, {text: "Storage (DKK)", value: "storage_price"}, {text: "Compute (DKK)", value: "compute"}]}
-                                onChange={it => console.log(it)}
-                            />
-                        }
-                    />
-                    <ResponsiveContainer height={360}>
-                        {area === "Storage" ? (
-                            <AreaChart
-                                margin={{
-                                    left: 0,
-                                    top: 0,
-                                    right: 0,
-                                    bottom: 0
-                                }}
-                                style={{cursor: "pointer"}}
-                                onClick={() => history.push(`/project/usage/${area}`)}
-                                data={data}
-                            >
-                                <Tooltip />
-                                <Area type="linear" opacity={1} dataKey="Usage" strokeWidth="2px" stroke={getCssVar("darkBlue")} fill={getCssVar("blue")} />
-                            </AreaChart>
-                        ) : (
-                            <AreaChart
-                                margin={{
-                                    left: 0,
-                                    top: 0,
-                                    right: 0,
-                                    bottom: 0
-                                }}
-                                onClick={() => history.push(`/project/usage/${area}`)}
-                                style={{cursor: "pointer"}}
-                                data={data}
-                            >
-                                <Tooltip />
-                                <Area type="linear" opacity={0.8} dataKey="Usage2" strokeWidth="2px" stroke={getCssVar("darkBlue")} fill={getCssVar("blue")} />
-                                <Area type="linear" opacity={0.8} dataKey="Usage3" strokeWidth="2px" stroke={getCssVar("darkRed")} fill={getCssVar("red")} />
-                                <Area type="linear" opacity={0.8} dataKey="Usage4" strokeWidth="2px" stroke={getCssVar("darkGreen")} fill={getCssVar("green")} />
-                                <Area type="linear" opacity={0.8} dataKey="Usage5" strokeWidth="2px" stroke={getCssVar("darkOrange")} fill={getCssVar("orange")} />
-                            </AreaChart>
-                        )}
-                    </ResponsiveContainer>
-                </HighlightedCard>
-            ))}
+            <HighlightedCard px={0} height="437px" color="green">
+                {/* Storage */}
+                <Spacer
+                    left={
+                        <Box ml="8px">
+                            <Text color="gray">Storage</Text>
+                            <Text bold my="-6px" fontSize="24px">239 GB used</Text>
+                            <Text fontSize="14px">Remaining 200 GB</Text>
+                        </Box>
+                    }
+                    right={
+                        <ClickableDropdown
+                            trigger={<Box mr="4px" mt="4px"><Icon rotation={90} name="ellipsis" /></Box>}
+                            left="-111px"
+                            top="-4px"
+                            options={[{text: "Storage (GB)", value: "storage_gb"}, {text: "Storage (DKK)", value: "storage_price"}, {text: "Compute (DKK)", value: "compute"}]}
+                            onChange={it => console.log(it)}
+                        />
+                    }
+                />
+                <ResponsiveContainer height={360}>
+                    <AreaChart
+                        margin={{
+                            left: 0,
+                            top: 0,
+                            right: 0,
+                            bottom: 0
+                        }}
+                        style={{cursor: "pointer"}}
+                        onClick={() => history.push(`/project/usage/storage`)}
+                        data={data}
+                    >
+                        <Tooltip />
+                        <Area type="linear" opacity={1} dataKey="Usage" strokeWidth="2px" stroke={getCssVar("darkBlue")} fill={getCssVar("blue")} />
+                    </AreaChart>
+                </ResponsiveContainer>
+            </HighlightedCard>
+            <HighlightedCard px={0} height="437px" color="green">
+                {/* Compute */}
+                <Spacer
+                    left={
+                        <Box ml="8px">
+                            <Text color="gray">Storage</Text>
+                            <Text bold my="-6px" fontSize="24px">239 GB used</Text>
+                            <Text fontSize="14px">Remaining 5.000 DKK</Text>
+                        </Box>
+                    }
+                    right={
+                        <ClickableDropdown
+                            trigger={<Box mr="4px" mt="4px"><Icon rotation={90} name="ellipsis" /></Box>}
+                            left="-111px"
+                            top="-4px"
+                            options={[{text: "Storage (GB)", value: "storage_gb"}, {text: "Storage (DKK)", value: "storage_price"}, {text: "Compute (DKK)", value: "compute"}]}
+                            onChange={it => console.log(it)}
+                        />
+                    }
+                />
+                <ResponsiveContainer height={360}>
+                    <AreaChart
+                        margin={{
+                            left: 0,
+                            top: 0,
+                            right: 0,
+                            bottom: 0
+                        }}
+                        onClick={() => history.push("/project/usage/compute")}
+                        style={{cursor: "pointer"}}
+                        data={data}
+                    >
+                        <Tooltip />
+                        <Area type="linear" opacity={0.8} dataKey="Usage2" strokeWidth="2px" stroke={getCssVar("darkBlue")} fill={getCssVar("blue")} />
+                        <Area type="linear" opacity={0.8} dataKey="Usage3" strokeWidth="2px" stroke={getCssVar("darkRed")} fill={getCssVar("red")} />
+                        <Area type="linear" opacity={0.8} dataKey="Usage4" strokeWidth="2px" stroke={getCssVar("darkGreen")} fill={getCssVar("green")} />
+                        <Area type="linear" opacity={0.8} dataKey="Usage5" strokeWidth="2px" stroke={getCssVar("darkOrange")} fill={getCssVar("orange")} />
+                    </AreaChart>
+                </ResponsiveContainer>
+            </HighlightedCard>
             {areas.map(area => {
                 const donutData = area === "Storage" ? pieChartData : pieChartData2;
                 const totalUsage = donutData.reduce((acc, element) => acc + element.value, 0);
@@ -421,7 +459,6 @@ function UsageVisualization() {
 const COLORS: [ThemeColor, ThemeColor, ThemeColor, ThemeColor, ThemeColor] = ["green", "red", "blue", "orange", "yellow"];
 
 function DonutChart({area, data, totalUsage}: {area: string; data: ValueNamePair[], totalUsage: number}): JSX.Element {
-    const isCapacity = area == "Capacity";
     return (
         <HighlightedCard height="auto" key={area} color="green">
             <Flex>
@@ -485,6 +522,11 @@ const mockSubprojects = [{
 }];
 
 function DetailedView({title}): JSX.Element | null {
+    const [{data}] = useCloudAPI<Page<UCloud.project.Project>>(UCloud.project.listSubProjects({
+        itemsPerPage: 100,
+        page: 0,
+    }), emptyPage);
+
     const searchRef = React.useRef<HTMLInputElement>(null);
     const [selected, setSelected] = React.useState("");
     const subprojects: typeof mockSubprojects = selected ? [mockSubprojects.find(it => it.name === selected)!] : mockSubprojects;
@@ -535,31 +577,33 @@ function DetailedView({title}): JSX.Element | null {
                         </TableRow>
                     </TableHeader>
                     <tbody>
-                        {subprojects.map(it =>
-                            <BorderedTableRow onClick={() => setSelected(s => s ? "" : it.name)} key={it.name}>
-                                <td style={{paddingLeft: "12px"}}>{it.name}</td>
-                                <td>
-                                    <Box pl="auto" pr="auto">
-                                        <PieChart width={80} height={80}>
-                                            <Pie
-                                                data={it.data}
-                                                fill="#8884d8"
-                                                dataKey="value"
-                                                innerRadius={18}
-                                            >
-                                                {it.data.map((_, index) => (
-                                                    <Cell key={`cell-${index}`} fill={getCssVar(COLORS[index % COLORS.length])} />
-                                                ))}
-                                            </Pie>
-                                        </PieChart>
-                                    </Box>
-                                </td>
-                                <td>{it.mostUsed}</td>
-                                <td>{creditFormatter(it.balanceUsed)}</td>
-                                <td>{creditFormatter(it.balanceRemaining)}</td>
-                                <td><Icon name="check" color="green" /></td>
-                            </BorderedTableRow>
-                        )}
+                        {data.items.map((it, index) => {
+                            return (
+                                <BorderedTableRow onClick={() => setSelected(s => s ? "" : it.title)} key={it.title}>
+                                    <td style={{paddingLeft: "12px"}}>{it.title}</td>
+                                    <td>
+                                        <Box pl="auto" pr="auto">
+                                            <PieChart width={80} height={80}>
+                                                <Pie
+                                                    data={mockSubprojects[index % mockSubprojects.length].data}
+                                                    fill="#8884d8"
+                                                    dataKey="value"
+                                                    innerRadius={18}
+                                                >
+                                                    {mockSubprojects[index % mockSubprojects.length].data.map((_, index) => (
+                                                        <Cell key={`cell-${index}`} fill={getCssVar(COLORS[index % COLORS.length])} />
+                                                    ))}
+                                                </Pie>
+                                            </PieChart>
+                                        </Box>
+                                    </td>
+                                    <td>{mockSubprojects[index % mockSubprojects.length].mostUsed}</td>
+                                    <td>{creditFormatter(mockSubprojects[index % mockSubprojects.length].balanceUsed)}</td>
+                                    <td>{creditFormatter(mockSubprojects[index % mockSubprojects.length].balanceRemaining)}</td>
+                                    <td><Icon name="check" color="green" /></td>
+                                </BorderedTableRow>
+                            )
+                        })}
                     </tbody>
                 </Table>
                 {!selected ? null :
