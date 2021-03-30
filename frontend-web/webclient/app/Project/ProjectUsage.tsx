@@ -529,8 +529,9 @@ function DetailedView({title}): JSX.Element | null {
 
     const searchRef = React.useRef<HTMLInputElement>(null);
     const [selected, setSelected] = React.useState("");
-    const subprojects: typeof mockSubprojects = selected ? [mockSubprojects.find(it => it.name === selected)!] : mockSubprojects;
-    const totalUsage = !selected ? 0 : subprojects[0].data.reduce((acc, element) => acc + element.value, 0);
+    const subprojects = selected ? [data.items.find(it => it.title === selected)!] : data.items;
+    const selectedIndex = data.items.findIndex(it => it.title === selected) % mockSubprojects.length;
+    const totalUsage = !selected ? 0 : mockSubprojects[selectedIndex].data.reduce((acc, element) => acc + element.value, 0);
     return (
         <>
             <Spacer
@@ -579,7 +580,7 @@ function DetailedView({title}): JSX.Element | null {
                     <tbody>
                         {data.items.map((it, index) => {
                             return (
-                                <BorderedTableRow onClick={() => setSelected(s => s ? "" : it.title)} key={it.title}>
+                                <BorderedTableRow onClick={() => setSelected(s => s ? "" : it.title)} key={it.id}>
                                     <td style={{paddingLeft: "12px"}}>{it.title}</td>
                                     <td>
                                         <Box pl="auto" pr="auto">
@@ -612,12 +613,12 @@ function DetailedView({title}): JSX.Element | null {
                             <Box ml="calc(50% - 150px)">
                                 <PieChart width={300} height={300}>
                                     <Pie
-                                        data={subprojects[0].data}
+                                        data={mockSubprojects[selectedIndex].data}
                                         fill="#8884d8"
                                         dataKey="value"
                                         innerRadius={80}
                                     >
-                                        {subprojects[0].data.map((_, index) => (
+                                        {mockSubprojects[selectedIndex].data.map((_, index) => (
                                             <Cell key={`cell-${index}`} fill={getCssVar(COLORS[index % COLORS.length])} />
                                         ))}
                                     </Pie>
@@ -626,7 +627,7 @@ function DetailedView({title}): JSX.Element | null {
                         </Box>
                         <Box width="33%" mt="30px">
                             <Grid style={{gap: "10px 20px"}} gridTemplateColumns="auto auto">
-                                {subprojects[0].data.map((it, index) =>
+                                {mockSubprojects[selectedIndex].data.map((it, index) =>
                                     <Box key={it.name}>
                                         <Text textAlign="center" fontSize="14px">{it.name}</Text>
                                         <Text
