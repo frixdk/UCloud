@@ -1,8 +1,6 @@
 import {useGlobalCloudAPI} from "Authentication/DataHook";
 import {buildQueryString} from "Utilities/URIUtilities";
 import {Client} from "Authentication/HttpClientInstance";
-import {DEV_SITE, STAGING_SITE} from "../../site.config.json";
-import {inDevEnvironment} from "UtilityFunctions";
 import {IconName} from "ui-components/Icon";
 import {useHistory, useParams} from "react-router";
 import {useSelector} from "react-redux";

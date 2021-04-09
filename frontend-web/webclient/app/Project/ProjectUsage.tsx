@@ -12,10 +12,13 @@ import {dispatchSetProjectAction} from "Project/Redux";
 import {Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis} from "recharts";
 import Table, {TableCell, TableHeader, TableHeaderCell, TableRow} from "ui-components/Table";
 import {
+    NativeChartPoint,
     ProductArea,
     productAreaTitle,
     retrieveBalance,
     RetrieveBalanceResponse,
+    retrieveQuota,
+    RetrieveQuotaResponse,
     transformUsageChartForCharting,
     transformUsageChartForTable,
     usage,
@@ -39,6 +42,8 @@ import {useHistory, useRouteMatch} from "react-router";
 import {PaginationButtons} from "Pagination";
 import * as UCloud from "UCloud";
 import {emptyPage} from "DefaultObjects";
+import {computeUsageInPeriod} from "./ProjectDashboard";
+import {sizeToString} from "Utilities/FileUtilities";
 
 function dateFormatter(timestamp: number): string {
     const date = new Date(timestamp);
@@ -265,65 +270,6 @@ const ProjectUsage: React.FunctionComponent<ProjectUsageOperations> = props => {
     );
 };
 
-const data = [
-    {
-        name: "Timestamp to be added",
-        Usage: 1000,
-        Usage2: Math.floor(Math.random() * 5000),
-        Usage3: Math.floor(Math.random() * 5000),
-        Usage4: Math.floor(Math.random() * 5000),
-        Usage5: Math.floor(Math.random() * 5000),
-    },
-    {
-        name: "Timestamp to be added",
-        Usage: 1500,
-        Usage2: Math.floor(Math.random() * 5000),
-        Usage3: Math.floor(Math.random() * 5000),
-        Usage4: Math.floor(Math.random() * 5000),
-        Usage5: Math.floor(Math.random() * 5000),
-    },
-    {
-        name: "Timestamp to be added",
-        Usage: 1700,
-        Usage2: Math.floor(Math.random() * 5000),
-        Usage3: Math.floor(Math.random() * 5000),
-        Usage4: Math.floor(Math.random() * 5000),
-        Usage5: Math.floor(Math.random() * 5000),
-    },
-    {
-        name: "Timestamp to be added",
-        Usage: 1900,
-        Usage2: Math.floor(Math.random() * 5000),
-        Usage3: Math.floor(Math.random() * 5000),
-        Usage4: Math.floor(Math.random() * 5000),
-        Usage5: Math.floor(Math.random() * 5000),
-    },
-    {
-        name: "Timestamp to be added",
-        Usage: 2050,
-        Usage2: Math.floor(Math.random() * 5000),
-        Usage3: Math.floor(Math.random() * 5000),
-        Usage4: Math.floor(Math.random() * 5000),
-        Usage5: Math.floor(Math.random() * 5000),
-    },
-    {
-        name: "Timestamp to be added",
-        Usage: 2390,
-        Usage2: Math.floor(Math.random() * 5000),
-        Usage3: Math.floor(Math.random() * 5000),
-        Usage4: Math.floor(Math.random() * 5000),
-        Usage5: Math.floor(Math.random() * 5000),
-    },
-    {
-        name: "Timestamp to be added",
-        Usage: 3000,
-        Usage2: Math.floor(Math.random() * 5000),
-        Usage3: Math.floor(Math.random() * 5000),
-        Usage4: Math.floor(Math.random() * 5000),
-        Usage5: Math.floor(Math.random() * 5000),
-    },
-];
-
 interface ValueNamePair {
     value: number;
     name: string;
@@ -354,16 +300,80 @@ function UsageVisualization({durationOption}: {durationOption: Duration}) {
     const currentTime = new Date();
     const now = periodStartFunction(currentTime, durationOption);
 
-    const [usageResponse, setUsageParams, usageParams] = useCloudAPI<UsageResponse>(
-        usage({
-            bucketSize: durationOption.bucketSize,
-            periodStart: now - durationOption.timeInPast,
-            periodEnd: now
-        }),
+    const [usageResponse, fetchUsageParams, usageParams] = useCloudAPI<UsageResponse>(
+        {noop: true},
         {charts: []}
     );
 
-    if (field) return <DetailedView title={field} />
+
+    const [quota, fetchQuotaParams, quotaParams] = useCloudAPI<RetrieveQuotaResponse>(
+        retrieveQuota({
+            path: Client.activeHomeFolder,
+            includeUsage: true
+        }),
+        {
+            quotaInBytes: 0,
+            quotaInTotal: 0,
+        }
+    );
+
+    // TODO: Use effect
+
+    React.useEffect(() => {
+        fetchUsageParams(usage({
+            bucketSize: durationOption.bucketSize,
+            periodStart: now - durationOption.timeInPast,
+            periodEnd: now
+        }));
+    }, [durationOption]);
+
+    const [projects, fetchProjects, projectParams] = useCloudAPI<Page<UCloud.project.UserProjectSummary>>(
+        UCloud.project.listProjects({
+            archived: true,
+            itemsPerPage: 100,
+            noFavorites: false,
+            page: 0,
+            showAncestorPath: true
+        }),
+        emptyPage
+    );
+
+
+    const computeCharts = usageResponse.data.charts.map(it => transformUsageChartForCharting(it, "COMPUTE"));
+    const computeCreditsUsedInPeriod = computeUsageInPeriod(computeCharts);
+    const storageCharts = usageResponse.data.charts.map(it => transformUsageChartForCharting(it, "STORAGE"));
+    const storageCreditsUsedInPeriod = computeUsageInPeriod(storageCharts);
+
+    const activeProject = Client.hasActiveProject ? projects.data.items.find(p => p.projectId === Client.projectId ?? "") : undefined;
+    const activeWorkspace = activeProject ? activeProject.ancestorPath! + "/" + activeProject.title : Client.username!;
+
+    // Fill timestamps;
+    const usageComputeData = usageResponse.data.charts[0]?.lines.filter(it => it.projectId === Client.projectId && it.area === "COMPUTE")[0]?.points.map(it => ({time: it.timestamp})) ?? [];
+
+    const usageStorage = new Set<string>();
+    const usageCompute = new Set<string>();
+    for (const chart of usageResponse.data.charts) {
+        for (const line of chart.lines.filter(it => it.projectId === Client.projectId)) {
+            for (const [i, point] of line.points.entries()) {
+                usageComputeData[i][line.projectPath!] = point.creditsUsed;
+            }
+
+            switch (line.area) {
+                case "COMPUTE": {
+                    usageCompute.add(line.category);
+                    break;
+                }
+                case "STORAGE": {
+                    usageStorage.add(line.category);
+                    break;
+                }
+            }
+        }
+    }
+
+    const computeEntries = Object.keys(usageComputeData[0] ?? {}).filter(it => it !== "time");
+
+    if (field) return <DetailedView />;
     return (
         <Grid px="auto" style={{gap: "30px 30px", justifyContent: "center", alignContent: "center"}} gridTemplateColumns="435px 435px">
             <HighlightedCard px={0} height="437px" color="green">
@@ -372,34 +382,36 @@ function UsageVisualization({durationOption}: {durationOption: Duration}) {
                     left={
                         <Box ml="8px">
                             <Text color="gray">Storage</Text>
-                            <Text bold my="-6px" fontSize="24px">239 GB used</Text>
-                            <Text fontSize="14px">Remaining 200 GB</Text>
+                            <Text bold my="-6px" fontSize="24px">{sizeToString(quota.data.quotaUsed ?? 0)} used</Text>
+                            <Text fontSize="14px">Remaining {sizeToString(quota.data.quotaInBytes)}</Text>
                         </Box>
                     }
                     right={
                         <ClickableDropdown
                             trigger={<Box mr="4px" mt="4px"><Icon rotation={90} name="ellipsis" /></Box>}
-                            left="-111px"
+                            left="-110px"
                             top="-4px"
                             options={[{text: "Storage (GB)", value: "storage_gb"}, {text: "Storage (DKK)", value: "storage_price"}, {text: "Compute (DKK)", value: "compute"}]}
                             onChange={it => console.log(it)}
                         />
                     }
                 />
+                {/* TODO: Add NoEntries for storage */}
                 <ResponsiveContainer height={360}>
                     <AreaChart
                         margin={{
                             left: 0,
-                            top: 0,
+                            top: 4,
                             right: 0,
-                            bottom: 0
+                            bottom: -28
                         }}
                         style={{cursor: "pointer"}}
                         onClick={() => history.push(`/project/usage/storage`)}
-                        data={data}
+                        data={storageCharts[0]?.points ?? []}
                     >
-                        <Tooltip />
-                        <Area type="linear" opacity={1} dataKey="Usage" strokeWidth="2px" stroke={getCssVar("darkBlue")} fill={getCssVar("blue")} />
+                        <XAxis dataKey="time" />
+                        <Tooltip labelFormatter={getDateFormatter(durationOption)} formatter={sizeToString} />
+                        <Area type="linear" opacity={1} dataKey={activeWorkspace} strokeWidth="2px" stroke={getCssVar("darkBlue")} fill={getCssVar("blue")} />
                     </AreaChart>
                 </ResponsiveContainer>
             </HighlightedCard>
@@ -408,7 +420,7 @@ function UsageVisualization({durationOption}: {durationOption: Duration}) {
                 <Spacer
                     left={
                         <Box ml="8px">
-                            <Text color="gray">Storage</Text>
+                            <Text color="gray">Compute</Text>
                             <Text bold my="-6px" fontSize="24px">239 GB used</Text>
                             <Text fontSize="14px">Remaining 5.000 DKK</Text>
                         </Box>
@@ -423,25 +435,33 @@ function UsageVisualization({durationOption}: {durationOption: Duration}) {
                         />
                     }
                 />
-                <ResponsiveContainer height={360}>
+                {computeEntries.length === 0 ? <NoEntries /> : <ResponsiveContainer height={360}>
                     <AreaChart
                         margin={{
                             left: 0,
-                            top: 0,
+                            top: 4,
                             right: 0,
-                            bottom: 0
+                            bottom: -28
                         }}
                         onClick={() => history.push("/project/usage/compute")}
                         style={{cursor: "pointer"}}
-                        data={data}
+                        data={usageComputeData}
                     >
-                        <Tooltip />
-                        <Area type="linear" opacity={0.8} dataKey="Usage2" strokeWidth="2px" stroke={getCssVar("darkBlue")} fill={getCssVar("blue")} />
-                        <Area type="linear" opacity={0.8} dataKey="Usage3" strokeWidth="2px" stroke={getCssVar("darkRed")} fill={getCssVar("red")} />
-                        <Area type="linear" opacity={0.8} dataKey="Usage4" strokeWidth="2px" stroke={getCssVar("darkGreen")} fill={getCssVar("green")} />
-                        <Area type="linear" opacity={0.8} dataKey="Usage5" strokeWidth="2px" stroke={getCssVar("darkOrange")} fill={getCssVar("orange")} />
+                        <XAxis dataKey="time" />
+                        <Tooltip labelFormatter={getDateFormatter(durationOption)} formatter={creditFormatter} />
+                        {computeEntries.map((it, index) =>
+                            <Area
+                                key={index}
+                                type="linear"
+                                opacity={0.8}
+                                dataKey={it}
+                                strokeWidth="2px"
+                                stroke={getCssVar(("dark" + capitalized(COLORS[index % COLORS.length]) as ThemeColor))}
+                                fill={getCssVar(COLORS[index % COLORS.length])}
+                            />
+                        )}
                     </AreaChart>
-                </ResponsiveContainer>
+                </ResponsiveContainer>}
             </HighlightedCard>
             {areas.map(area => {
                 const donutData = area === "Storage" ? pieChartData : pieChartData2;
@@ -454,6 +474,14 @@ function UsageVisualization({durationOption}: {durationOption: Duration}) {
             <DonutChart area="Capacity" data={capacityUsed} totalUsage={capacityTotalUsage} />
         </Grid>
     );
+}
+
+function NoEntries() {
+    return <Flex mt="40px" justifyContent="center">
+        <Text color="gray" fontSize="24px">
+            No usage found
+        </Text>
+    </Flex>
 }
 
 const COLORS: [ThemeColor, ThemeColor, ThemeColor, ThemeColor, ThemeColor] = ["green", "red", "blue", "orange", "yellow"];
@@ -521,11 +549,14 @@ const mockSubprojects = [{
     balanceRemaining: 1_000_000_000,
 }];
 
-function DetailedView({title}): JSX.Element | null {
+function DetailedView(): JSX.Element | null {
     const [{data}] = useCloudAPI<Page<UCloud.project.Project>>(UCloud.project.listSubProjects({
         itemsPerPage: 100,
         page: 0,
     }), emptyPage);
+
+    const projectManagement = useProjectManagementStatus({isRootComponent: true, allowPersonalProject: true});
+    console.log(projectManagement);
 
     const searchRef = React.useRef<HTMLInputElement>(null);
     const [selected, setSelected] = React.useState("");
@@ -670,7 +701,7 @@ function DetailedView({title}): JSX.Element | null {
 
 const FixedHeightFlex = styled(Flex)`
     &:not(:last-child) {
-        border-bottom: 1px solid var(--usageGray);
+                        border - bottom: 1px solid var(--usageGray);
     }
     height: 20%;
     margin: auto;
@@ -679,7 +710,7 @@ const FixedHeightFlex = styled(Flex)`
 const BorderedTableRow = styled(TableRow)`
     cursor: pointer;
     &:not(:last-child) {
-        border-bottom: 1px solid var(--usageGray);
+                        border - bottom: 1px solid var(--usageGray);
     }
 `;
 
@@ -893,7 +924,7 @@ const SummaryStat = styled.figure`
     margin: 0;
 
     figcaption {
-                                display: block;
+                                    display: block;
         color: var(--gray, #ff0);
         text-transform: uppercase;
         font-size: 12px;
@@ -907,7 +938,7 @@ const SummaryWrapper = styled(Card)`
     align-items: center;
 
     h4 {
-                                flex - grow: 2;
+                                    flex - grow: 2;
     }
 `;
 

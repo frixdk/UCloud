@@ -16,7 +16,7 @@ import {HighlightedCard} from "Dashboard/Dashboard";
 import {GridCardGroup} from "ui-components/Grid";
 import {ProjectBreadcrumbs} from "Project/Breadcrumbs";
 import {useCloudAPI} from "Authentication/DataHook";
-import {ProductArea, UsageResponse, transformUsageChartForCharting, usage, NativeChart} from "Accounting";
+import {UsageResponse, transformUsageChartForCharting, usage, NativeChart} from "Accounting";
 import {creditFormatter, durationOptions} from "./ProjectUsage";
 import Table, {TableCell, TableRow} from "ui-components/Table";
 import styled from "styled-components";
