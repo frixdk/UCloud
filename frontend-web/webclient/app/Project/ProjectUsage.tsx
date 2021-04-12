@@ -317,8 +317,6 @@ function UsageVisualization({durationOption}: {durationOption: Duration}) {
         }
     );
 
-    // TODO: Use effect
-
     React.useEffect(() => {
         fetchUsageParams(usage({
             bucketSize: durationOption.bucketSize,
@@ -349,24 +347,11 @@ function UsageVisualization({durationOption}: {durationOption: Duration}) {
 
     // Fill timestamps;
     const usageComputeData = usageResponse.data.charts[0]?.lines.filter(it => it.projectId === Client.projectId && it.area === "COMPUTE")[0]?.points.map(it => ({time: it.timestamp})) ?? [];
-
-    const usageStorage = new Set<string>();
-    const usageCompute = new Set<string>();
     for (const chart of usageResponse.data.charts) {
         for (const line of chart.lines.filter(it => it.projectId === Client.projectId)) {
             for (const [i, point] of line.points.entries()) {
+                if (usageComputeData[i] === undefined) break;
                 usageComputeData[i][line.projectPath!] = point.creditsUsed;
-            }
-
-            switch (line.area) {
-                case "COMPUTE": {
-                    usageCompute.add(line.category);
-                    break;
-                }
-                case "STORAGE": {
-                    usageStorage.add(line.category);
-                    break;
-                }
             }
         }
     }
@@ -421,7 +406,7 @@ function UsageVisualization({durationOption}: {durationOption: Duration}) {
                     left={
                         <Box ml="8px">
                             <Text color="gray">Compute</Text>
-                            <Text bold my="-6px" fontSize="24px">239 GB used</Text>
+                            <Text bold my="-6px" fontSize="24px">{creditFormatter(computeCreditsUsedInPeriod)} used</Text>
                             <Text fontSize="14px">Remaining 5.000 DKK</Text>
                         </Box>
                     }
@@ -554,9 +539,6 @@ function DetailedView(): JSX.Element | null {
         itemsPerPage: 100,
         page: 0,
     }), emptyPage);
-
-    const projectManagement = useProjectManagementStatus({isRootComponent: true, allowPersonalProject: true});
-    console.log(projectManagement);
 
     const searchRef = React.useRef<HTMLInputElement>(null);
     const [selected, setSelected] = React.useState("");
