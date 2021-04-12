@@ -12,7 +12,7 @@ import {dispatchSetProjectAction} from "Project/Redux";
 import {Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis} from "recharts";
 import Table, {TableCell, TableHeader, TableHeaderCell, TableRow} from "ui-components/Table";
 import {
-    NativeChartPoint,
+    NativeChart,
     ProductArea,
     productAreaTitle,
     retrieveBalance,
@@ -288,6 +288,26 @@ const subProjectTotalUsage = subProjects.reduce((acc, element) => acc + element.
 const capacityUsed: ValueNamePair[] = [{value: randomVal(), name: "Capacity"}, {value: randomVal(), name: "Used"}];
 const capacityTotalUsage = capacityUsed.reduce((acc, element) => acc + element.value, 0);
 
+export function computeRemainingAllocated(charts: NativeChart[], projectId: string): number {
+    let result = 0;
+
+    for (const chart of charts) {
+        const usageByCurrentProvider: Record<string, number> = {};
+
+        for (const point of chart.points) {
+            for (const category of Object.keys(point)) {
+                if (category === "time") continue;
+
+                const currentUsage = usageByCurrentProvider[category] ?? 0;
+                usageByCurrentProvider[category] = currentUsage + point[category];
+                result += point[category];
+            }
+        }
+    }
+
+    return result;
+}
+
 function UsageVisualization({durationOption}: {durationOption: Duration}) {
     const {field} = useRouteMatch<{field?: string}>().params;
     const history = useHistory();
@@ -338,6 +358,8 @@ function UsageVisualization({durationOption}: {durationOption: Duration}) {
 
 
     const computeCharts = usageResponse.data.charts.map(it => transformUsageChartForCharting(it, "COMPUTE"));
+    const computeCreditsRemaining = balance.data.wallets.filter(it => it.area === "COMPUTE").filter(it => it.wallet.id === Client.projectId).reduce((acc, it) => it.allocated + acc, 0);
+
     const computeCreditsUsedInPeriod = computeUsageInPeriod(computeCharts);
     const storageCharts = usageResponse.data.charts.map(it => transformUsageChartForCharting(it, "STORAGE"));
     const storageCreditsUsedInPeriod = computeUsageInPeriod(storageCharts);
@@ -347,6 +369,7 @@ function UsageVisualization({durationOption}: {durationOption: Duration}) {
 
     // Fill timestamps;
     const usageComputeData = usageResponse.data.charts[0]?.lines.filter(it => it.projectId === Client.projectId && it.area === "COMPUTE")[0]?.points.map(it => ({time: it.timestamp})) ?? [];
+
     for (const chart of usageResponse.data.charts) {
         for (const line of chart.lines.filter(it => it.projectId === Client.projectId)) {
             for (const [i, point] of line.points.entries()) {
@@ -357,6 +380,7 @@ function UsageVisualization({durationOption}: {durationOption: Duration}) {
     }
 
     const computeEntries = Object.keys(usageComputeData[0] ?? {}).filter(it => it !== "time");
+    const storageEntries = Object.keys(storageCharts[0] ?? {}).filter(it => it !== "time");
 
     if (field) return <DetailedView />;
     return (
@@ -382,7 +406,7 @@ function UsageVisualization({durationOption}: {durationOption: Duration}) {
                     }
                 />
                 {/* TODO: Add NoEntries for storage */}
-                <ResponsiveContainer height={360}>
+                {storageCharts[0]?.points.length === 0 ? <NoEntries /> : <ResponsiveContainer height={360}>
                     <AreaChart
                         margin={{
                             left: 0,
@@ -398,7 +422,7 @@ function UsageVisualization({durationOption}: {durationOption: Duration}) {
                         <Tooltip labelFormatter={getDateFormatter(durationOption)} formatter={sizeToString} />
                         <Area type="linear" opacity={1} dataKey={activeWorkspace} strokeWidth="2px" stroke={getCssVar("darkBlue")} fill={getCssVar("blue")} />
                     </AreaChart>
-                </ResponsiveContainer>
+                </ResponsiveContainer>}
             </HighlightedCard>
             <HighlightedCard px={0} height="437px" color="green">
                 {/* Compute */}
@@ -407,7 +431,7 @@ function UsageVisualization({durationOption}: {durationOption: Duration}) {
                         <Box ml="8px">
                             <Text color="gray">Compute</Text>
                             <Text bold my="-6px" fontSize="24px">{creditFormatter(computeCreditsUsedInPeriod)} used</Text>
-                            <Text fontSize="14px">Remaining 5.000 DKK</Text>
+                            <Text fontSize="14px">Remaining {creditFormatter(computeCreditsRemaining - computeCreditsUsedInPeriod)}</Text>
                         </Box>
                     }
                     right={
