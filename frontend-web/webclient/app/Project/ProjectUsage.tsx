@@ -12,7 +12,6 @@ import {dispatchSetProjectAction} from "Project/Redux";
 import {Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis} from "recharts";
 import Table, {TableCell, TableHeader, TableHeaderCell, TableRow} from "ui-components/Table";
 import {
-    NativeChart,
     ProductArea,
     productAreaTitle,
     retrieveBalance,
@@ -275,38 +274,8 @@ interface ValueNamePair {
     name: string;
 }
 
-function randomVal() {
-    return Math.random() * 100;
-}
-const areas = ["Storage", "Usage"];
-
 const pieChartData: ValueNamePair[] = [{value: Math.random() * 400, name: "a1-standard"}, {value: Math.random() * 400, name: "u1-standard"}, {value: Math.random() * 400, name: "u1-gpu"}, {value: Math.random() * 400, name: "u1-storage"}];
 const pieChartData2: ValueNamePair[] = [{value: Math.random() * 400, name: "u1-standard-64"}, {value: Math.random() * 400, name: "u1-standard-1"}, {value: Math.random() * 400, name: "u1-standard-2"}, {value: Math.random() * 400, name: "u1-standard-16"}];
-
-const subProjects: ValueNamePair[] = [{value: randomVal(), name: "SUND"}, {value: randomVal(), name: "NAT"}, {value: randomVal(), name: "TEK"}, {value: randomVal(), name: "SAMF"}, {value: randomVal(), name: "HUM"}];
-const subProjectTotalUsage = subProjects.reduce((acc, element) => acc + element.value, 0);
-const capacityUsed: ValueNamePair[] = [{value: randomVal(), name: "Capacity"}, {value: randomVal(), name: "Used"}];
-const capacityTotalUsage = capacityUsed.reduce((acc, element) => acc + element.value, 0);
-
-export function computeRemainingAllocated(charts: NativeChart[], projectId: string): number {
-    let result = 0;
-
-    for (const chart of charts) {
-        const usageByCurrentProvider: Record<string, number> = {};
-
-        for (const point of chart.points) {
-            for (const category of Object.keys(point)) {
-                if (category === "time") continue;
-
-                const currentUsage = usageByCurrentProvider[category] ?? 0;
-                usageByCurrentProvider[category] = currentUsage + point[category];
-                result += point[category];
-            }
-        }
-    }
-
-    return result;
-}
 
 function UsageVisualization({durationOption}: {durationOption: Duration}) {
     const {field} = useRouteMatch<{field?: string}>().params;
@@ -317,6 +286,7 @@ function UsageVisualization({durationOption}: {durationOption: Duration}) {
         {wallets: []}
     );
 
+
     const currentTime = new Date();
     const now = periodStartFunction(currentTime, durationOption);
 
@@ -325,12 +295,12 @@ function UsageVisualization({durationOption}: {durationOption: Duration}) {
         {charts: []}
     );
 
+    const [subprojects, fetchSubprojects] = useCloudAPI<Page<UCloud.project.Project>>({
+        noop: true
+    }, emptyPage);
 
     const [quota, fetchQuotaParams, quotaParams] = useCloudAPI<RetrieveQuotaResponse>(
-        retrieveQuota({
-            path: Client.activeHomeFolder,
-            includeUsage: true
-        }),
+        {noop: true},
         {
             quotaInBytes: 0,
             quotaInTotal: 0,
@@ -338,12 +308,20 @@ function UsageVisualization({durationOption}: {durationOption: Duration}) {
     );
 
     React.useEffect(() => {
+        fetchSubprojects(UCloud.project.listSubProjects({
+            itemsPerPage: 100,
+            page: 0
+        }));
+        fetchQuotaParams(retrieveQuota({
+            path: Client.activeHomeFolder,
+            includeUsage: true
+        }));
         fetchUsageParams(usage({
             bucketSize: durationOption.bucketSize,
             periodStart: now - durationOption.timeInPast,
             periodEnd: now
         }));
-    }, [durationOption]);
+    }, [durationOption, Client.projectId]);
 
     const [projects, fetchProjects, projectParams] = useCloudAPI<Page<UCloud.project.UserProjectSummary>>(
         UCloud.project.listProjects({
@@ -356,6 +334,7 @@ function UsageVisualization({durationOption}: {durationOption: Duration}) {
         emptyPage
     );
 
+    if (field) return <DetailedView data={subprojects.data} />;
 
     const computeCharts = usageResponse.data.charts.map(it => transformUsageChartForCharting(it, "COMPUTE"));
     const computeCreditsRemaining = balance.data.wallets.filter(it => it.area === "COMPUTE").filter(it => it.wallet.id === Client.projectId).reduce((acc, it) => it.allocated + acc, 0);
@@ -369,6 +348,7 @@ function UsageVisualization({durationOption}: {durationOption: Duration}) {
 
     // Fill timestamps;
     const usageComputeData = usageResponse.data.charts[0]?.lines.filter(it => it.projectId === Client.projectId && it.area === "COMPUTE")[0]?.points.map(it => ({time: it.timestamp})) ?? [];
+    const subProjectNames = subprojects.data.items.map(it => ({title: it.title, id: it.id}));
 
     for (const chart of usageResponse.data.charts) {
         for (const line of chart.lines.filter(it => it.projectId === Client.projectId)) {
@@ -380,9 +360,19 @@ function UsageVisualization({durationOption}: {durationOption: Duration}) {
     }
 
     const computeEntries = Object.keys(usageComputeData[0] ?? {}).filter(it => it !== "time");
-    const storageEntries = Object.keys(storageCharts[0] ?? {}).filter(it => it !== "time");
 
-    if (field) return <DetailedView />;
+    const subProjectsUsage = balance.data.wallets.filter(it => it.wallet.type === (Client.hasActiveProject ? "PROJECT" : "USER") && it.wallet.id !== (Client.hasActiveProject ? Client.projectId : Client.username));
+    const subprojjes: ValueNamePair[] = [];
+    for (const wallet of subProjectsUsage) {
+        const subprojectTitle = subProjectNames.find(it => it.id === wallet.wallet.id)?.title ?? "";
+        const index = subprojjes.findIndex(it => it.name === subprojectTitle);
+        if (index === -1) {
+            subprojjes.push({name: subprojectTitle, value: wallet.used});
+        } else {
+            subprojjes[index].value += wallet.used;
+        }
+    }
+
     return (
         <Grid px="auto" style={{gap: "30px 30px", justifyContent: "center", alignContent: "center"}} gridTemplateColumns="435px 435px">
             <HighlightedCard px={0} height="437px" color="green">
@@ -405,7 +395,6 @@ function UsageVisualization({durationOption}: {durationOption: Duration}) {
                         />
                     }
                 />
-                {/* TODO: Add NoEntries for storage */}
                 {storageCharts[0]?.points.length === 0 ? <NoEntries /> : <ResponsiveContainer height={360}>
                     <AreaChart
                         margin={{
@@ -431,7 +420,7 @@ function UsageVisualization({durationOption}: {durationOption: Duration}) {
                         <Box ml="8px">
                             <Text color="gray">Compute</Text>
                             <Text bold my="-6px" fontSize="24px">{creditFormatter(computeCreditsUsedInPeriod)} used</Text>
-                            <Text fontSize="14px">Remaining {creditFormatter(computeCreditsRemaining - computeCreditsUsedInPeriod)}</Text>
+                            <Text fontSize="14px">Remaining {creditFormatter(computeCreditsRemaining)}</Text>
                         </Box>
                     }
                     right={
@@ -472,15 +461,16 @@ function UsageVisualization({durationOption}: {durationOption: Duration}) {
                     </AreaChart>
                 </ResponsiveContainer>}
             </HighlightedCard>
-            {areas.map(area => {
-                const donutData = area === "Storage" ? pieChartData : pieChartData2;
-                const totalUsage = donutData.reduce((acc, element) => acc + element.value, 0);
+            {["STORAGE", "COMPUTE"].map(area => {
+                const byArea = balance.data.wallets.filter(it => it.area === area && it.wallet.type === (Client.hasActiveProject ? "PROJECT" : "USER") && it.wallet.id === (Client.hasActiveProject ? Client.projectId : Client.username));
+                const data = byArea.map(it => ({name: it.wallet.paysFor.id, value: it.used}));
                 return (
-                    <DonutChart key={area} totalUsage={totalUsage} data={donutData} area={area} />
+                    <DonutChart key={area} data={data} area={area} />
                 )
             })}
-            <DonutChart area="Subprojects" data={subProjects} totalUsage={subProjectTotalUsage} />
-            <DonutChart area="Capacity" data={capacityUsed} totalUsage={capacityTotalUsage} />
+            {/* TODO */}
+            <DonutChart area="Subprojects" data={subprojjes} />
+            <DonutChart area="Capacity" data={[{value: quota.data.quotaInTotal, name: "Capacity"}, {value: quota.data.quotaUsed ?? 0, name: "Used"}]} />
         </Grid>
     );
 }
@@ -495,7 +485,8 @@ function NoEntries() {
 
 const COLORS: [ThemeColor, ThemeColor, ThemeColor, ThemeColor, ThemeColor] = ["green", "red", "blue", "orange", "yellow"];
 
-function DonutChart({area, data, totalUsage}: {area: string; data: ValueNamePair[], totalUsage: number}): JSX.Element {
+function DonutChart({area, data}: {area: string; data: ValueNamePair[]}): JSX.Element | null {
+    const totalUsage = data.reduce((acc, it) => it.value + acc, 0);
     return (
         <HighlightedCard height="auto" key={area} color="green">
             <Flex>
@@ -509,37 +500,41 @@ function DonutChart({area, data, totalUsage}: {area: string; data: ValueNamePair
                 />
             </Flex>
             <Flex><Box mr="auto" /><Text fontSize="26px">{capitalized(area)}</Text><Box ml="auto" /></Flex>
-            <Flex>
-                <Box mr="auto" />
-                <PieChart key={area} width={300} height={300}>
-                    <Pie
-                        data={data}
-                        fill="#8884d8"
-                        dataKey="value"
-                        innerRadius={80}
-                    >
-                        {data.map((_, index) => (
-                            <Cell key={`cell-${index}`} fill={getCssVar(COLORS[index % COLORS.length])} />
-                        ))}
-                    </Pie>
-                </PieChart>
-                <Box ml="auto" />
-            </Flex>
-            {totalUsage == null ? null : <Flex pb="12px">
-                <Box mr="auto" />
-                {data.map((it, index) =>
-                    <Box mx="auto" key={it.name}>
-                        <Text textAlign="center" fontSize="14px">{it.name}</Text>
-                        <Text
-                            textAlign="center"
-                            color={getCssVar(COLORS[index % COLORS.length])}
-                        >
-                            {toPercentageString(it.value / totalUsage)}
-                        </Text>
-                    </Box>
-                )}
-                <Box ml="auto" />
-            </Flex>}
+            {data.length === 0 ? <NoEntries /> :
+                <>
+                    <Flex>
+                        <Box mr="auto" />
+                        <PieChart key={area} width={300} height={300}>
+                            <Pie
+                                data={data}
+                                fill="#8884d8"
+                                dataKey="value"
+                                innerRadius={80}
+                            >
+                                {data.map((_, index) => (
+                                    <Cell key={`cell-${index}`} fill={getCssVar(COLORS[index % COLORS.length])} />
+                                ))}
+                            </Pie>
+                        </PieChart>
+                        <Box ml="auto" />
+                    </Flex>
+                    <Flex pb="12px">
+                        <Box mr="auto" />
+                        {data.map((it, index) =>
+                            <Box mx="auto" key={it.name}>
+                                <Text textAlign="center" fontSize="14px">{it.name}</Text>
+                                <Text
+                                    textAlign="center"
+                                    color={getCssVar(COLORS[index % COLORS.length])}
+                                >
+                                    {toPercentageString(it.value / (totalUsage !== 0 ? totalUsage : 1))}
+                                </Text>
+                            </Box>
+                        )}
+                        <Box ml="auto" />
+                    </Flex>
+                </>
+            }
         </HighlightedCard>
     )
 }
@@ -558,16 +553,11 @@ const mockSubprojects = [{
     balanceRemaining: 1_000_000_000,
 }];
 
-function DetailedView(): JSX.Element | null {
-    const [{data}] = useCloudAPI<Page<UCloud.project.Project>>(UCloud.project.listSubProjects({
-        itemsPerPage: 100,
-        page: 0,
-    }), emptyPage);
-
+function DetailedView({data}: {data: Page<UCloud.project.Project>}): JSX.Element | null {
     const searchRef = React.useRef<HTMLInputElement>(null);
     const [selected, setSelected] = React.useState("");
     const subprojects = selected ? [data.items.find(it => it.title === selected)!] : data.items;
-    const selectedIndex = data.items.findIndex(it => it.title === selected) % mockSubprojects.length;
+    const selectedIndex = data.items.findIndex(it => it.title === selected);
     const totalUsage = !selected ? 0 : mockSubprojects[selectedIndex].data.reduce((acc, element) => acc + element.value, 0);
     return (
         <>
