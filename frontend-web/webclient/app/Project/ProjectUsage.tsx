@@ -274,22 +274,15 @@ interface ValueNamePair {
     name: string;
 }
 
-const pieChartData: ValueNamePair[] = [{value: Math.random() * 400, name: "a1-standard"}, {value: Math.random() * 400, name: "u1-standard"}, {value: Math.random() * 400, name: "u1-gpu"}, {value: Math.random() * 400, name: "u1-storage"}];
-const pieChartData2: ValueNamePair[] = [{value: Math.random() * 400, name: "u1-standard-64"}, {value: Math.random() * 400, name: "u1-standard-1"}, {value: Math.random() * 400, name: "u1-standard-2"}, {value: Math.random() * 400, name: "u1-standard-16"}];
-
 function UsageVisualization({durationOption}: {durationOption: Duration}) {
     const {field} = useRouteMatch<{field?: string}>().params;
     const history = useHistory();
 
     const [balance, fetchBalance, balanceParams] = useCloudAPI<RetrieveBalanceResponse>(
-        retrieveBalance({includeChildren: true}),
+        {noop: true},
         {wallets: []}
     );
-
-
-    const currentTime = new Date();
-    const now = periodStartFunction(currentTime, durationOption);
-
+    
     const [usageResponse, fetchUsageParams, usageParams] = useCloudAPI<UsageResponse>(
         {noop: true},
         {charts: []}
@@ -308,6 +301,10 @@ function UsageVisualization({durationOption}: {durationOption: Duration}) {
     );
 
     React.useEffect(() => {
+        const currentTime = new Date();
+        const now = periodStartFunction(currentTime, durationOption);
+
+        fetchBalance(retrieveBalance({includeChildren: true}));
         fetchSubprojects(UCloud.project.listSubProjects({
             itemsPerPage: 100,
             page: 0
@@ -488,7 +485,7 @@ const COLORS: [ThemeColor, ThemeColor, ThemeColor, ThemeColor, ThemeColor] = ["g
 function DonutChart({area, data}: {area: string; data: ValueNamePair[]}): JSX.Element | null {
     const totalUsage = data.reduce((acc, it) => it.value + acc, 0);
     return (
-        <HighlightedCard height="auto" key={area} color="green">
+        <HighlightedCard height="437px" key={area} color="green">
             <Flex>
                 <Box mr="auto" />
                 <ClickableDropdown
@@ -500,7 +497,7 @@ function DonutChart({area, data}: {area: string; data: ValueNamePair[]}): JSX.El
                 />
             </Flex>
             <Flex><Box mr="auto" /><Text fontSize="26px">{capitalized(area)}</Text><Box ml="auto" /></Flex>
-            {data.length === 0 ? <NoEntries /> :
+            {data.length === 0 || totalUsage === 0 ? <NoEntries /> :
                 <>
                     <Flex>
                         <Box mr="auto" />
@@ -527,7 +524,7 @@ function DonutChart({area, data}: {area: string; data: ValueNamePair[]}): JSX.El
                                     textAlign="center"
                                     color={getCssVar(COLORS[index % COLORS.length])}
                                 >
-                                    {toPercentageString(it.value / (totalUsage !== 0 ? totalUsage : 1))}
+                                    {toPercentageString(it.value / totalUsage)}
                                 </Text>
                             </Box>
                         )}
@@ -538,6 +535,10 @@ function DonutChart({area, data}: {area: string; data: ValueNamePair[]}): JSX.El
         </HighlightedCard>
     )
 }
+
+
+const pieChartData: ValueNamePair[] = [{value: Math.random() * 400, name: "a1-standard"}, {value: Math.random() * 400, name: "u1-standard"}, {value: Math.random() * 400, name: "u1-gpu"}, {value: Math.random() * 400, name: "u1-storage"}];
+const pieChartData2: ValueNamePair[] = [{value: Math.random() * 400, name: "u1-standard-64"}, {value: Math.random() * 400, name: "u1-standard-1"}, {value: Math.random() * 400, name: "u1-standard-2"}, {value: Math.random() * 400, name: "u1-standard-16"}];
 
 const mockSubprojects = [{
     name: "Foo/Bar/Baz",
