@@ -282,7 +282,7 @@ function UsageVisualization({durationOption}: {durationOption: Duration}) {
         {noop: true},
         {wallets: []}
     );
-    
+
     const [usageResponse, fetchUsageParams, usageParams] = useCloudAPI<UsageResponse>(
         {noop: true},
         {charts: []}
@@ -320,7 +320,7 @@ function UsageVisualization({durationOption}: {durationOption: Duration}) {
         }));
     }, [durationOption, Client.projectId]);
 
-    const [projects, fetchProjects, projectParams] = useCloudAPI<Page<UCloud.project.UserProjectSummary>>(
+    const [projects] = useCloudAPI<Page<UCloud.project.UserProjectSummary>>(
         UCloud.project.listProjects({
             archived: true,
             itemsPerPage: 100,
@@ -331,7 +331,7 @@ function UsageVisualization({durationOption}: {durationOption: Duration}) {
         emptyPage
     );
 
-    if (field) return <DetailedView data={subprojects.data} />;
+    if (field) return <DetailedView projects={subprojects.data} wallets={balance.data.wallets} />;
 
     const computeCharts = usageResponse.data.charts.map(it => transformUsageChartForCharting(it, "COMPUTE"));
     const computeCreditsRemaining = balance.data.wallets.filter(it => it.area === "COMPUTE").filter(it => it.wallet.id === Client.projectId).reduce((acc, it) => it.allocated + acc, 0);
@@ -345,7 +345,6 @@ function UsageVisualization({durationOption}: {durationOption: Duration}) {
 
     // Fill timestamps;
     const usageComputeData = usageResponse.data.charts[0]?.lines.filter(it => it.projectId === Client.projectId && it.area === "COMPUTE")[0]?.points.map(it => ({time: it.timestamp})) ?? [];
-    const subProjectNames = subprojects.data.items.map(it => ({title: it.title, id: it.id}));
 
     for (const chart of usageResponse.data.charts) {
         for (const line of chart.lines.filter(it => it.projectId === Client.projectId)) {
@@ -356,19 +355,8 @@ function UsageVisualization({durationOption}: {durationOption: Duration}) {
         }
     }
 
+    // Remove timestamps??
     const computeEntries = Object.keys(usageComputeData[0] ?? {}).filter(it => it !== "time");
-
-    const subProjectsUsage = balance.data.wallets.filter(it => it.wallet.type === (Client.hasActiveProject ? "PROJECT" : "USER") && it.wallet.id !== (Client.hasActiveProject ? Client.projectId : Client.username));
-    const subprojjes: ValueNamePair[] = [];
-    for (const wallet of subProjectsUsage) {
-        const subprojectTitle = subProjectNames.find(it => it.id === wallet.wallet.id)?.title ?? "";
-        const index = subprojjes.findIndex(it => it.name === subprojectTitle);
-        if (index === -1) {
-            subprojjes.push({name: subprojectTitle, value: wallet.used});
-        } else {
-            subprojjes[index].value += wallet.used;
-        }
-    }
 
     return (
         <Grid px="auto" style={{gap: "30px 30px", justifyContent: "center", alignContent: "center"}} gridTemplateColumns="435px 435px">
@@ -459,17 +447,74 @@ function UsageVisualization({durationOption}: {durationOption: Duration}) {
                 </ResponsiveContainer>}
             </HighlightedCard>
             {["STORAGE", "COMPUTE"].map(area => {
-                const byArea = balance.data.wallets.filter(it => it.area === area && it.wallet.type === (Client.hasActiveProject ? "PROJECT" : "USER") && it.wallet.id === (Client.hasActiveProject ? Client.projectId : Client.username));
-                const data = byArea.map(it => ({name: it.wallet.paysFor.id, value: it.used}));
+                const data = findUsageFromWallet(balance.data.wallets, area);
                 return (
                     <DonutChart key={area} data={data} area={area} />
                 )
             })}
-            {/* TODO */}
-            <DonutChart area="Subprojects" data={subprojjes} />
+            <DonutChart area="Subprojects" data={findUsageFromSubprojects(balance.data.wallets, subprojects.data)} />
             <DonutChart area="Capacity" data={[{value: quota.data.quotaInTotal, name: "Capacity"}, {value: quota.data.quotaUsed ?? 0, name: "Used"}]} />
         </Grid>
     );
+}
+
+function findUsageFromSubprojectsByAreaAndMachine(wallets: UCloud.accounting.WalletBalance[], subprojects: Page<UCloud.project.Project>, area: ProductArea): {
+    name: string;
+    id: string;
+    data: ValueNamePair[];
+    mostUsed: string;
+    balanceUsed: number;
+    balanceRemaining: number;
+}[] {
+    const id = Client.hasActiveProject ? Client.projectId : Client.username;
+    const walletType = Client.hasActiveProject ? "PROJECT" : "USER";
+    const subprojectData = subprojects.items.map(it => ({
+        name: it.title,
+        id: it.id,
+        data: [] as ValueNamePair[],
+        mostUsed: "None",
+        balanceUsed: 0,
+        balanceRemaining: 0,
+    }));
+    const filteredWallets = wallets.filter(it => it.area === area && it.wallet.id === id && it.wallet.type === walletType);
+
+    for (const sub of subprojectData) {
+        const index = filteredWallets.findIndex(wallet => wallet.wallet.paysFor.id === sub.id);
+        if (index === -1) continue;
+        const wallet = filteredWallets[index];
+        sub.data.push({name: wallet.wallet.paysFor.id, value: wallet.used});
+    }
+
+    for (const d of subprojectData) {
+        if (d.data.length === 0) continue;
+        d.mostUsed = d.data.reduce((current, it) => it.value > current.value ? it : current, {name: "None", value: 0}).name;
+    }
+
+    return subprojectData;
+}
+
+function findUsageFromSubprojects(wallets: UCloud.accounting.WalletBalance[], subprojects: Page<UCloud.project.Project>) {
+    const subProjectNames = subprojects.items.map(it => ({title: it.title, id: it.id}));
+    const subProjectsUsage = wallets.filter(it => it.wallet.type === (Client.hasActiveProject ? "PROJECT" : "USER") && it.wallet.id !== (Client.hasActiveProject ? Client.projectId : Client.username));
+    const transformedUsage: ValueNamePair[] = [];
+    for (const wallet of subProjectsUsage) {
+        const subprojectTitle = subProjectNames.find(it => it.id === wallet.wallet.id)?.title ?? "";
+        const index = transformedUsage.findIndex(it => it.name === subprojectTitle);
+        if (index === -1) {
+            transformedUsage.push({name: subprojectTitle, value: wallet.used});
+        } else {
+            transformedUsage[index].value += wallet.used;
+        }
+    }
+    return transformedUsage;
+}
+
+function findUsageFromWallet(wallets: UCloud.accounting.WalletBalance[], area: string) {
+    const activeProject = Client.hasActiveProject;
+    return wallets
+        .filter(it => it.area === area && it.wallet.type === (activeProject ? "PROJECT" : "USER") &&
+            it.wallet.id === (activeProject ? Client.projectId : Client.username)
+        ).map(it => ({name: it.wallet.paysFor.id, value: it.used}));
 }
 
 function NoEntries() {
@@ -486,17 +531,7 @@ function DonutChart({area, data}: {area: string; data: ValueNamePair[]}): JSX.El
     const totalUsage = data.reduce((acc, it) => it.value + acc, 0);
     return (
         <HighlightedCard height="437px" key={area} color="green">
-            <Flex>
-                <Box mr="auto" />
-                <ClickableDropdown
-                    trigger={<Box mr="-14px" mt="2px"><Icon rotation={90} name="ellipsis" /></Box>}
-                    left="-112px"
-                    top="-4px"
-                    options={[{text: "Storage (GB)", value: "storage_gb"}, {text: "Storage (DKK)", value: "storage_price"}, {text: "Compute (DKK)", value: "compute"}]}
-                    onChange={it => console.log(it)}
-                />
-            </Flex>
-            <Flex><Box mr="auto" /><Text fontSize="26px">{capitalized(area)}</Text><Box ml="auto" /></Flex>
+            <Flex mt="14px"><Box mr="auto" /><Text fontSize="26px">{capitalized(area)}</Text><Box ml="auto" /></Flex>
             {data.length === 0 || totalUsage === 0 ? <NoEntries /> :
                 <>
                     <Flex>
@@ -515,11 +550,11 @@ function DonutChart({area, data}: {area: string; data: ValueNamePair[]}): JSX.El
                         </PieChart>
                         <Box ml="auto" />
                     </Flex>
-                    <Flex pb="12px">
+                    <Flex pb="12px" style={{overflowX: "scroll"}}>
                         <Box mr="auto" />
                         {data.map((it, index) =>
-                            <Box mx="auto" key={it.name}>
-                                <Text textAlign="center" fontSize="14px">{it.name}</Text>
+                            <Box mx="4px" width="auto" key={it.name}>
+                                <Text style={{wordBreak: "keep-all"}} textAlign="center" fontSize="14px">{it.name}</Text>
                                 <Text
                                     textAlign="center"
                                     color={getCssVar(COLORS[index % COLORS.length])}
@@ -554,19 +589,23 @@ const mockSubprojects = [{
     balanceRemaining: 1_000_000_000,
 }];
 
-function DetailedView({data}: {data: Page<UCloud.project.Project>}): JSX.Element | null {
+function DetailedView({projects, wallets}: {projects: Page<UCloud.project.Project>, wallets: UCloud.accounting.WalletBalance[]}): JSX.Element | null {
     const searchRef = React.useRef<HTMLInputElement>(null);
     const [selected, setSelected] = React.useState("");
-    const subprojects = selected ? [data.items.find(it => it.title === selected)!] : data.items;
-    const selectedIndex = data.items.findIndex(it => it.title === selected);
+    const [productArea, setProductArea] = React.useState<"COMPUTE" | "STORAGE">("STORAGE");
+    const mappedData = findUsageFromSubprojectsByAreaAndMachine(wallets, projects, productArea);
+    const subprojects = selected ? [mappedData.find(it => it.name === selected)!] : mappedData;
+    const selectedIndex = subprojects.findIndex(it => it.name === selected);
     const totalUsage = !selected ? 0 : mockSubprojects[selectedIndex].data.reduce((acc, element) => acc + element.value, 0);
+    
+
     return (
         <>
             <Spacer
                 left={
                     <>
-                        <RoundedDropdown initialSelection="Storage" options={["Storage", "Compute"]} />
-                        <RoundedDropdown initialSelection="Past 30 Days" options={["Today", "Last week", "Past 30 days", "Past year"]} />
+                        <RoundedDropdown initialSelection={productArea} options={["STORAGE", "COMPUTE"]} onSelect={val => setProductArea(val)} />
+                        <RoundedDropdown initialSelection="Past 30 Days" options={["Today", "Last week", "Past 30 days", "Past year"]} onSelect={console.log} />
                     </>
                 }
                 right={
@@ -606,33 +645,32 @@ function DetailedView({data}: {data: Page<UCloud.project.Project>}): JSX.Element
                         </TableRow>
                     </TableHeader>
                     <tbody>
-                        {data.items.map((it, index) => {
-                            return (
-                                <BorderedTableRow onClick={() => setSelected(s => s ? "" : it.title)} key={it.id}>
-                                    <td style={{paddingLeft: "12px"}}>{it.title}</td>
-                                    <td>
-                                        <Box pl="auto" pr="auto">
-                                            <PieChart width={80} height={80}>
-                                                <Pie
-                                                    data={mockSubprojects[index % mockSubprojects.length].data}
-                                                    fill="#8884d8"
-                                                    dataKey="value"
-                                                    innerRadius={18}
-                                                >
-                                                    {mockSubprojects[index % mockSubprojects.length].data.map((_, index) => (
-                                                        <Cell key={`cell-${index}`} fill={getCssVar(COLORS[index % COLORS.length])} />
-                                                    ))}
-                                                </Pie>
-                                            </PieChart>
-                                        </Box>
-                                    </td>
-                                    <td>{mockSubprojects[index % mockSubprojects.length].mostUsed}</td>
-                                    <td>{creditFormatter(mockSubprojects[index % mockSubprojects.length].balanceUsed)}</td>
-                                    <td>{creditFormatter(mockSubprojects[index % mockSubprojects.length].balanceRemaining)}</td>
-                                    <td><Icon name="check" color="green" /></td>
-                                </BorderedTableRow>
-                            )
-                        })}
+                        {subprojects.map(it => (
+                            <BorderedTableRow onClick={() => setSelected(s => s ? "" : it.name)} key={it.id}>
+                                <td style={{paddingLeft: "12px"}}>{it.name}</td>
+                                <td>
+                                    <Box pl="auto" pr="auto">
+                                        <PieChart width={80} height={80}>
+                                            <Pie
+                                                data={it.data}
+                                                fill="#8884d8"
+                                                dataKey="value"
+                                                innerRadius={18}
+                                            >
+                                                {it.data.map((_, index) => (
+                                                    <Cell key={`cell-${index}`} fill={getCssVar(COLORS[index % COLORS.length])} />
+                                                ))}
+                                            </Pie>
+                                        </PieChart>
+                                    </Box>
+                                </td>
+                                <td>{it.mostUsed}</td>
+                                <td>{creditFormatter(it.balanceUsed)}</td>
+                                <td>{creditFormatter(it.balanceRemaining)}</td>
+                                <td><Icon name="check" color="green" /></td>
+                            </BorderedTableRow>
+                        )
+                        )}
                     </tbody>
                 </Table>
                 {!selected ? null :
@@ -641,12 +679,12 @@ function DetailedView({data}: {data: Page<UCloud.project.Project>}): JSX.Element
                             <Box ml="calc(50% - 150px)">
                                 <PieChart width={300} height={300}>
                                     <Pie
-                                        data={mockSubprojects[selectedIndex].data}
+                                        data={subprojects[selectedIndex].data}
                                         fill="#8884d8"
                                         dataKey="value"
                                         innerRadius={80}
                                     >
-                                        {mockSubprojects[selectedIndex].data.map((_, index) => (
+                                        {subprojects[selectedIndex].data.map((_, index) => (
                                             <Cell key={`cell-${index}`} fill={getCssVar(COLORS[index % COLORS.length])} />
                                         ))}
                                     </Pie>
@@ -655,7 +693,7 @@ function DetailedView({data}: {data: Page<UCloud.project.Project>}): JSX.Element
                         </Box>
                         <Box width="33%" mt="30px">
                             <Grid style={{gap: "10px 20px"}} gridTemplateColumns="auto auto">
-                                {mockSubprojects[selectedIndex].data.map((it, index) =>
+                                {subprojects[selectedIndex].data.map((it, index) =>
                                     <Box key={it.name}>
                                         <Text textAlign="center" fontSize="14px">{it.name}</Text>
                                         <Text
@@ -670,19 +708,19 @@ function DetailedView({data}: {data: Page<UCloud.project.Project>}): JSX.Element
                         </Box>
                         <Box width="34%" style={{borderLeft: "1px solid var(--usageGray)"}}>
                             <FixedHeightFlex>
-                                <Text pl="12px" m="auto" width="60%">Number of members</Text> <Text m="auto" width="40%">{"10 members"}</Text>
+                                <Text pl="12px" m="auto" width="60%">Number of members</Text> <Text m="auto" width="40%">TODO</Text>
                             </FixedHeightFlex>
                             <FixedHeightFlex>
-                                <Text pl="12px" m="auto" width="60%">Number of groups</Text> <Text m="auto" width="40%">{"5 groups"}</Text>
+                                <Text pl="12px" m="auto" width="60%">Number of groups</Text> <Text m="auto" width="40%">TODO</Text>
                             </FixedHeightFlex>
                             <FixedHeightFlex>
-                                <Text pl="12px" my="auto"><Link color="blue" to="/">Grant Application</Link></Text>
+                                <Text pl="12px" my="auto"><Link color="blue" to="/">Grant Application (TODO)</Link></Text>
                             </FixedHeightFlex>
                             <FixedHeightFlex>
                                 <Text pl="12px" m="auto" width="60%">Data management plan</Text> <Text m="auto" width="40%"><Link to="/">Yes</Link></Text>
                             </FixedHeightFlex>
                             <FixedHeightFlex>
-                                <Text m="auto" width="60%">{/* ??? */}</Text>
+                                <Text m="auto" width="60%">Space for rent</Text>
                             </FixedHeightFlex>
                         </Box>
                     </Flex>
@@ -690,7 +728,8 @@ function DetailedView({data}: {data: Page<UCloud.project.Project>}): JSX.Element
             </Box>
             <Spacer
                 left={null}
-                right={<PaginationButtons totalPages={10} currentPage={2} toPage={() => undefined} />}
+                /* TODO */
+                right={<PaginationButtons totalPages={subprojects.length / 5} currentPage={0} toPage={() => console.log("todo")} />}
             />
         </>
     );
@@ -698,7 +737,7 @@ function DetailedView({data}: {data: Page<UCloud.project.Project>}): JSX.Element
 
 const FixedHeightFlex = styled(Flex)`
     &:not(:last-child) {
-                        border - bottom: 1px solid var(--usageGray);
+        border-bottom: 1px solid var(--usageGray);
     }
     height: 20%;
     margin: auto;
@@ -707,22 +746,22 @@ const FixedHeightFlex = styled(Flex)`
 const BorderedTableRow = styled(TableRow)`
     cursor: pointer;
     &:not(:last-child) {
-                        border - bottom: 1px solid var(--usageGray);
+        border-bottom: 1px solid var(--usageGray);
     }
 `;
 
-function RoundedDropdown({initialSelection, options}: {initialSelection: string, options: string[]}): JSX.Element {
+function RoundedDropdown<T extends string>({initialSelection, options, onSelect}: {initialSelection: T; options: T[]; onSelect(val: T): void}): JSX.Element {
     const [selection, setSelection] = React.useState(initialSelection);
 
     return (
         <ClickableDropdown
             trigger={
                 <BorderedFlex width="180px">
-                    <Text fontSize="19px" ml="6px" color="black" mr={8}>{selection}</Text>
+                    <Text fontSize="19px" ml="6px" color="black" mr={8}>{capitalized(selection)}</Text>
                     <Icon name="chevronDown" size={12} />
                 </BorderedFlex>}
         >
-            {options.map(it => <Text key={it} onClick={() => setSelection(it)}>{it}</Text>)}
+            {options.map(it => <Text key={it} onClick={() => (setSelection(it), onSelect(it))}>{capitalized(it)}</Text>)}
         </ClickableDropdown>
     )
 }

@@ -6,9 +6,9 @@ import {filePreviewPage, pathComponents, resolvePath} from "Utilities/FileUtilit
 import {Client} from "Authentication/HttpClientInstance";
 import {Link} from "ui-components/index";
 
-class CodeBlock extends React.PureComponent<{ value: string; language?: string }> {
+class CodeBlock extends React.PureComponent<{value: string; language?: string}> {
     public render(): JSX.Element {
-        const { language, value } = this.props;
+        const {language, value} = this.props;
 
         return (
             <SyntaxHighlighter language={language}>
@@ -18,7 +18,7 @@ class CodeBlock extends React.PureComponent<{ value: string; language?: string }
     }
 }
 
-const LinkBlock: React.FunctionComponent<{ href: string }> = props => {
+const LinkBlock: React.FunctionComponent<{href: string}> = props => {
     if (props.href.indexOf("http") !== 0) {
         // Consider this a file link
         const isRelative = props.href.indexOf("/") !== 0;
@@ -42,7 +42,7 @@ const LinkBlock: React.FunctionComponent<{ href: string }> = props => {
 };
 
 const Markdown: React.FunctionComponent<ReactMarkdown.ReactMarkdownProps> = props => {
-    return <ReactMarkdown {...props} renderers={{ link: LinkBlock, code: CodeBlock }} />;
+    return <ReactMarkdown {...props} renderers={{link: LinkBlock, code: CodeBlock}} />;
 };
 
 export default Markdown;
