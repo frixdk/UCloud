@@ -617,7 +617,7 @@ function DetailedView({projects, wallets, toPage, durationOption, setDuration}: 
                     <>
                         {/* TODO */}
                         <BorderedFlex height="38px" width="36px">
-                            <Icon ml="2px" name="download" onClick={() => {console.log("TODO")} />
+                            <Icon ml="2px" name="download" onClick={() => {console.log("TODO")}} />
                         </BorderedFlex>
                         {/* TODO */}
                         <Input pl="32px" autoComplete="off" style={{height: "38px", border: "1px solid var(--usageGray)"}} ref={searchRef} width="200px" />
