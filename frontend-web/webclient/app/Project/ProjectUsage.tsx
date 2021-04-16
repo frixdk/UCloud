@@ -200,10 +200,13 @@ const UsageHeader = styled(Flex)`
 const ProjectUsage: React.FunctionComponent<ProjectUsageOperations> = props => {
     const {projectId, reload} = useProjectManagementStatus({isRootComponent: true, allowPersonalProject: true});
 
+    const {field} = useRouteMatch<{field?: string}>().params;
+
     useTitle("Usage");
     useSidebarPage(SidebarPages.Projects);
 
-    const [durationOption, setDurationOption] = useState<Duration>(durationOptions[3]);
+    const duration = useState<Duration>(durationOptions[3]);
+    const [durationOption, setDurationOption] = duration;
 
     const currentTime = new Date();
     const now = periodStartFunction(currentTime, durationOption);
@@ -245,7 +248,7 @@ const ProjectUsage: React.FunctionComponent<ProjectUsageOperations> = props => {
                 <Box minWidth={600} width="80%" mt={30} marginLeft="auto" marginRight="auto">
                     <UsageHeader>
                         <ProjectBreadcrumbs allowPersonalProject crumbs={[{title: "Usage"}]} />
-                        <ClickableDropdown
+                        {field ? null : <ClickableDropdown
                             trigger={
                                 <BorderedFlex width="180px">
                                     <Heading.h4 ml="8px">{durationOption.text}</Heading.h4>
@@ -254,14 +257,14 @@ const ProjectUsage: React.FunctionComponent<ProjectUsageOperations> = props => {
                             }
                             onChange={opt => setDurationOption(durationOptions[opt])}
                             options={durationOptions.map((it, idx) => ({text: it.text, value: idx}))}
-                        />
+                        />}
                     </UsageHeader>
                 </Box>
             }
             sidebar={null}
             main={
                 <Box minWidth={600} width="80%" mt={30} marginLeft="auto" marginRight="auto">
-                    <UsageVisualization durationOption={durationOption} />
+                    <UsageVisualization duration={duration} />
                 </Box>
             }
         />
@@ -273,9 +276,10 @@ interface ValueNamePair {
     name: string;
 }
 
-function UsageVisualization({durationOption}: {durationOption: Duration}) {
+function UsageVisualization({duration}: {duration: [Duration, React.Dispatch<React.SetStateAction<Duration>>]}) {
     const {field} = useRouteMatch<{field?: string}>().params;
-    const history = useHistory();
+
+    const [durationOption, setDuration] = duration;
 
     const [balance, fetchBalance] = useCloudAPI<RetrieveBalanceResponse>(
         {noop: true},
@@ -330,10 +334,18 @@ function UsageVisualization({durationOption}: {durationOption: Duration}) {
         emptyPage
     );
 
-    if (field) return <DetailedView projects={subprojects.data} wallets={balance.data.wallets} toPage={page => fetchSubprojects(UCloud.project.listSubProjects({
-        itemsPerPage: 10,
-        page
-    }))} />;
+    if (field) return (
+        <DetailedView
+            projects={subprojects.data}
+            wallets={balance.data.wallets}
+            setDuration={setDuration}
+            durationOption={durationOption}
+            toPage={page => fetchSubprojects(UCloud.project.listSubProjects({
+                itemsPerPage: 10,
+                page
+            }))}
+        />
+    );
 
     const computeCreditsRemaining = balance.data.wallets.filter(it => it.area === "COMPUTE").filter(it => it.wallet.id === Client.projectId).reduce((acc, it) => it.allocated + acc, 0);
     const computeCharts = usageResponse.data.charts.map(it => transformUsageChartForCharting(it, "COMPUTE"));
@@ -389,8 +401,6 @@ function UsageVisualization({durationOption}: {durationOption: Duration}) {
                             right: 0,
                             bottom: -28
                         }}
-                        style={{cursor: "pointer"}}
-                        onClick={() => history.push(`/project/usage/storage`)}
                         data={storageCharts[0]?.points ?? []}
                     >
                         <XAxis dataKey="time" />
@@ -427,8 +437,6 @@ function UsageVisualization({durationOption}: {durationOption: Duration}) {
                             right: 0,
                             bottom: -28
                         }}
-                        onClick={() => history.push("/project/usage/compute")}
-                        style={{cursor: "pointer"}}
                         data={usageComputeData}
                     >
                         <XAxis dataKey="time" />
@@ -530,13 +538,21 @@ function NoEntries() {
 const COLORS: [ThemeColor, ThemeColor, ThemeColor, ThemeColor, ThemeColor] = ["green", "red", "blue", "orange", "yellow"];
 
 function DonutChart({area, data}: {area: string; data: ValueNamePair[]}): JSX.Element | null {
+    const isSubprojects = area === "Subprojects";
+    const history = useHistory();
+
     const totalUsage = data.reduce((acc, it) => it.value + acc, 0);
     return (
-        <HighlightedCard height="437px" key={area} color="green">
+        <HighlightedCard
+            key={area}
+            height="437px"
+            onClick={isSubprojects ? () => history.push("/project/usage/subprojects") : undefined}
+            color="green"
+        >
             <Flex mt="14px"><Box mr="auto" /><Text fontSize="26px">{capitalized(area)}</Text><Box ml="auto" /></Flex>
             {data.length === 0 || totalUsage === 0 ? <NoEntries /> :
                 <>
-                    <Flex>
+                    <Flex style={isSubprojects ? {cursor: "pointer"} : undefined}>
                         <Box mr="auto" />
                         <PieChart key={area} width={300} height={300}>
                             <Pie
@@ -555,8 +571,8 @@ function DonutChart({area, data}: {area: string; data: ValueNamePair[]}): JSX.El
                     <Flex pb="12px" style={{overflowX: "scroll"}}>
                         <Box mr="auto" />
                         {data.map((it, index) =>
-                            <Box mx="4px" width="auto" key={it.name}>
-                                <Text textAlign="center" style={{wordBreak: "keep-all"}} fontSize="14px">{it.name}</Text>
+                            <Box mx="4px" width="auto" style={{whiteSpace: "nowrap"}} key={it.name}>
+                                <Text textAlign="center" fontSize="14px">{it.name}</Text>
                                 <Text
                                     textAlign="center"
                                     color={getCssVar(COLORS[index % COLORS.length])}
@@ -573,7 +589,7 @@ function DonutChart({area, data}: {area: string; data: ValueNamePair[]}): JSX.El
     )
 }
 
-function DetailedView({projects, wallets, toPage}: {projects: Page<UCloud.project.Project>, wallets: UCloud.accounting.WalletBalance[]; toPage(p: number): void}): JSX.Element | null {
+function DetailedView({projects, wallets, toPage, durationOption, setDuration}: {projects: Page<UCloud.project.Project>, wallets: UCloud.accounting.WalletBalance[]; toPage(p: number): void; durationOption: Duration, setDuration: React.Dispatch<React.SetStateAction<Duration>>}): JSX.Element | null {
     const searchRef = React.useRef<HTMLInputElement>(null);
     const [selected, setSelected] = React.useState("");
     const [productArea, setProductArea] = React.useState<"COMPUTE" | "STORAGE">("STORAGE");
@@ -594,13 +610,14 @@ function DetailedView({projects, wallets, toPage}: {projects: Page<UCloud.projec
                 left={
                     <>
                         <RoundedDropdown initialSelection={productArea} options={["STORAGE", "COMPUTE"]} onSelect={val => setProductArea(val)} />
-                        <RoundedDropdown initialSelection="Past 30 Days" options={["Today", "Last week", "Past 30 days", "Past year"]} onSelect={console.log} />
+                        <RoundedDropdown initialSelection={durationOption.text} options={durationOptions.map(it => it.text)} onSelect={opt => setDuration(durationOptions.find(it => it.text === opt)!)} />
                     </>
                 }
                 right={
                     <>
+                        {/* TODO */}
                         <BorderedFlex height="38px" width="36px">
-                            <Icon ml="2px" name="download" />
+                            <Icon ml="2px" name="download" onClick={() => {console.log("TODO")} />
                         </BorderedFlex>
                         {/* TODO */}
                         <Input pl="32px" autoComplete="off" style={{height: "38px", border: "1px solid var(--usageGray)"}} ref={searchRef} width="200px" />
@@ -748,7 +765,7 @@ function RoundedDropdown<T extends string>({initialSelection, options, onSelect}
                 <BorderedFlex width="180px">
                     <Text fontSize="19px" ml="6px" color="black" mr={8}>{capitalized(selection)}</Text>
                     <Box mr="auto" />
-                    <Icon name="chevronDown" mr="6px" size={12} />
+                    <Icon name="chevronDown" mr="8px" size={12} />
                 </BorderedFlex>}
         >
             {options.map(it => <Text key={it} onClick={() => (setSelection(it), onSelect(it))}>{capitalized(it)}</Text>)}

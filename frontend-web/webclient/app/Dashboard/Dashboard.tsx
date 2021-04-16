@@ -57,23 +57,26 @@ import {JobStateIcon} from "Applications/Jobs/JobStateIcon";
 import {isRunExpired} from "Utilities/ApplicationUtilities";
 import formatDistanceToNow from "date-fns/formatDistanceToNow";
 import {jobAppTitle, jobTitle} from "Applications/Jobs";
+import {Cursor} from "ui-components/Types";
 
 export const HighlightedCard: React.FunctionComponent<{
     title?: React.ReactNode;
     subtitle?: React.ReactNode;
     color: ThemeColor;
     isLoading?: boolean;
-    icon?: IconName,
-    height?: string,
-    minHeight?: string,
-    width?: string,
-    minWidth?: string,
+    icon?: IconName;
+    height?: string;
+    minHeight?: string;
+    width?: string;
+    minWidth?: string;
     px?: string | number;
+    cursor?: Cursor;
     onClick?: () => void;
-}> = ({title, subtitle, onClick, color, px = 3, isLoading = false, icon = undefined, children, height = "auto", minHeight, width = "100%", minWidth}) => (
+}> = ({title, subtitle, onClick, color, px = 3, isLoading = false, icon = undefined, cursor = "inherit", children, height = "auto", minHeight, width = "100%", minWidth}) => (
     <Card
         onClick={onClick}
         overflow="hidden"
+        cursor={cursor}
         height={height}
         width={width}
         minWidth={minWidth}
