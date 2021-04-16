@@ -305,7 +305,7 @@ function UsageVisualization({durationOption}: {durationOption: Duration}) {
 
         fetchBalance(retrieveBalance({includeChildren: true}));
         fetchSubprojects(UCloud.project.listSubProjects({
-            itemsPerPage: 100,
+            itemsPerPage: 10,
             page: 0
         }));
         fetchQuotaParams(retrieveQuota({
@@ -330,14 +330,16 @@ function UsageVisualization({durationOption}: {durationOption: Duration}) {
         emptyPage
     );
 
-    if (field) return <DetailedView projects={subprojects.data} wallets={balance.data.wallets} />;
+    if (field) return <DetailedView projects={subprojects.data} wallets={balance.data.wallets} toPage={page => fetchSubprojects(UCloud.project.listSubProjects({
+        itemsPerPage: 10,
+        page
+    }))} />;
 
-    const computeCharts = usageResponse.data.charts.map(it => transformUsageChartForCharting(it, "COMPUTE"));
     const computeCreditsRemaining = balance.data.wallets.filter(it => it.area === "COMPUTE").filter(it => it.wallet.id === Client.projectId).reduce((acc, it) => it.allocated + acc, 0);
+    const computeCharts = usageResponse.data.charts.map(it => transformUsageChartForCharting(it, "COMPUTE"));
 
     const computeCreditsUsedInPeriod = computeUsageInPeriod(computeCharts);
     const storageCharts = usageResponse.data.charts.map(it => transformUsageChartForCharting(it, "STORAGE"));
-    const storageCreditsUsedInPeriod = computeUsageInPeriod(storageCharts);
 
     const activeProject = Client.hasActiveProject ? projects.data.items.find(p => p.projectId === Client.projectId ?? "") : undefined;
     const activeWorkspace = activeProject ? activeProject.ancestorPath! + "/" + activeProject.title : Client.username!;
@@ -553,8 +555,8 @@ function DonutChart({area, data}: {area: string; data: ValueNamePair[]}): JSX.El
                     <Flex pb="12px" style={{overflowX: "scroll"}}>
                         <Box mr="auto" />
                         {data.map((it, index) =>
-                            <Box mx="4px" width="auto" key={it.name} style={{wordBreak: "keep-all"}}>
-                                <Text textAlign="center" fontSize="14px">{it.name}</Text>
+                            <Box mx="4px" width="auto" key={it.name}>
+                                <Text textAlign="center" style={{wordBreak: "keep-all"}} fontSize="14px">{it.name}</Text>
                                 <Text
                                     textAlign="center"
                                     color={getCssVar(COLORS[index % COLORS.length])}
@@ -571,7 +573,7 @@ function DonutChart({area, data}: {area: string; data: ValueNamePair[]}): JSX.El
     )
 }
 
-function DetailedView({projects, wallets}: {projects: Page<UCloud.project.Project>, wallets: UCloud.accounting.WalletBalance[]}): JSX.Element | null {
+function DetailedView({projects, wallets, toPage}: {projects: Page<UCloud.project.Project>, wallets: UCloud.accounting.WalletBalance[]; toPage(p: number): void}): JSX.Element | null {
     const searchRef = React.useRef<HTMLInputElement>(null);
     const [selected, setSelected] = React.useState("");
     const [productArea, setProductArea] = React.useState<"COMPUTE" | "STORAGE">("STORAGE");
@@ -600,6 +602,7 @@ function DetailedView({projects, wallets}: {projects: Page<UCloud.project.Projec
                         <BorderedFlex height="38px" width="36px">
                             <Icon ml="2px" name="download" />
                         </BorderedFlex>
+                        {/* TODO */}
                         <Input pl="32px" autoComplete="off" style={{height: "38px", border: "1px solid var(--usageGray)"}} ref={searchRef} width="200px" />
                         <Relative left="-198px">
                             <Icon size="32px" mt="4px" name="search" color="gray" />
@@ -715,8 +718,7 @@ function DetailedView({projects, wallets}: {projects: Page<UCloud.project.Projec
             </Box>
             <Spacer
                 left={null}
-                /* TODO */
-                right={<PaginationButtons totalPages={subprojects.length / 5} currentPage={0} toPage={() => console.log("todo")} />}
+                right={<PaginationButtons totalPages={projects.itemsInTotal / projects.itemsPerPage} currentPage={projects.pageNumber} toPage={toPage} />}
             />
         </>
     );
