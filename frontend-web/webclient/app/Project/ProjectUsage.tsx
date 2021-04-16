@@ -203,7 +203,6 @@ const ProjectUsage: React.FunctionComponent<ProjectUsageOperations> = props => {
     useTitle("Usage");
     useSidebarPage(SidebarPages.Projects);
 
-    const [productArea, setProductArea] = useState<ProductArea>("COMPUTE");
     const [durationOption, setDurationOption] = useState<Duration>(durationOptions[3]);
 
     const currentTime = new Date();
@@ -278,12 +277,12 @@ function UsageVisualization({durationOption}: {durationOption: Duration}) {
     const {field} = useRouteMatch<{field?: string}>().params;
     const history = useHistory();
 
-    const [balance, fetchBalance, balanceParams] = useCloudAPI<RetrieveBalanceResponse>(
+    const [balance, fetchBalance] = useCloudAPI<RetrieveBalanceResponse>(
         {noop: true},
         {wallets: []}
     );
 
-    const [usageResponse, fetchUsageParams, usageParams] = useCloudAPI<UsageResponse>(
+    const [usageResponse, fetchUsageParams] = useCloudAPI<UsageResponse>(
         {noop: true},
         {charts: []}
     );
@@ -292,7 +291,7 @@ function UsageVisualization({durationOption}: {durationOption: Duration}) {
         noop: true
     }, emptyPage);
 
-    const [quota, fetchQuotaParams, quotaParams] = useCloudAPI<RetrieveQuotaResponse>(
+    const [quota, fetchQuotaParams] = useCloudAPI<RetrieveQuotaResponse>(
         {noop: true},
         {
             quotaInBytes: 0,
@@ -466,7 +465,6 @@ function findUsageFromSubprojectsByAreaAndMachine(wallets: UCloud.accounting.Wal
     balanceUsed: number;
     balanceRemaining: number;
 }[] {
-    const id = Client.hasActiveProject ? Client.projectId : Client.username;
     const walletType = Client.hasActiveProject ? "PROJECT" : "USER";
     const subprojectData = subprojects.items.map(it => ({
         name: it.title,
@@ -476,13 +474,15 @@ function findUsageFromSubprojectsByAreaAndMachine(wallets: UCloud.accounting.Wal
         balanceUsed: 0,
         balanceRemaining: 0,
     }));
-    const filteredWallets = wallets.filter(it => it.area === area && it.wallet.id === id && it.wallet.type === walletType);
+    const filteredWallets = wallets.filter(it => it.area === area && it.wallet.type === walletType);
 
     for (const sub of subprojectData) {
-        const index = filteredWallets.findIndex(wallet => wallet.wallet.paysFor.id === sub.id);
-        if (index === -1) continue;
-        const wallet = filteredWallets[index];
-        sub.data.push({name: wallet.wallet.paysFor.id, value: wallet.used});
+        const walletsUsedByProject = filteredWallets.filter(wallet => wallet.wallet.id === sub.id);
+        for (const wallet of walletsUsedByProject) {
+            sub.balanceRemaining += wallet.balance;
+            sub.balanceUsed += wallet.used;
+            sub.data.push({name: wallet.wallet.paysFor.id, value: wallet.used});
+        }
     }
 
     for (const d of subprojectData) {
@@ -553,8 +553,8 @@ function DonutChart({area, data}: {area: string; data: ValueNamePair[]}): JSX.El
                     <Flex pb="12px" style={{overflowX: "scroll"}}>
                         <Box mr="auto" />
                         {data.map((it, index) =>
-                            <Box mx="4px" width="auto" key={it.name}>
-                                <Text style={{wordBreak: "keep-all"}} textAlign="center" fontSize="14px">{it.name}</Text>
+                            <Box mx="4px" width="auto" key={it.name} style={{wordBreak: "keep-all"}}>
+                                <Text textAlign="center" fontSize="14px">{it.name}</Text>
                                 <Text
                                     textAlign="center"
                                     color={getCssVar(COLORS[index % COLORS.length])}
@@ -571,33 +571,20 @@ function DonutChart({area, data}: {area: string; data: ValueNamePair[]}): JSX.El
     )
 }
 
-
-const pieChartData: ValueNamePair[] = [{value: Math.random() * 400, name: "a1-standard"}, {value: Math.random() * 400, name: "u1-standard"}, {value: Math.random() * 400, name: "u1-gpu"}, {value: Math.random() * 400, name: "u1-storage"}];
-const pieChartData2: ValueNamePair[] = [{value: Math.random() * 400, name: "u1-standard-64"}, {value: Math.random() * 400, name: "u1-standard-1"}, {value: Math.random() * 400, name: "u1-standard-2"}, {value: Math.random() * 400, name: "u1-standard-16"}];
-
-const mockSubprojects = [{
-    name: "Foo/Bar/Baz",
-    data: pieChartData,
-    mostUsed: "u2-cephfs",
-    balanceUsed: 500_000_000,
-    balanceRemaining: 1_000_000_000,
-}, {
-    name: "Qux/Quaz/Quxx",
-    data: pieChartData2,
-    mostUsed: "u1-cephfs",
-    balanceUsed: 500_000_000,
-    balanceRemaining: 1_000_000_000,
-}];
-
 function DetailedView({projects, wallets}: {projects: Page<UCloud.project.Project>, wallets: UCloud.accounting.WalletBalance[]}): JSX.Element | null {
     const searchRef = React.useRef<HTMLInputElement>(null);
     const [selected, setSelected] = React.useState("");
     const [productArea, setProductArea] = React.useState<"COMPUTE" | "STORAGE">("STORAGE");
+
+    // On Project or Wallet change
+    React.useEffect(() => {
+        setSelected("");
+    }, [projects, wallets]);
+
     const mappedData = findUsageFromSubprojectsByAreaAndMachine(wallets, projects, productArea);
     const subprojects = selected ? [mappedData.find(it => it.name === selected)!] : mappedData;
     const selectedIndex = subprojects.findIndex(it => it.name === selected);
-    const totalUsage = !selected ? 0 : mockSubprojects[selectedIndex].data.reduce((acc, element) => acc + element.value, 0);
-    
+    const totalUsage = !selected ? 0 : subprojects[selectedIndex].data.reduce((acc, element) => acc + element.value, 0);
 
     return (
         <>
@@ -758,7 +745,8 @@ function RoundedDropdown<T extends string>({initialSelection, options, onSelect}
             trigger={
                 <BorderedFlex width="180px">
                     <Text fontSize="19px" ml="6px" color="black" mr={8}>{capitalized(selection)}</Text>
-                    <Icon name="chevronDown" size={12} />
+                    <Box mr="auto" />
+                    <Icon name="chevronDown" mr="6px" size={12} />
                 </BorderedFlex>}
         >
             {options.map(it => <Text key={it} onClick={() => (setSelection(it), onSelect(it))}>{capitalized(it)}</Text>)}

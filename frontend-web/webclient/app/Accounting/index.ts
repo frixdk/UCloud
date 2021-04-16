@@ -329,9 +329,10 @@ export function transformUsageChartForCharting(
 
     const usagePerProject: Record<string, number> = {};
 
+
     for (const line of chart.lines) {
         if (type !== line.area) continue;
-        const projectName = line.projectPath ? line.projectPath : line.projectId;
+        const projectName = line.projectPath ?? line.projectId;
         if (!projectName) continue;
 
 
