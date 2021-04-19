@@ -198,7 +198,8 @@ const UsageHeader = styled(Flex)`
 `;
 
 const ProjectUsage: React.FunctionComponent<ProjectUsageOperations> = props => {
-    // const {projectId, reload} = useProjectManagementStatus({isRootComponent: true, allowPersonalProject: true});
+    // Currently required for swapping project/username when in use.
+    const {projectId, reload} = useProjectManagementStatus({isRootComponent: true, allowPersonalProject: true});
 
     const {field} = useRouteMatch<{field?: string}>().params;
 
