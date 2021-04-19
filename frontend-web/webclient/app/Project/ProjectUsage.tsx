@@ -433,16 +433,18 @@ function UsageVisualization({duration}: {duration: [Duration, React.Dispatch<Rea
     );
 }
 
-function findUsageFromSubprojectsByAreaAndMachine(wallets: UCloud.accounting.WalletBalance[], subprojects: Page<UCloud.project.Project>, area: ProductArea): {
+interface MappedUsage {
     name: string;
     id: string;
     data: ValueNamePair[];
     mostUsed: string;
     balanceUsed: number;
     balanceRemaining: number;
-}[] {
+}
+
+function findUsageFromSubprojectsByAreaAndMachine(wallets: UCloud.accounting.WalletBalance[], subprojects: Page<UCloud.project.Project>, area: ProductArea): MappedUsage[] {
     const walletType = Client.hasActiveProject ? "PROJECT" : "USER";
-    const subprojectData = subprojects.items.map(it => ({
+    const subprojectData: MappedUsage[] = subprojects.items.map(it => ({
         name: it.title,
         id: it.id,
         data: [] as ValueNamePair[],
@@ -459,13 +461,9 @@ function findUsageFromSubprojectsByAreaAndMachine(wallets: UCloud.accounting.Wal
             sub.balanceUsed += wallet.used;
             sub.data.push({name: wallet.wallet.paysFor.id, value: wallet.used});
         }
+        if (sub.data.length === 0) continue;
+        sub.mostUsed = sub.data.reduce((current, it) => it.value > current.value ? it : current, {name: "None", value: 0}).name;
     }
-
-    for (const d of subprojectData) {
-        if (d.data.length === 0) continue;
-        d.mostUsed = d.data.reduce((current, it) => it.value > current.value ? it : current, {name: "None", value: 0}).name;
-    }
-
     return subprojectData;
 }
 
