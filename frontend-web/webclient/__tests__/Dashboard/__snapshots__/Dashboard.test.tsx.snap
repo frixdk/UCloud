@@ -184,6 +184,7 @@ exports[`Dashboard Dashboard mount 1`] = `
 
 .c4 {
   border-radius: 6px;
+  cursor: inherit;
   width: 100%;
   height: auto;
   overflow: hidden;
@@ -210,6 +211,7 @@ exports[`Dashboard Dashboard mount 1`] = `
 
 .c30 {
   border-radius: 6px;
+  cursor: inherit;
   width: 100%;
   min-width: 450px;
   height: auto;
@@ -527,6 +529,7 @@ exports[`Dashboard Dashboard mount 1`] = `
     >
       <div
         className="c4 c5"
+        cursor="inherit"
         height="auto"
         overflow="hidden"
         width="100%"
@@ -692,6 +695,7 @@ exports[`Dashboard Dashboard mount 1`] = `
       </div>
       <div
         className="c4 c5"
+        cursor="inherit"
         height="auto"
         overflow="hidden"
         width="100%"
@@ -802,6 +806,7 @@ exports[`Dashboard Dashboard mount 1`] = `
       </div>
       <div
         className="c4 c5"
+        cursor="inherit"
         height="auto"
         overflow="hidden"
         width="100%"
@@ -935,6 +940,7 @@ exports[`Dashboard Dashboard mount 1`] = `
       </div>
       <div
         className="c4 c5"
+        cursor="inherit"
         height="auto"
         overflow="hidden"
         width="100%"
@@ -1058,6 +1064,7 @@ exports[`Dashboard Dashboard mount 1`] = `
       </div>
       <div
         className="c4 c5"
+        cursor="inherit"
         height="auto"
         overflow="hidden"
         width="100%"
@@ -1154,6 +1161,7 @@ exports[`Dashboard Dashboard mount 1`] = `
       </div>
       <div
         className="c4 c5"
+        cursor="inherit"
         height="auto"
         overflow="hidden"
         width="100%"
@@ -1266,6 +1274,7 @@ exports[`Dashboard Dashboard mount 1`] = `
       </div>
       <div
         className="c30 c5"
+        cursor="inherit"
         height="auto"
         overflow="hidden"
         width="100%"
