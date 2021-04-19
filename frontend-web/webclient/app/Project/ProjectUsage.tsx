@@ -198,7 +198,7 @@ const UsageHeader = styled(Flex)`
 `;
 
 const ProjectUsage: React.FunctionComponent<ProjectUsageOperations> = props => {
-    const {projectId, reload} = useProjectManagementStatus({isRootComponent: true, allowPersonalProject: true});
+    // const {projectId, reload} = useProjectManagementStatus({isRootComponent: true, allowPersonalProject: true});
 
     const {field} = useRouteMatch<{field?: string}>().params;
 
@@ -207,41 +207,6 @@ const ProjectUsage: React.FunctionComponent<ProjectUsageOperations> = props => {
 
     const duration = useState<Duration>(durationOptions[3]);
     const [durationOption, setDurationOption] = duration;
-
-    const currentTime = new Date();
-    const now = periodStartFunction(currentTime, durationOption);
-
-    const [balance, fetchBalance, balanceParams] = useCloudAPI<RetrieveBalanceResponse>(
-        retrieveBalance({includeChildren: true}),
-        {wallets: []}
-    );
-
-    const [usageResponse, setUsageParams, usageParams] = useCloudAPI<UsageResponse>(
-        usage({
-            bucketSize: durationOption.bucketSize,
-            periodStart: now - durationOption.timeInPast,
-            periodEnd: now
-        }),
-        {charts: []}
-    );
-
-    useEffect(() => {
-        setUsageParams(usage({
-            bucketSize: durationOption.bucketSize,
-            periodStart: now - durationOption.timeInPast,
-            periodEnd: now
-        }));
-    }, [durationOption]);
-
-    useEffect(() => {
-        props.setRefresh(() => {
-            reload();
-            setUsageParams({...usageParams, reloadId: Math.random()});
-            fetchBalance({...balanceParams, reloadId: Math.random()});
-        });
-        return () => props.setRefresh();
-    }, [reload]);
-
     return (
         <MainContainer
             header={
@@ -620,7 +585,7 @@ function DetailedView({projects, wallets, toPage, durationOption, setDuration}: 
                             <Icon ml="2px" name="download" onClick={() => {console.log("TODO")}} />
                         </BorderedFlex>
                         {/* TODO */}
-                        <Input pl="32px" autoComplete="off" style={{height: "38px", border: "1px solid var(--usageGray)"}} ref={searchRef} width="200px" />
+                        <Input pl="32px" autoComplete="off" style={{height: "38px", border: "1px solid var(--usageGray)"}} placeholder="TODO" ref={searchRef} width="200px" />
                         <Relative left="-198px">
                             <Icon size="32px" mt="4px" name="search" color="gray" />
                         </Relative>
