@@ -4,7 +4,7 @@ import * as Heading from "ui-components/Heading";
 import * as React from "react";
 import {useEffect, useState} from "react";
 import {Box, Button, Card, Flex, Icon, Input, Link, Relative, Text, theme} from "ui-components";
-import {connect} from "react-redux";
+import {connect, useDispatch} from "react-redux";
 import {Dispatch} from "redux";
 import {setRefreshFunction} from "Navigation/Redux/HeaderActions";
 import {loadingAction} from "Loading";
@@ -23,7 +23,7 @@ import {
     usage,
     UsageResponse
 } from "Accounting";
-import {useProjectManagementStatus} from "Project";
+import {emptyProject, groupSummaryRequest, membershipSearch, ProjectMember, useProjectId, useProjectManagementStatus} from "Project";
 import {ProjectBreadcrumbs} from "Project/Breadcrumbs";
 import styled from "styled-components";
 import {ThemeColor} from "ui-components/theme";
@@ -33,7 +33,7 @@ import {getCssVar} from "Utilities/StyledComponentsUtilities";
 import {useTitle} from "Navigation/Redux/StatusActions";
 import {useSidebarPage, SidebarPages} from "ui-components/Sidebar";
 import {Dropdown} from "ui-components/Dropdown";
-import {capitalized} from "UtilityFunctions";
+import {capitalized, inDevEnvironment} from "UtilityFunctions";
 import Grid from "ui-components/Grid";
 import {HighlightedCard} from "Dashboard/Dashboard";
 import {Spacer} from "ui-components/Spacer";
@@ -43,6 +43,11 @@ import * as UCloud from "UCloud";
 import {emptyPage} from "DefaultObjects";
 import {computeUsageInPeriod} from "./ProjectDashboard";
 import {sizeToString} from "Utilities/FileUtilities";
+import {useProjectStatus} from "./cache";
+import {GroupWithSummary} from "./GroupList";
+import ReactModal from "react-modal";
+import {defaultModalStyle} from "Utilities/ModalUtilities";
+import {GrantApplication} from "./Grant";
 
 function dateFormatter(timestamp: number): string {
     const date = new Date(timestamp);
@@ -677,23 +682,7 @@ function DetailedView({projects, wallets, toPage, durationOption, setDuration}: 
                                 )}
                             </Grid>
                         </Box>
-                        <Box width="34%" style={{borderLeft: "1px solid var(--usageGray)"}}>
-                            <FixedHeightFlex>
-                                <Text pl="12px" m="auto" width="60%">Number of members</Text> <Text m="auto" width="40%">TODO</Text>
-                            </FixedHeightFlex>
-                            <FixedHeightFlex>
-                                <Text pl="12px" m="auto" width="60%">Number of groups</Text> <Text m="auto" width="40%">TODO</Text>
-                            </FixedHeightFlex>
-                            <FixedHeightFlex>
-                                <Text pl="12px" my="auto"><Link color="blue" to="/">Grant Application (TODO)</Link></Text>
-                            </FixedHeightFlex>
-                            <FixedHeightFlex>
-                                <Text pl="12px" m="auto" width="60%">Data management plan</Text> <Text m="auto" width="40%"><Link to="/">Yes</Link></Text>
-                            </FixedHeightFlex>
-                            <FixedHeightFlex>
-                                <Text m="auto" width="60%">Space for rent</Text>
-                            </FixedHeightFlex>
-                        </Box>
+                        <SubprojectDetails projectId={subprojects[selectedIndex].id} />
                     </Flex>
                 }
             </Box>
@@ -703,6 +692,52 @@ function DetailedView({projects, wallets, toPage, durationOption, setDuration}: 
             />
         </>
     );
+}
+
+function SubprojectDetails({projectId}: {projectId: string}) {
+    const [members] = useCloudAPI<Page<ProjectMember>>(
+        {...membershipSearch({itemsPerPage: 10, page: 0, query: ""}), projectOverride: projectId},
+        emptyPage
+    );
+
+    const [groups] = useCloudAPI<Page<GroupWithSummary>>(
+        {...groupSummaryRequest({itemsPerPage: 10, page: 0}), projectOverride: projectId},
+        emptyPage
+    );
+
+    const [dmp] = useCloudAPI({...UCloud.project.fetchDataManagementPlan(), projectOverride: projectId}, {dmp: ""});
+    const [showDMP, setShowDMP] = useState<boolean>(false);
+
+    const [grants] = useCloudAPI<Page<GrantApplication>>({...UCloud.grant.grant.ingoingApplications({filter: "SHOW_ALL"}), projectOverride: projectId}, emptyPage);
+
+    return (
+        <>
+            <Box width="34%" style={{borderLeft: "1px solid var(--usageGray)"}}>
+                <FixedHeightFlex>
+                    <Text pl="12px" m="auto" width="60%">Number of members</Text> <Text m="auto" width="40%">{members.data.itemsInTotal}</Text>
+                </FixedHeightFlex>
+                <FixedHeightFlex>
+                    <Text pl="12px" m="auto" width="60%">Number of groups</Text> <Text m="auto" width="40%">{groups.data.itemsInTotal}</Text>
+                </FixedHeightFlex>
+                <FixedHeightFlex>
+                    <Text pl="12px" my="auto"><Link color="blue" to="/">Grant Application</Link></Text> <Text m="auto" width="40%"><GrantsList grants={grants.data} /></Text>
+                </FixedHeightFlex>
+                <FixedHeightFlex>
+                    {!inDevEnvironment() ? null : <><Text pl="12px" m="auto" width="60%">Data management plan</Text> <Text m="auto" width="40%">{dmp.data.dmp ? <Button onClick={() => setShowDMP(true)}>Show</Button> : "No"}</Text></>}
+                </FixedHeightFlex>
+                <FixedHeightFlex>
+                    <Text m="auto" width="60%">Space for rent</Text>
+                </FixedHeightFlex>
+            </Box>
+            <ReactModal style={defaultModalStyle} isOpen={showDMP} onRequestClose={() => setShowDMP(false)} shouldCloseOnEsc shouldCloseOnOverlayClick>
+                {dmp.data.dmp}
+            </ReactModal>
+        </>
+    );
+}
+
+function GrantsList({grants}: {grants: Page<GrantApplication>}) {
+    return null;
 }
 
 const FixedHeightFlex = styled(Flex)`
@@ -751,187 +786,13 @@ function toPercentageString(value: number) {
     return `${Math.round(value * 10_000) / 100} %`
 }
 
-const VisualizationForArea: React.FunctionComponent<{
-    area: ProductArea,
-    projectId: string,
-    usageResponse: APICallState<UsageResponse>,
-    balance: APICallState<RetrieveBalanceResponse>,
-    durationOption: Duration
-}> = ({area, projectId, usageResponse, balance, durationOption}) => {
-    const [expanded, setExpanded] = useState<Set<string>>(new Set());
-    const charts = usageResponse.data.charts.map(it => transformUsageChartForCharting(it, area));
-
-    const remainingBalance = balance.data.wallets.filter(it => it.area === area).reduce((sum, wallet) => {
-        if (wallet.wallet.type === "PROJECT" && wallet.wallet.id === projectId) return sum + wallet.balance;
-        if (wallet.wallet.type === "USER" && wallet.wallet.id === Client.username) return sum + wallet.balance;
-        else return sum;
-    }, 0);
-
-    const balanceAllocatedToChildren = balance.data.wallets.reduce((sum, wallet) => {
-        if (wallet.area === area && wallet.wallet.id !== projectId) return sum + wallet.balance;
-        else return sum;
-    }, 0);
-
-    // provider -> lineName -> usage
-    const creditsUsedByWallet: Record<string, Record<string, number>> = {};
-    let creditsUsedInPeriod = 0;
-
-    for (const chart of charts) {
-        const usageByCurrentProvider: Record<string, number> = {};
-        creditsUsedByWallet[chart.provider] = usageByCurrentProvider;
-
-        for (const point of chart.points) {
-            for (const category of Object.keys(point)) {
-                if (category === "time") continue;
-
-                const currentUsage = usageByCurrentProvider[category] ?? 0;
-                usageByCurrentProvider[category] = currentUsage + point[category];
-                creditsUsedInPeriod += point[category];
-            }
-        }
-    }
-
-    const tableCharts = usageResponse
-        .data
-        .charts
-        .map(it => transformUsageChartForTable(projectId, it, area, balance.data.wallets, expanded));
-
-    return (
-        <Box>
-            <SummaryCard
-                title={productAreaTitle(area)}
-                balance={remainingBalance}
-                creditsUsed={creditsUsedInPeriod}
-                allocatedToChildren={balanceAllocatedToChildren}
-            />
-
-            <Box m={35}>
-                {charts.map(chart => (
-                    <React.Fragment key={chart.provider}>
-                        {chart.lineNames.length === 0 ? null : (
-                            <>
-                                <Heading.h5>Usage {durationOption.bucketSizeText} for {durationOption.text.toLowerCase()} (Provider: {chart.provider})</Heading.h5>
-                                <Box mt={20} mb={20}>
-                                    <ResponsiveContainer width="100%" height={200}>
-                                        <BarChart
-                                            syncId="someId"
-                                            data={chart.points}
-                                            margin={{
-                                                top: 10, right: 30, left: 0, bottom: 0,
-                                            }}
-                                        >
-                                            <CartesianGrid strokeDasharray="3 3" />
-                                            <XAxis dataKey="time" tickFormatter={getDateFormatter(durationOption)} />
-                                            <YAxis width={150} tickFormatter={creditFormatter} />
-                                            <Tooltip
-                                                labelFormatter={getDateFormatter(durationOption)}
-                                                formatter={n => creditFormatter(n as number, 2)}
-                                                offset={64}
-                                            />
-                                            {chart.lineNames
-                                                .map((id, idx) =>
-                                                    <Bar
-                                                        key={id}
-                                                        dataKey={id}
-                                                        fill={theme.chartColors[idx % theme.chartColors.length]}
-                                                        barSize={24}
-                                                    />
-                                                )
-                                            }
-                                        </BarChart>
-                                    </ResponsiveContainer>
-                                </Box>
-
-                                <Flex flexDirection={"row"} justifyContent={"center"}>
-                                    {chart.lineNames.map((line, idx) =>
-                                        <Flex key={idx} mx={"16px"} flexDirection={"row"}>
-                                            <Box
-                                                width={20}
-                                                height={20}
-                                                mr={"8px"}
-                                                backgroundColor={theme.chartColors[idx % theme.chartColors.length]}
-                                            />
-                                            {line}
-                                        </Flex>
-                                    )}
-                                </Flex>
-                            </>
-                        )}
-                    </React.Fragment>
-                ))}
-
-                {tableCharts.map(chart =>
-                    <Box key={chart.provider} mb={40}>
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHeaderCell width={30} />
-                                    <TableHeaderCell />
-                                    <TableHeaderCell textAlign="right">
-                                        Credits Used In Period
-                                    </TableHeaderCell>
-                                </TableRow>
-                            </TableHeader>
-                            <tbody>
-                                {chart.projects.map((p, idx) => {
-                                    const isExpanded = expanded.has(p.projectTitle);
-                                    const result = [
-                                        <TableRow key={p.projectTitle}>
-                                            <TableCell>
-                                                <Box width={20} height={20}
-                                                    backgroundColor={idx > 3 ? theme.chartColors[4] : theme.chartColors[idx % theme.chartColors.length]} />
-                                            </TableCell>
-                                            <TableCell>
-                                                {p.projectTitle}
-                                                <Button ml="6px" width="6px" height="16px"
-                                                    onClick={() => onExpandOrDeflate(p.projectTitle)}>{isExpanded ? "-" : "+"}</Button>
-                                            </TableCell>
-                                            <TableCell textAlign="right">
-                                                {creditFormatter(p.totalUsage)}
-                                            </TableCell>
-                                        </TableRow>
-                                    ];
-                                    if (isExpanded) {
-                                        for (const category of p.categories) {
-                                            result.push(<TableRow key={category.product}>
-                                                <TableCell>
-                                                    <Box ml="20px" pl="6px" width={20} height={20}
-                                                        backgroundColor={idx > 3 ? theme.chartColors[4] : theme.chartColors[idx % theme.chartColors.length]} />
-                                                </TableCell>
-                                                <TableCell><Text pl="20px">{category.product}</Text></TableCell>
-                                                <TableCell textAlign="right">
-                                                    {creditFormatter(category.usage)}
-                                                </TableCell>
-                                            </TableRow>);
-                                        }
-                                    }
-                                    return result;
-                                })}
-                            </tbody>
-                        </Table>
-                    </Box>
-                )}
-            </Box>
-        </Box>
-    );
-
-    function onExpandOrDeflate(p: string): void {
-        if (expanded.has(p)) {
-            setExpanded(new Set((expanded.delete(p), expanded)));
-        } else {
-            setExpanded(new Set([...expanded, p]));
-        }
-    }
-};
-
-
 const SummaryStat = styled.figure`
     flex-grow: 1;
     text-align: center;
     margin: 0;
 
     figcaption {
-                                    display: block;
+        display: block;
         color: var(--gray, #ff0);
         text-transform: uppercase;
         font-size: 12px;
@@ -945,7 +806,7 @@ const SummaryWrapper = styled(Card)`
     align-items: center;
 
     h4 {
-                                    flex - grow: 2;
+        flex-grow: 2;
     }
 `;
 
