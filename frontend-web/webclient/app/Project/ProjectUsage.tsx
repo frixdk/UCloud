@@ -653,6 +653,8 @@ function DetailedView({projects, wallets, toPage, durationOption, setDuration}: 
                 </Table>
                 {!selected ? null :
                     <Flex style={{borderTop: "1px solid var(--usageGray)"}}>
+                        <Icon name="close" cursor="pointer" mt="4px" ml="4px" size={24} onClick={() => setSelected("")} />
+
                         <Box width="33%">
                             <Box ml="calc(50% - 150px)">
                                 <PieChart width={300} height={300}>
