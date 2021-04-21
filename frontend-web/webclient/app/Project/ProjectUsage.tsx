@@ -736,8 +736,15 @@ function SubprojectDetails({projectId}: {projectId: string}) {
     );
 }
 
-function GrantsList({grants}: {grants: Page<GrantApplication>}) {
-    return null;
+function GrantsList({grants}: {grants: Page<GrantApplication>}): JSX.Element {
+    switch (grants.items.length) {
+        case 0:
+            return <>None</>;
+        case 1:
+            return <Link to="">Foo</Link>
+        default:
+            return <ClickableDropdown trigger={<Text>Grants</Text>} />
+    }
 }
 
 const FixedHeightFlex = styled(Flex)`
