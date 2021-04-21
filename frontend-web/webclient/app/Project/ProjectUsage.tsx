@@ -690,7 +690,7 @@ function DetailedView({projects, wallets, toPage, durationOption, setDuration}: 
             </Box>
             <Spacer
                 left={null}
-                right={<PaginationButtons totalPages={projects.itemsInTotal / projects.itemsPerPage} currentPage={projects.pageNumber} toPage={toPage} />}
+                right={selected ? null : <PaginationButtons totalPages={projects.itemsInTotal / projects.itemsPerPage} currentPage={projects.pageNumber} toPage={number => {setSelected(""); toPage(number)}} />}
             />
         </>
     );
