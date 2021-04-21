@@ -627,7 +627,7 @@ function DetailedView({projects, wallets, toPage, durationOption, setDuration}: 
                             <BorderedTableRow onClick={() => setSelected(s => s ? "" : it.name)} key={it.id}>
                                 <td style={{paddingLeft: "12px"}}>{it.name}</td>
                                 <td>
-                                    <Box pl="auto" pr="auto">
+                                    <Box ml="30px">
                                         <PieChart width={80} height={80}>
                                             <Pie
                                                 data={it.data}
