@@ -1,16 +1,16 @@
-import {APICallState, useCloudAPI} from "Authentication/DataHook";
+import {useCloudAPI} from "Authentication/DataHook";
 import {MainContainer} from "MainContainer/MainContainer";
 import * as Heading from "ui-components/Heading";
 import * as React from "react";
-import {useEffect, useState} from "react";
-import {Box, Button, Card, Flex, Icon, Input, Link, Relative, Text, theme} from "ui-components";
-import {connect, useDispatch} from "react-redux";
+import {useState} from "react";
+import {Box, Button, Card, Flex, Icon, Input, Link, Relative, Text} from "ui-components";
+import {connect} from "react-redux";
 import {Dispatch} from "redux";
 import {setRefreshFunction} from "Navigation/Redux/HeaderActions";
 import {loadingAction} from "Loading";
 import {dispatchSetProjectAction} from "Project/Redux";
-import {Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis} from "recharts";
-import Table, {TableCell, TableHeader, TableHeaderCell, TableRow} from "ui-components/Table";
+import {Area, AreaChart, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis} from "recharts";
+import Table, {TableHeader, TableHeaderCell, TableRow} from "ui-components/Table";
 import {
     ProductArea,
     productAreaTitle,
@@ -48,6 +48,7 @@ import {GroupWithSummary} from "./GroupList";
 import ReactModal from "react-modal";
 import {defaultModalStyle} from "Utilities/ModalUtilities";
 import {GrantApplication} from "./Grant";
+import {dateToString} from "Utilities/DateUtilities";
 
 function dateFormatter(timestamp: number): string {
     const date = new Date(timestamp);
@@ -517,6 +518,7 @@ function DonutChart({area, data}: {area: string; data: ValueNamePair[]}): JSX.El
             height="437px"
             onClick={isSubprojects ? () => history.push("/project/usage/subprojects") : undefined}
             color="green"
+            cursor={isSubprojects ? "pointer" : undefined}
         >
             <Flex mt="14px"><Box mr="auto" /><Text fontSize="26px">{capitalized(area)}</Text><Box ml="auto" /></Flex>
             {data.length === 0 || totalUsage === 0 ? <NoEntries /> :
@@ -720,7 +722,7 @@ function SubprojectDetails({projectId}: {projectId: string}) {
                     <Text pl="12px" m="auto" width="60%">Number of groups</Text> <Text m="auto" width="40%">{groups.data.itemsInTotal}</Text>
                 </FixedHeightFlex>
                 <FixedHeightFlex>
-                    <Text pl="12px" my="auto"><Link color="blue" to="/">Grant Application</Link></Text> <Text m="auto" width="40%"><GrantsList grants={grants.data} /></Text>
+                    <Text pl="12px" my="auto" width="60%">Grant Application(s)</Text> <Text m="auto" width="40%"><GrantsList grants={grants.data} /></Text>
                 </FixedHeightFlex>
                 <FixedHeightFlex>
                     {!inDevEnvironment() ? null : <><Text pl="12px" m="auto" width="60%">Data management plan</Text> <Text m="auto" width="40%">{dmp.data.dmp ? <Button onClick={() => setShowDMP(true)}>Show</Button> : "No"}</Text></>}
@@ -737,14 +739,17 @@ function SubprojectDetails({projectId}: {projectId: string}) {
 }
 
 function GrantsList({grants}: {grants: Page<GrantApplication>}): JSX.Element {
-    switch (grants.items.length) {
-        case 0:
-            return <>None</>;
-        case 1:
-            return <Link to="">Foo</Link>
-        default:
-            return <ClickableDropdown trigger={<Text>Grants</Text>} />
-    }
+    const history = useHistory();
+    if (grants.items.length === 0) return <>None</>;
+    return (
+        <ClickableDropdown fullWidth trigger={"Grants"} chevron>
+            {grants.items.map(grant => (
+                <Box key={grant.id} onClick={() => history.push(`/project/grants/view/${grant.id}`)}>
+                    <b>{grant.id}</b> ({dateToString(grant.createdAt)})
+                </Box>
+            ))}
+        </ClickableDropdown>
+    );
 }
 
 const FixedHeightFlex = styled(Flex)`
