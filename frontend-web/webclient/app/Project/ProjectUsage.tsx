@@ -275,14 +275,17 @@ function UsageVisualization({duration}: {duration: [Duration, React.Dispatch<Rea
         }
     );
 
+    const [storageView, setStorageView] = useState<"storage_gb" | "storage_price">("storage_price");
+
     React.useEffect(() => {
         const currentTime = new Date();
         const now = periodStartFunction(currentTime, durationOption);
 
         fetchBalance(retrieveBalance({includeChildren: true}));
         fetchSubprojects(UCloud.project.listSubProjects({
-            itemsPerPage: 10,
-            page: 0
+            itemsPerPage: 100,
+            page: 0,
+
         }));
         fetchQuotaParams(retrieveQuota({
             path: Client.activeHomeFolder,
@@ -314,7 +317,7 @@ function UsageVisualization({duration}: {duration: [Duration, React.Dispatch<Rea
             durationOption={durationOption}
             toPage={page => fetchSubprojects(UCloud.project.listSubProjects({
                 itemsPerPage: 10,
-                page
+                page,
             }))}
         />
     );
@@ -329,16 +332,19 @@ function UsageVisualization({duration}: {duration: [Duration, React.Dispatch<Rea
     const activeWorkspace = activeProject ? (activeProject.ancestorPath ? `${activeProject.ancestorPath}/` : "") + activeProject.title : Client.username!;
 
     // Fill timestamps;
-    const usageComputeData = usageResponse.data.charts[0]?.lines.filter(it => it.projectId === Client.projectId && it.area === "COMPUTE")[0]?.points.map(it => ({time: it.timestamp})) ?? [];
+    console.log(usageResponse.data.charts[0]?.lines.filter(it => it.area === "COMPUTE"))
+    const usageComputeData = usageResponse.data.charts[0]?.lines.filter(it => it.area === "COMPUTE")[0]?.points.map(it => ({time: it.timestamp})) ?? [];
 
     for (const chart of usageResponse.data.charts) {
-        for (const line of chart.lines.filter(it => it.projectId === Client.projectId)) {
+        for (const line of chart.lines.filter(it => it.projectId === Client.projectId && it.area === "COMPUTE")) {
             for (const [i, point] of line.points.entries()) {
                 if (usageComputeData[i] === undefined) break;
-                usageComputeData[i][line.projectPath!] = point.creditsUsed;
+                usageComputeData[i][line.projectPath!] = (usageComputeData[i][line.projectPath!] ?? 0) + point.creditsUsed;
             }
         }
     }
+
+    const storageUsageInPeriod = computeUsageInPeriod(storageCharts);
 
     // Remove timestamps??
     const computeEntries = Object.keys(usageComputeData[0] ?? {}).filter(it => it !== "time");
@@ -355,15 +361,7 @@ function UsageVisualization({duration}: {duration: [Duration, React.Dispatch<Rea
                             <Text fontSize="14px">Remaining {sizeToString(quota.data.quotaInBytes)}</Text>
                         </Box>
                     }
-                    right={
-                        <ClickableDropdown
-                            trigger={<Box mr="4px" mt="4px"><Icon rotation={90} name="ellipsis" /></Box>}
-                            left="-110px"
-                            top="-4px"
-                            options={[{text: "Storage (GB)", value: "storage_gb"}, {text: "Storage (DKK)", value: "storage_price"}, {text: "Compute (DKK)", value: "compute"}]}
-                            onChange={it => console.log(it)}
-                        />
-                    }
+                    right={null}
                 />
                 {storageCharts[0]?.points.length === 0 ? <NoEntries /> : <ResponsiveContainer height={360}>
                     <AreaChart
@@ -376,7 +374,7 @@ function UsageVisualization({duration}: {duration: [Duration, React.Dispatch<Rea
                         data={storageCharts[0]?.points ?? []}
                     >
                         <XAxis dataKey="time" />
-                        <Tooltip labelFormatter={getDateFormatter(durationOption)} formatter={sizeToString} />
+                        <Tooltip labelFormatter={getDateFormatter(durationOption)} formatter={creditFormatter} />
                         <Area type="linear" opacity={1} dataKey={activeWorkspace} strokeWidth="2px" stroke={getCssVar("darkBlue")} fill={getCssVar("blue")} />
                     </AreaChart>
                 </ResponsiveContainer>}
@@ -391,16 +389,7 @@ function UsageVisualization({duration}: {duration: [Duration, React.Dispatch<Rea
                             <Text fontSize="14px">Remaining {creditFormatter(computeCreditsRemaining)}</Text>
                         </Box>
                     }
-                    right={
-                        /* <ClickableDropdown
-                            trigger={<Box mr="4px" mt="4px"><Icon rotation={90} name="ellipsis" /></Box>}
-                            left="-111px"
-                            top="-4px"
-                            options={[{text: "Storage (GB)", value: "storage_gb"}, {text: "Storage (DKK)", value: "storage_price"}, {text: "Compute (DKK)", value: "compute"}]}
-                            onChange={it => console.log(it)}
-                        /> */
-                        null
-                    }
+                    right={null}
                 />
                 {computeEntries.length === 0 ? <NoEntries /> : <ResponsiveContainer height={360}>
                     <AreaChart
@@ -589,7 +578,7 @@ function DetailedView({projects, wallets, toPage, durationOption, setDuration}: 
                     <>
                         {/* TODO */}
                         <BorderedFlex height="38px" width="36px">
-                            <Icon ml="2px" name="download" onClick={() => {console.log("TODO")}} />
+                            <Icon ml="2px" name="download" onClick={() => exportAsCSV()} />
                         </BorderedFlex>
                         {/* TODO */}
                         <Input pl="32px" autoComplete="off" style={{height: "38px", border: "1px solid var(--usageGray)"}} placeholder="TODO" ref={searchRef} width="200px" />
@@ -697,6 +686,10 @@ function DetailedView({projects, wallets, toPage, durationOption, setDuration}: 
             />
         </>
     );
+}
+
+function exportAsCSV() {
+
 }
 
 function SubprojectDetails({projectId}: {projectId: string}) {
