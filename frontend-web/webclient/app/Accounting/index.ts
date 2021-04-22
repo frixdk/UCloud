@@ -264,7 +264,7 @@ export function transformUsageChartForTable(
     type: ProductArea,
     wallets: WalletBalance[],
     expanded: Set<string>
-): { provider: string; projects: AccountingProject[] } {
+): {provider: string; projects: AccountingProject[]} {
     const projectMap: Record<string, AccountingProject> = {};
     const relevantWallets = wallets.filter(it =>
         it.area === type &&

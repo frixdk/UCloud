@@ -326,7 +326,7 @@ function UsageVisualization({duration}: {duration: [Duration, React.Dispatch<Rea
     const storageCharts = usageResponse.data.charts.map(it => transformUsageChartForCharting(it, "STORAGE"));
 
     const activeProject = Client.hasActiveProject ? projects.data.items.find(p => p.projectId === Client.projectId ?? "") : undefined;
-    const activeWorkspace = activeProject ? activeProject.ancestorPath! + "/" + activeProject.title : Client.username!;
+    const activeWorkspace = activeProject ? (activeProject.ancestorPath ? `${activeProject.ancestorPath}/` : "") + activeProject.title : Client.username!;
 
     // Fill timestamps;
     const usageComputeData = usageResponse.data.charts[0]?.lines.filter(it => it.projectId === Client.projectId && it.area === "COMPUTE")[0]?.points.map(it => ({time: it.timestamp})) ?? [];
@@ -392,13 +392,14 @@ function UsageVisualization({duration}: {duration: [Duration, React.Dispatch<Rea
                         </Box>
                     }
                     right={
-                        <ClickableDropdown
+                        /* <ClickableDropdown
                             trigger={<Box mr="4px" mt="4px"><Icon rotation={90} name="ellipsis" /></Box>}
                             left="-111px"
                             top="-4px"
                             options={[{text: "Storage (GB)", value: "storage_gb"}, {text: "Storage (DKK)", value: "storage_price"}, {text: "Compute (DKK)", value: "compute"}]}
                             onChange={it => console.log(it)}
-                        />
+                        /> */
+                        null
                     }
                 />
                 {computeEntries.length === 0 ? <NoEntries /> : <ResponsiveContainer height={360}>
