@@ -347,6 +347,8 @@ function UsageVisualization({duration}: {duration: [Duration, React.Dispatch<Rea
     // Remove timestamps so they don't show up as a machine.
     const computeEntries = Object.keys(usageComputeData[0] ?? {}).filter(it => it !== "time");
 
+    const storageChartPoints = storageCharts[0]?.points ?? [];
+
     return (
         <Grid px="auto" style={{gap: "30px 30px", justifyContent: "center", alignContent: "center"}} gridTemplateColumns="435px 435px">
             <HighlightedCard px={0} height="437px" color="green">
@@ -369,7 +371,7 @@ function UsageVisualization({duration}: {duration: [Duration, React.Dispatch<Rea
                         />
                     }
                 />
-                {storageCharts[0]?.points.length === 0 ? <NoEntries /> : <ResponsiveContainer height={360}>
+                {storageChartPoints.length === 0 ? <NoEntries /> : <ResponsiveContainer height={360}>
                     <AreaChart
                         margin={{
                             left: 0,
@@ -377,7 +379,7 @@ function UsageVisualization({duration}: {duration: [Duration, React.Dispatch<Rea
                             right: 0,
                             bottom: -28
                         }}
-                        data={storageCharts[0]?.points ?? []}
+                        data={storageChartPoints}
                     >
                         <XAxis dataKey="time" />
                         <Tooltip labelFormatter={getDateFormatter(durationOption)} formatter={creditFormatter} />
