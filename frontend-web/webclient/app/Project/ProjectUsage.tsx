@@ -357,11 +357,19 @@ function UsageVisualization({duration}: {duration: [Duration, React.Dispatch<Rea
                     left={
                         <Box ml="8px">
                             <Text color="gray">Storage</Text>
-                            <Text bold my="-6px" fontSize="24px">{sizeToString(quota.data.quotaUsed ?? 0)} used</Text>
+                            <Text bold my="-6px" fontSize="24px">{storageView === "storage_gb" ? sizeToString(quota.data.quotaUsed ?? 0) : creditFormatter(storageUsageInPeriod)} used</Text>
                             <Text fontSize="14px">Remaining {sizeToString(quota.data.quotaInBytes)}</Text>
                         </Box>
                     }
-                    right={null}
+                    right={
+                        <ClickableDropdown
+                            trigger={<Box mr="4px" mt="4px"><Icon rotation={90} name="ellipsis" /></Box>}
+                            left="-110px"
+                            top="-4px"
+                            options={[{text: "Storage (Size)", value: "storage_gb" as const}, {text: "Storage (DKK)", value: "storage_price" as const}]}
+                            onChange={it => setStorageView(it)}
+                        />
+                    }
                 />
                 {storageCharts[0]?.points.length === 0 ? <NoEntries /> : <ResponsiveContainer height={360}>
                     <AreaChart
@@ -839,37 +847,6 @@ const PercentageDisplay: React.FunctionComponent<{
     return <Text as="span" color={getCssVar(color)}>({percentage.toFixed(2)}%)</Text>;
 };
 
-const SummaryCard: React.FunctionComponent<{
-    title: string,
-    creditsUsed: number,
-    balance: number,
-    allocatedToChildren: number
-}> = props => (
-    <SummaryWrapper>
-        <Heading.h4>{props.title}</Heading.h4>
-        <SummaryStat>
-            {creditFormatter(props.creditsUsed)}
-            <figcaption>Credits used in period</figcaption>
-        </SummaryStat>
-        <SummaryStat>
-            {creditFormatter(props.balance)}
-            <figcaption>Credits remaining</figcaption>
-        </SummaryStat>
-        {Client.hasActiveProject ? <SummaryStat>
-            {creditFormatter(props.allocatedToChildren)}{" "}
-            <PercentageDisplay
-                numerator={props.allocatedToChildren}
-                denominator={props.balance}
-                colorRanges={[
-                    {breakpoint: 80, color: "green"},
-                    {breakpoint: 100, color: "yellow"},
-                    {breakpoint: 175, color: "red"}
-                ]}
-            />
-            <figcaption>Allocated to subprojects</figcaption>
-        </SummaryStat> : null}
-    </SummaryWrapper>
-);
 
 interface ProjectUsageOperations {
     setRefresh: (refresh?: () => void) => void;
