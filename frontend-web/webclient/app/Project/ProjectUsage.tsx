@@ -328,6 +328,7 @@ function UsageVisualization({duration}: {duration: [Duration, React.Dispatch<Rea
 
     const storageCharts = usageResponse.data.charts.map(it => transformUsageChartForCharting(it, "STORAGE"));
     const storageUsageInPeriod = computeUsageInPeriod(storageCharts);
+    const storageCreditsRemaining = balance.data.wallets.filter(it => it.area === "STORAGE").filter(it => it.wallet.id === Client.projectId).reduce((acc, it) => it.allocated + acc, 0);
 
 
     // Fill timestamps;
@@ -355,7 +356,7 @@ function UsageVisualization({duration}: {duration: [Duration, React.Dispatch<Rea
                         <Box ml="8px">
                             <Text color="gray">Storage</Text>
                             <Text bold my="-6px" fontSize="24px">{storageView === "storage_gb" ? sizeToString(quota.data.quotaUsed ?? 0) : creditFormatter(storageUsageInPeriod)} used</Text>
-                            <Text fontSize="14px">Remaining {sizeToString(quota.data.quotaInBytes)}</Text>
+                            <Text fontSize="14px">Remaining {storageView === "storage_gb" ? sizeToString(quota.data.quotaInBytes) : creditFormatter(storageCreditsRemaining)}</Text>
                         </Box>
                     }
                     right={
