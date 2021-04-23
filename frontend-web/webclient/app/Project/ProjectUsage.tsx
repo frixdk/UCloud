@@ -3,7 +3,7 @@ import {MainContainer} from "MainContainer/MainContainer";
 import * as Heading from "ui-components/Heading";
 import * as React from "react";
 import {useState} from "react";
-import {Box, Button, Card, Flex, Icon, Input, Link, Relative, Text} from "ui-components";
+import {Box, Button, Flex, Icon, Input, Relative, Text} from "ui-components";
 import {connect} from "react-redux";
 import {Dispatch} from "redux";
 import {setRefreshFunction} from "Navigation/Redux/HeaderActions";
@@ -13,17 +13,15 @@ import {Area, AreaChart, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxi
 import Table, {TableHeader, TableHeaderCell, TableRow} from "ui-components/Table";
 import {
     ProductArea,
-    productAreaTitle,
     retrieveBalance,
     RetrieveBalanceResponse,
     retrieveQuota,
     RetrieveQuotaResponse,
     transformUsageChartForCharting,
-    transformUsageChartForTable,
     usage,
     UsageResponse
 } from "Accounting";
-import {emptyProject, groupSummaryRequest, membershipSearch, ProjectMember, useProjectId, useProjectManagementStatus} from "Project";
+import {groupSummaryRequest, membershipSearch, ProjectMember, useProjectManagementStatus} from "Project";
 import {ProjectBreadcrumbs} from "Project/Breadcrumbs";
 import styled from "styled-components";
 import {ThemeColor} from "ui-components/theme";
@@ -43,7 +41,6 @@ import * as UCloud from "UCloud";
 import {emptyPage} from "DefaultObjects";
 import {computeUsageInPeriod} from "./ProjectDashboard";
 import {sizeToString} from "Utilities/FileUtilities";
-import {useProjectStatus} from "./cache";
 import {GroupWithSummary} from "./GroupList";
 import ReactModal from "react-modal";
 import {defaultModalStyle} from "Utilities/ModalUtilities";
@@ -207,6 +204,7 @@ const ProjectUsage: React.FunctionComponent<ProjectUsageOperations> = props => {
     // Currently required for swapping project/username when in use.
     const {projectId, reload} = useProjectManagementStatus({isRootComponent: true, allowPersonalProject: true});
 
+
     const {field} = useRouteMatch<{field?: string}>().params;
 
     useTitle("Usage");
@@ -322,17 +320,17 @@ function UsageVisualization({duration}: {duration: [Duration, React.Dispatch<Rea
         />
     );
 
+    const activeWorkspace = getActiveWorkspace(projects.data);
+
     const computeCreditsRemaining = balance.data.wallets.filter(it => it.area === "COMPUTE").filter(it => it.wallet.id === Client.projectId).reduce((acc, it) => it.allocated + acc, 0);
     const computeCharts = usageResponse.data.charts.map(it => transformUsageChartForCharting(it, "COMPUTE"));
-
     const computeCreditsUsedInPeriod = computeUsageInPeriod(computeCharts);
-    const storageCharts = usageResponse.data.charts.map(it => transformUsageChartForCharting(it, "STORAGE"));
 
-    const activeProject = Client.hasActiveProject ? projects.data.items.find(p => p.projectId === Client.projectId ?? "") : undefined;
-    const activeWorkspace = activeProject ? (activeProject.ancestorPath ? `${activeProject.ancestorPath}/` : "") + activeProject.title : Client.username!;
+    const storageCharts = usageResponse.data.charts.map(it => transformUsageChartForCharting(it, "STORAGE"));
+    const storageUsageInPeriod = computeUsageInPeriod(storageCharts);
+
 
     // Fill timestamps;
-    console.log(usageResponse.data.charts[0]?.lines.filter(it => it.area === "COMPUTE"))
     const usageComputeData = usageResponse.data.charts[0]?.lines.filter(it => it.area === "COMPUTE")[0]?.points.map(it => ({time: it.timestamp})) ?? [];
 
     for (const chart of usageResponse.data.charts) {
@@ -344,9 +342,8 @@ function UsageVisualization({duration}: {duration: [Duration, React.Dispatch<Rea
         }
     }
 
-    const storageUsageInPeriod = computeUsageInPeriod(storageCharts);
 
-    // Remove timestamps??
+    // Remove timestamps so they don't show up as a machine.
     const computeEntries = Object.keys(usageComputeData[0] ?? {}).filter(it => it !== "time");
 
     return (
@@ -444,6 +441,11 @@ interface MappedUsage {
     mostUsed: string;
     balanceUsed: number;
     balanceRemaining: number;
+}
+
+function getActiveWorkspace(projects: Page<UCloud.project.UserProjectSummary>) {
+    const activeProject = Client.hasActiveProject ? projects.items.find(p => p.projectId === Client.projectId ?? "") : undefined;
+    return activeProject ? (activeProject.ancestorPath ? `${activeProject.ancestorPath}/` : "") + activeProject.title : Client.username!;
 }
 
 function findUsageFromSubprojectsByAreaAndMachine(wallets: UCloud.accounting.WalletBalance[], subprojects: Page<UCloud.project.Project>, area: ProductArea): MappedUsage[] {
@@ -801,52 +803,6 @@ const BorderedFlex = styled(Flex) <{width: string}>`
 function toPercentageString(value: number) {
     return `${Math.round(value * 10_000) / 100} %`
 }
-
-const SummaryStat = styled.figure`
-    flex-grow: 1;
-    text-align: center;
-    margin: 0;
-
-    figcaption {
-        display: block;
-        color: var(--gray, #ff0);
-        text-transform: uppercase;
-        font-size: 12px;
-    }
-`;
-
-const SummaryWrapper = styled(Card)`
-    display: flex;
-    padding: 15px;
-    margin: 0 15px;
-    align-items: center;
-
-    h4 {
-        flex-grow: 2;
-    }
-`;
-
-const PercentageDisplay: React.FunctionComponent<{
-    numerator: number,
-    denominator: number,
-    // Note this must be sorted ascending by breakpoint
-    colorRanges: {breakpoint: number, color: ThemeColor}[]
-}> = props => {
-    if (props.denominator === 0) {
-        return null;
-    }
-
-    const percentage = (props.numerator / props.denominator) * 100;
-    let color: ThemeColor = "black";
-    for (const cRange of props.colorRanges) {
-        if (percentage >= cRange.breakpoint) {
-            color = cRange.color;
-        }
-    }
-
-    return <Text as="span" color={getCssVar(color)}>({percentage.toFixed(2)}%)</Text>;
-};
-
 
 interface ProjectUsageOperations {
     setRefresh: (refresh?: () => void) => void;
