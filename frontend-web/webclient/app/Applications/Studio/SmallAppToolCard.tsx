@@ -1,5 +1,5 @@
 import {AppCard} from "Applications/Card";
-import styled from "styled-components";
+import {styled} from "@linaria/react";
 
 export const SmallAppToolCard = styled(AppCard)`
     max-width: 400px;

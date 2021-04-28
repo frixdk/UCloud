@@ -13,9 +13,7 @@ import HexSpin from "LoadingIcon/LoadingIcon";
 import {useRefreshFunction} from "Navigation/Redux/HeaderActions";
 import {setActivePage, useTitle} from "Navigation/Redux/StatusActions";
 import {SidebarPages, useSidebarPage} from "ui-components/Sidebar";
-import FileCollection = file.orchestrator.FileCollection;
-import collectionsApi = file.orchestrator.collections;
-import ResourceAclEntry = provider.ResourceAclEntry;
+type FileCollection = file.orchestrator.FileCollection;
 
 const aclOptions: { icon: IconName; name: string, title?: string }[] = [
     {icon: "search", name: "READ", title: "Read"},
@@ -30,15 +28,15 @@ const FileCollectionProperties: React.FunctionComponent = props => {
 
     const reload = useCallback(() => {
         if (idFromQuery && providerFromQuery) {
-            fetchCollection(collectionsApi.retrieve({id: idFromQuery, provider: providerFromQuery}));
+            fetchCollection(file.orchestrator.collections.retrieve({id: idFromQuery, provider: providerFromQuery}));
         }
     }, [idFromQuery, providerFromQuery]);
 
     const updateAclEndpoint = useCallback((request: BulkRequest<{ id: string; acl: unknown[] }>): APICallParameters => {
-        return collectionsApi.updateAcl(
+        return file.orchestrator.collections.updateAcl(
             bulkRequestOf(...request.items.map(it => ({
                 id: it.id,
-                newAcl: it.acl as ResourceAclEntry<"READ" | "WRITE" | "ADMINISTRATOR">[],
+                newAcl: it.acl as provider.ResourceAclEntry<"READ" | "WRITE" | "ADMINISTRATOR">[],
                 provider: providerFromQuery ?? ""
             })))
         );

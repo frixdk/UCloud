@@ -1,12 +1,11 @@
 import * as React from "react";
-import styled from "styled-components";
-import {color, ColorProps, space, SpaceProps} from "styled-system";
 import {extensionType} from "UtilityFunctions";
 import Icon from "./Icon";
-import theme from "./theme";
+import theme, {themeColor} from "./theme";
 import {Cursor} from "./Types";
-import {getCssVar} from "Utilities/StyledComponentsUtilities";
 import {FileIconHint} from "Files";
+import {styled} from "@linaria/react";
+import {withStyledSystemCompatibility} from "ui-components/Compatibility";
 
 const ftColor = (fType: string): string => {
     switch (fType) {
@@ -256,8 +255,8 @@ const FtIconBase: React.FunctionComponent<FtIconBaseProps> = ({fileIcon, size, .
         <SvgFt
             width={size}
             height={size}
-            color={getCssVar("FtIconColor")}
-            color2={getCssVar("FtIconColor2")}
+            color={themeColor("FtIconColor")}
+            color2={themeColor("FtIconColor2")}
             hasExt={hasExt}
             ext={ext4}
             type={type}
@@ -266,21 +265,19 @@ const FtIconBase: React.FunctionComponent<FtIconBaseProps> = ({fileIcon, size, .
     );
 };
 
-export interface FtIconProps extends SpaceProps, ColorProps {
-    cursor?: Cursor;
-}
-
-const FtIcon = styled(FtIconBase) <FtIconProps>`
+const FtIconWrapper = withStyledSystemCompatibility([], styled.div`
   flex: none;
   vertical-align: middle;
-  cursor: ${props => props.cursor};
-  ${space} ${color};
-`;
+`);
+
+const FtIcon: React.FunctionComponent<FtIconBaseProps> = props => {
+    // TODO Styling is wrong
+    return <FtIconWrapper><FtIconBase fileIcon={props.fileIcon}/></FtIconWrapper>;
+};
 
 FtIcon.displayName = "FtIcon";
 
 FtIcon.defaultProps = {
-    cursor: "inherit",
     size: 24
 };
 

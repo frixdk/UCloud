@@ -2,7 +2,6 @@ import * as Module from "Activity";
 import {Client} from "Authentication/HttpClientInstance";
 import {format, formatDistanceToNow} from "date-fns/esm";
 import * as React from "react";
-import styled from "styled-components";
 import {Flex, Text} from "ui-components";
 import Icon, {IconName} from "ui-components/Icon";
 import Table, {TableCell, TableHeader, TableHeaderCell, TableRow} from "ui-components/Table";
@@ -10,6 +9,7 @@ import {getFilenameFromPath} from "Utilities/FileUtilities";
 import {useProjectStatus} from "Project/cache";
 import {getProjectNames} from "Utilities/ProjectUtilities";
 import {GroupWithSummary} from "Project/GroupList";
+import {styled} from "@linaria/react";
 
 export const ActivityFeedFrame: React.FC<{ containerRef?: React.RefObject<HTMLTableSectionElement> }> = props => {
     return (

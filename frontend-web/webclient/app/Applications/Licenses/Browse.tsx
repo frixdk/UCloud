@@ -14,12 +14,10 @@ import * as Heading from "ui-components/Heading";
 import {Link} from "react-router-dom";
 import {useLoading, useTitle} from "Navigation/Redux/StatusActions";
 import {SidebarPages, useSidebarPage} from "ui-components/Sidebar";
-import ProductNS = accounting.ProductNS;
-import licenseApi = UCloud.compute.licenses;
 import {useRefreshFunction} from "Navigation/Redux/HeaderActions";
 import MainContainer from "MainContainer/MainContainer";
 import {NoResultsCardBody} from "Dashboard/Dashboard";
-import License = compute.License;
+type License = compute.License;
 import {OperationEnabled, Operation, Operations} from "ui-components/Operation";
 import {ToggleSet} from "Utilities/ToggleSet";
 import equal from "fast-deep-equal";
@@ -29,14 +27,14 @@ import {History} from 'history';
 import {ProjectStatus, useProjectStatus} from "Project/cache";
 import {Client} from "Authentication/HttpClientInstance";
 import {isAdminOrPI} from "Utilities/ProjectUtilities";
-import LicensesCreateResponse = compute.LicensesCreateResponse;
+type LicensesCreateResponse = compute.LicensesCreateResponse;
 import {PaymentModelExplainer} from "Accounting/PaymentModelExplainer";
 import {StickyBox} from "ui-components/StickyBox";
 import {useScrollStatus} from "Utilities/ScrollStatus";
 import {ResourcePage} from "ui-components/ResourcePage";
 
 interface LicenseGroup {
-    product: ProductNS.License;
+    product: accounting.ProductNS.License;
     instances: UCloud.compute.License[];
 }
 
@@ -52,12 +50,12 @@ export const Browse: React.FunctionComponent<{
     const projectStatus = useProjectStatus();
     const history = useHistory();
     const [licenses, fetchLicenses] = useCloudAPI<PageV2<License>>({noop: true}, emptyPageV2);
-    const [products, setProducts] = useState<ProductNS.License[]>([]);
+    const [products, setProducts] = useState<accounting.ProductNS.License[]>([]);
     const [loadingProducts, setLoadingProducts] = useState(false);
     const [commandLoading, invokeCommand] = useCloudCommand();
     const scrollingContainerRef = useRef<HTMLDivElement>(null);
     const scrollStatus = useScrollStatus(scrollingContainerRef, true);
-    const [inspecting, setInspecting] = useState<{ product: ProductNS.License, license: License } | null>(null);
+    const [inspecting, setInspecting] = useState<{ product: accounting.ProductNS.License, license: License } | null>(null);
     const [selected, setSelected] = useState<{ groups: ToggleSet<LicenseGroup>, instances: ToggleSet<License> }>(
         {groups: new ToggleSet(), instances: new ToggleSet()}
     );
@@ -144,9 +142,9 @@ export const Browse: React.FunctionComponent<{
                 })
             );
 
-            const allProducts: ProductNS.License[] = res.items
+            const allProducts: accounting.ProductNS.License[] = res.items
                 .filter(it => it.type === "license")
-                .map(it => it as ProductNS.License)
+                .map(it => it as accounting.ProductNS.License)
                 .filter(it => !tagged ? true : tagged.some(tag => it.tags.indexOf(tag) !== -1))
 
             if (!didCancel) {
@@ -255,7 +253,7 @@ export const Browse: React.FunctionComponent<{
                 aclOptions={[{icon: "search", name: "USE", title: "Use"}]}
                 entity={inspecting.license}
                 reload={reload}
-                updateAclEndpoint={licenseApi.updateAcl}
+                updateAclEndpoint={UCloud.compute.licenses.updateAcl}
                 showProduct={true}
 
 
@@ -351,7 +349,7 @@ interface LicenseOpCallback {
 async function licenseOpActivate(selected: LicenseGroup[], cb: LicenseOpCallback) {
     if (cb.commandLoading) return;
     const resp = await cb.invokeCommand<LicensesCreateResponse>(
-        licenseApi.create({
+        UCloud.compute.licenses.create({
             type: "bulk",
             items: selected.map(g => ({
                 product: {
@@ -365,7 +363,7 @@ async function licenseOpActivate(selected: LicenseGroup[], cb: LicenseOpCallback
     const ids = resp?.ids ?? [];
     if (ids.length === 1) {
         const license = await cb.invokeCommand<License>(
-            licenseApi.retrieve({id: ids[0], includeUpdates: true, includeAcl: true})
+            UCloud.compute.licenses.retrieve({id: ids[0], includeUpdates: true, includeAcl: true})
         );
         if (license) {
             cb.reload();
@@ -480,7 +478,7 @@ const licenseOperations: Operation<LicenseGroup, LicenseOpCallback>[] = [
         onClick: async (selected, cb) => {
             if (cb.commandLoading) return;
 
-            await cb.invokeCommand(licenseApi.remove({
+            await cb.invokeCommand(UCloud.compute.licenses.remove({
                 type: "bulk",
                 items: selected.map(license => ({
                     id: license.instances[0].id
@@ -512,7 +510,7 @@ const licenseInstanceOperations: Operation<License, LicenseOpCallback>[] = [
         onClick: async (selected, cb) => {
             if (cb.commandLoading) return;
 
-            await cb.invokeCommand(licenseApi.remove({
+            await cb.invokeCommand(UCloud.compute.licenses.remove({
                 type: "bulk",
                 items: selected.map(license => ({
                     id: license.id

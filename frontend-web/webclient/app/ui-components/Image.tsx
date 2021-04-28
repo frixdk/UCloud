@@ -1,11 +1,10 @@
-import styled from "styled-components";
-import {space, SpaceProps} from "styled-system";
+import {styled} from "@linaria/react";
+import {withStyledSystemCompatibility} from "ui-components/Compatibility";
 
-const Image = styled.img<SpaceProps>`
+const Image = withStyledSystemCompatibility([], styled.img`
   max-width: 100%;
   height: auto;
-  ${space}
-`;
+`);
 
 Image.displayName = "Image";
 

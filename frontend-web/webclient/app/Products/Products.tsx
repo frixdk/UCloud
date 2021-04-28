@@ -11,13 +11,12 @@ import {Table, TableCell, TableHeader, TableHeaderCell, TableRow} from "ui-compo
 import {creditFormatter} from "Project/ProjectUsage";
 import {Client} from "Authentication/HttpClientInstance";
 import {NonAuthenticatedHeader} from "Navigation/Header";
-import styled from "styled-components";
 import * as ReactModal from "react-modal";
 import {defaultModalStyle} from "Utilities/ModalUtilities";
 import {Spacer} from "ui-components/Spacer";
 import CONF from "../../site.config.json";
 import {accounting} from "UCloud";
-import ProductNS = accounting.ProductNS;
+import {styled} from "@linaria/react";
 
 function Products(): JSX.Element {
     const main = (
@@ -61,7 +60,7 @@ const DetailedView = styled(Table)`
     border-top: 1px solid rgba(34, 36, 38, .1);
   }
 
-  th, ${TableCell} {
+  th, td {
     padding: 16px 0;
   }
 `;
@@ -78,7 +77,7 @@ const MachineView: React.FunctionComponent<{ area: ProductArea, provider: string
     const isIngressOrLicense = ["LICENSE", "INGRESS"].includes(area);
 
     const machineCount = machines.data.items.filter(machine => {
-        const ingressOrLicenseProduct = ["INGRESS", "LICENSE"].includes(area) ? machine as ProductNS.Ingress : null
+        const ingressOrLicenseProduct = ["INGRESS", "LICENSE"].includes(area) ? machine as accounting.ProductNS.Ingress : null
         return !(ingressOrLicenseProduct && ingressOrLicenseProduct.paymentModel === "FREE_BUT_REQUIRE_BALANCE");
     }).length;
     if (machineCount === 0) return null;
@@ -125,8 +124,8 @@ const MachineView: React.FunctionComponent<{ area: ProductArea, provider: string
                                     <tbody>
                                     {machines.data.items.map(machine => {
                                         if (machine === null) return null;
-                                        const computeProduct = area === "COMPUTE" ? machine as ProductNS.Compute : null;
-                                        const ingressOrLicenseProduct = ["INGRESS", "LICENSE"].includes(area) ? machine as ProductNS.Ingress : null
+                                        const computeProduct = area === "COMPUTE" ? machine as accounting.ProductNS.Compute : null;
+                                        const ingressOrLicenseProduct = ["INGRESS", "LICENSE"].includes(area) ? machine as accounting.ProductNS.Ingress : null
                                         if (ingressOrLicenseProduct && ingressOrLicenseProduct.paymentModel === "FREE_BUT_REQUIRE_BALANCE") return null;
                                         return <TableRow key={machine.id} onClick={() => setActiveMachine(machine)}>
                                             <TableCell>{machine.id}</TableCell>
@@ -232,15 +231,15 @@ const TruncatedTableCell = styled(TableCell)`
 `;
 
 const MachineTypesWrapper = styled.div`
-  ${TableHeaderCell} {
+  th {
     text-align: left;
   }
 
-  ${TableRow} {
+  tr {
     padding: 8px;
   }
 
-  tbody > ${TableRow}:hover {
+  tbody > tr:hover {
     cursor: pointer;
     background-color: var(--lightGray, #f00);
     color: var(--black, #f00);

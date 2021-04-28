@@ -6,8 +6,9 @@ import * as React from "react";
 import {RouteComponentProps} from "react-router";
 import {snackbarStore} from "Snackbar/SnackbarStore";
 import {Button, Markdown} from "ui-components";
-import styled from "styled-components";
 import {addStandardDialog} from "UtilityComponents";
+import {styled} from "@linaria/react";
+import {themeColor} from "ui-components/theme";
 
 function fetchSla(): APICallParameters {
     return {
@@ -62,7 +63,7 @@ const ServiceLicenseAgreement: React.FunctionComponent<RouteComponentProps> = pr
                     <Container>
                         <Markdown>{sla.data.text}</Markdown>
 
-                        <Button color={"green"} onClick={() => addStandardDialog({
+                        <Button color={themeColor("green")} onClick={() => addStandardDialog({
                             message: "",
                             confirmText: "I have read and accept the terms of service",
                             cancelText: "Back",

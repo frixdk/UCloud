@@ -1,10 +1,9 @@
 import {FileUploadEvent} from "Files/HTML5FileSelector";
 import * as UCloud from "UCloud";
 import {GetElementType, PropType} from "UtilityFunctions";
-import FileApi = UCloud.file.orchestrator;
 
-export type WriteConflictPolicy = NonNullable<PropType<FileApi.FilesCreateUploadRequestItem, "conflictPolicy">>;
-export type UploadProtocol = NonNullable<GetElementType<PropType<FileApi.FilesCreateUploadRequestItem, "supportedProtocols">>>;
+export type WriteConflictPolicy = NonNullable<PropType<UCloud.file.orchestrator.FilesCreateUploadRequestItem, "conflictPolicy">>;
+export type UploadProtocol = NonNullable<GetElementType<PropType<UCloud.file.orchestrator.FilesCreateUploadRequestItem, "supportedProtocols">>>;
 
 export enum UploadState {
     PENDING,
@@ -20,7 +19,7 @@ export interface Upload {
     error?: string;
     targetPath: string;
     conflictPolicy: WriteConflictPolicy;
-    uploadResponse?: FileApi.FilesCreateUploadResponseItem;
+    uploadResponse?: UCloud.file.orchestrator.FilesCreateUploadResponseItem;
     terminationRequested?: true;
 }
 

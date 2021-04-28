@@ -49,7 +49,7 @@ export const ListV2: ListV2Type = props => {
     return <Box>
         {props.pageRenderer(allItems)}
         {props.page.next || allItems.length > 1 ?
-            <Box margin={"0 auto"} maxWidth={"500px"}>
+            <Box m={"0 auto"} maxWidth={"500px"}>
                 <Button fullWidth type={"button"} onClick={props.onLoadMore} disabled={!props.page.next}>
                     {!props.page.next ? "No more results returned from UCloud" : "Load more"}
                 </Button>

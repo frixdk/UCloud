@@ -12,6 +12,7 @@ import {addStandardDialog} from "UtilityComponents";
 import {UserAvatar} from "AvataaarLib/UserAvatar";
 import {isAdminOrPI} from "Utilities/ProjectUtilities";
 import {ConfirmationButton} from "ui-components/ConfirmationAction";
+import {themeColor} from "ui-components/theme";
 
 export function MembersList(props: Readonly<{
     members: ProjectMember[];
@@ -46,7 +47,7 @@ export function MembersList(props: Readonly<{
         {props.members.map(member =>
             <React.Fragment key={member.username}>
                 <Flex alignItems="center" mb="16px">
-                    <UserAvatar avatar={avatars.cache[member.username] ?? defaultAvatar} mr="10px" />
+                    <UserAvatar avatar={avatars.cache[member.username] ?? defaultAvatar} />
                     {!props.isOutgoingInvites ?
                         <div>
                             <Text bold>{member.username}</Text>
@@ -74,7 +75,6 @@ export function MembersList(props: Readonly<{
                                     height={40}
                                     labeled
                                     label={member.role}
-                                    fontSize="0.5em"
                                     checked
                                     onChange={() => undefined}
                                 />
@@ -89,7 +89,6 @@ export function MembersList(props: Readonly<{
                                             height={40}
                                             labeled
                                             label={role.text}
-                                            fontSize={"0.5em"}
                                             checked={role.value === member.role}
                                             onChange={async event => {
                                                 try {
@@ -135,7 +134,7 @@ export function MembersList(props: Readonly<{
                                 actionText={"Remove"}
                                 onAction={() => props.onRemoveMember(member.username)}
                             /> :
-                            <Button ml="8px" color="green" height="35px" width="35px" onClick={() => props.onAddToGroup!(member.username)}>
+                            <Button ml="8px" color={themeColor("green")} height="35px" width="35px" onClick={() => props.onAddToGroup!(member.username)}>
                                 <Icon
                                     color="white"
                                     name="arrowDown"

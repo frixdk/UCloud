@@ -3,9 +3,7 @@ import * as UCloud from "UCloud";
 import {widgetId, WidgetProps, WidgetSetter, WidgetValidator} from "./index";
 import {Select} from "ui-components";
 import {compute} from "UCloud";
-import ApplicationParameterNS = compute.ApplicationParameterNS;
 import Flex from "ui-components/Flex";
-import AppParameterValueNS = compute.AppParameterValueNS;
 
 interface EnumProps extends WidgetProps {
     parameter: UCloud.compute.ApplicationParameterNS.Enumeration;
@@ -48,9 +46,9 @@ export const EnumSetter: WidgetSetter = (param, value) => {
 
     const selector = findElement(param);
     if (selector === null) throw "Missing element for: " + param.name;
-    selector.value = (value as AppParameterValueNS.Text).value;
+    selector.value = (value as UCloud.compute.AppParameterValueNS.Text).value;
 };
 
-function findElement(param: ApplicationParameterNS.Enumeration): HTMLSelectElement | null {
+function findElement(param: compute.ApplicationParameterNS.Enumeration): HTMLSelectElement | null {
     return document.getElementById(widgetId(param)) as HTMLSelectElement | null;
 }

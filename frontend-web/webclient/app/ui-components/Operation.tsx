@@ -2,7 +2,6 @@ import {IconName} from "ui-components/Icon";
 import {Box, Button, Flex, Icon, OutlineButton, Tooltip} from "ui-components/index";
 import {PropsWithChildren, useCallback, useState} from "react";
 import * as React from "react";
-import {StyledComponent} from "styled-components";
 import {TextSpan} from "ui-components/Text";
 import ClickableDropdown, {ClickableDropdownProps} from "ui-components/ClickableDropdown";
 import {preventDefault} from "UtilityFunctions";
@@ -163,7 +162,7 @@ export const Operations: OperationsType = props => {
 
             const opTypeFn = op.operationType ?? ((a, b) => defaultOperationType(a, b, op));
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const As = opTypeFn(props.location, props.operations) as StyledComponent<any, any>;
+            const As = opTypeFn(props.location, props.operations);
             const elem = <OperationComponent key={op.text} As={As} op={op} extra={props.extra} selected={selected}
                                              reasonDisabled={reasonDisabled} location={props.location} all={props.all}
                                              onAction={closeDropdown}/>;

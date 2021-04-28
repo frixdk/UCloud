@@ -1,24 +1,26 @@
-import styled from "styled-components";
-import {color, ColorProps, space, SpaceProps, width, WidthProps} from "styled-system";
+import {styled} from "@linaria/react";
+import {CSSVarThemeColor} from "ui-components/theme";
+import {withStyledSystemCompatibility} from "ui-components/Compatibility";
 
-export interface BaseLinkProps extends SpaceProps, ColorProps, WidthProps {
-    hoverColor?: string;
+export interface BaseLinkProps {
+    hoverColor?: CSSVarThemeColor;
 }
 
-const BaseLink = styled.a<BaseLinkProps>`
-  cursor: pointer;
-  text-decoration: none;
-  ${space};
-  ${color};
-  ${width};
+const BaseLink = withStyledSystemCompatibility(
+    ["hoverColor"],
+    styled.a<BaseLinkProps>`
+      cursor: pointer;
+      text-decoration: none;
+      color: var(--text);
 
-  &:hover {
-    color: var(--${props => props.hoverColor ?? "textHighlight"});
-  }
-`;
+      &:hover {
+        color: ${p => p.hoverColor!};
+      }
+    `
+);
 
 BaseLink.defaultProps = {
-    color: "text"
+    hoverColor: "var(--textHighlight)"
 };
 
 BaseLink.displayName = "BaseLink";

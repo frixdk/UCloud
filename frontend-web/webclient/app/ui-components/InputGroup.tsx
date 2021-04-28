@@ -1,34 +1,28 @@
-import styled from "styled-components";
-import {borderColor, space} from "styled-system";
-import Box from "./Box";
-import Input from "./Input";
+import {InputStyle} from "./Input";
 import theme from "./theme";
+import {styled} from "@linaria/react";
+import {withStyledSystemCompatibility} from "ui-components/Compatibility";
 
 export type InputGroupProps = any;
 
-const InputGroup = styled.div<InputGroupProps>`
+const InputGroup = withStyledSystemCompatibility([], styled.div<InputGroupProps>`
   display: flex;
   align-items: center;
   border-radius: ${theme.radius};
   border-width: 1px;
   border-style: solid;
-  ${borderColor}
-  ${space}
+  border-color: var(--borderGray);
 
-  & > ${Box} {
+  & > input {
     width: 100%;
     flex: 1 1 auto;
   }
 
-  & ${Input} {
+  & ${InputStyle} {
     border: 0;
     box-shadow: none;
   }
-`;
-
-InputGroup.defaultProps = {
-  borderColor: "borderGray"
-};
+`);
 
 InputGroup.displayName = "InputGroup";
 

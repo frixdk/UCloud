@@ -1,43 +1,45 @@
 import * as React from "react";
-import styled from "styled-components";
 import Box from "./Box";
 import Flex from "./Flex";
 import Text from "./Text";
-import {ThemeColor} from "./theme";
+import {CSSVarThemeColor, themeColor, ThemeColor} from "./theme";
+import {styled} from "@linaria/react";
 
 interface ProgressBaseProps {
-    height?: number | string;
-    value?: number | string;
-    label?: string;
+    color: CSSVarThemeColor;
+    height: string;
+    width: string;
 }
 
-const ProgressBase = styled(Box) <ProgressBaseProps>`
-    border-radius: 5px;
-    background-color: var(--${p => p.color}, #f00);
-    height: ${props => props.height};
+const ProgressBase = styled.div<ProgressBaseProps>`
+  border-radius: 5px;
+  background-color: ${p => p.color};
+  height: ${p => p.height};
+  width: ${p => p.width};
 `;
 
-const ProgressPulse = styled(ProgressBase) <{active: boolean}>`
-    ${p => p.active ? "" : "display: none;"}
-    height: 100%;
-    /* From semantic-ui-css */
-    animation: progress-active 2s ease infinite;
-    color: black;
+const ProgressPulse = styled(ProgressBase) <{ active: boolean }>`
+  display: ${p => p.active ? "block" : "none"};
+  width: 100%;
+  height: 100%;
+  /* From semantic-ui-css */
+  animation: progress-active 2s ease infinite;
+  color: black;
 
-    @keyframes progress-active {
-        0% {
-            opacity: 0.3;
-            width: 0;
-        }
-        100% {
-            opacity: 0;
-            width: 100%;
-        }
+  @keyframes progress-active {
+    0% {
+      opacity: 0.3;
+      width: 0;
     }
+    100% {
+      opacity: 0;
+      width: 100%;
+    }
+  }
 `;
 
 ProgressBase.defaultProps = {
-    color: "green",
+    color: "var(--green)",
     height: "30px",
 };
 
@@ -50,9 +52,9 @@ interface Progress {
 
 const Progress = ({color, percent, active, label}: Progress): JSX.Element => (
     <>
-        <ProgressBase height="30px" width="100%" color="lightGray">
-            <ProgressBase height="30px" color={color} width={`${percent}%`}>
-                <ProgressPulse active={active} width="100%" />
+        <ProgressBase height="30px" width="100%" color={themeColor("lightGray")}>
+            <ProgressBase height="30px" color={themeColor(color)} width={`${percent}%`}>
+                <ProgressPulse active={active} width="100%" height={"30px"} color={themeColor(color)}/>
             </ProgressBase>
         </ProgressBase>
         {label ? <Flex justifyContent="center"><Text>{label}</Text></Flex> : null}

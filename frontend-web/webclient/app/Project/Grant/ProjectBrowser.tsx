@@ -13,18 +13,18 @@ import {
 import {emptyPage} from "DefaultObjects";
 import * as Pagination from "Pagination";
 import {useRefreshFunction} from "Navigation/Redux/HeaderActions";
-import {Box, Card, Icon, Text} from "ui-components";
+import {Box, Card, Grid, Icon, Text} from "ui-components";
 import {useHistory, useParams} from "react-router";
 import {DashboardCard} from "Dashboard/Dashboard";
-import styled from "styled-components";
 import {GridCardGroup} from "ui-components/Grid";
 import {useState} from "react";
 import {Client} from "Authentication/HttpClientInstance";
 import {AppLogo, hashF} from "Applications/Card";
 import {buildQueryString} from "Utilities/URIUtilities";
+import {styled} from "@linaria/react";
 
 export const ProjectBrowser: React.FunctionComponent = () => {
-    const {action} = useParams<{action: string}>();
+    const {action} = useParams<{ action: string }>();
     useTitle("Project Browser");
     useSidebarPage(SidebarPages.Projects);
 
@@ -57,14 +57,16 @@ export const ProjectBrowser: React.FunctionComponent = () => {
                     pageRenderer={() => {
                         return <>
                             <AffiliationGrid>
-                                {projects.data.items.map(it => (
-                                    <AffiliationLink
-                                        action={action}
-                                        projectId={it.projectId}
-                                        title={it.title}
-                                        key={it.projectId}
-                                    />
-                                ))}
+                                <GridCardGroup>
+                                    {projects.data.items.map(it => (
+                                        <AffiliationLink
+                                            action={action}
+                                            projectId={it.projectId}
+                                            title={it.title}
+                                            key={it.projectId}
+                                        />
+                                    ))}
+                                </GridCardGroup>
                             </AffiliationGrid>
                         </>;
                     }}
@@ -101,12 +103,12 @@ export const Logo: React.FunctionComponent<LogoProps> = props => {
                 alt={props.projectId}
             />
 
-            {hasLoadedImage ? null : <AppLogo size={size} hash={hashF(props.projectId)} />}
+            {hasLoadedImage ? null : <AppLogo size={size} hash={hashF(props.projectId)}/>}
         </>
     );
 };
 
-const AffiliationLink: React.FunctionComponent<{action: string, projectId: string, title: string}> = props => {
+const AffiliationLink: React.FunctionComponent<{ action: string, projectId: string, title: string }> = props => {
     const history = useHistory();
 
     const [description,] = useCloudAPI<RetrieveDescriptionResponse>(
@@ -119,10 +121,10 @@ const AffiliationLink: React.FunctionComponent<{action: string, projectId: strin
         color={"purple"}
         isLoading={description.loading}
         title={<>
-            <Logo projectId={props.projectId} size={"40px"} />
+            <Logo projectId={props.projectId} size={"40px"}/>
             <Heading.h3 ml={8}>{props.title}</Heading.h3>
         </>}
-        subtitle={<Icon name="arrowDown" rotation={-90} size={18} color={"darkGray"} />}
+        subtitle={<Icon name="arrowDown" rotation={-90} size={18} color={"darkGray"}/>}
         onClick={() => history.push(`/project/grants/${props.action}/${props.projectId}`)}
     >
         <Box pt={8} pb={16}>
@@ -131,16 +133,17 @@ const AffiliationLink: React.FunctionComponent<{action: string, projectId: strin
     </DashboardCard>;
 };
 
-const AffiliationGrid = styled(GridCardGroup)`
-    & > ${Card} {
-        position: relative;
-        min-height: 200px;
-        cursor: pointer;
-        transition: transform 0.2s;
-        &:hover {
-            transform: scale(1.02);
-        }
+const AffiliationGrid = styled.div`
+  ${Grid} > ${Card} {
+    position: relative;
+    min-height: 200px;
+    cursor: pointer;
+    transition: transform 0.2s;
+
+    &:hover {
+      transform: scale(1.02);
     }
+  }
 `;
 
 export default ProjectBrowser;

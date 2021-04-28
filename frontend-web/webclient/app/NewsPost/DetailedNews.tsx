@@ -18,6 +18,7 @@ import {capitalized, errorMessageOrDefault} from "UtilityFunctions";
 import {snackbarStore} from "Snackbar/SnackbarStore";
 import {addStandardDialog} from "UtilityComponents";
 import Fuse from "fuse.js";
+import {themeColor} from "ui-components/theme";
 
 function getByIdRequest(payload: {id: string}): APICallParameters<{id: string}> {
     return {
@@ -57,7 +58,7 @@ export const DetailedNews: React.FC = () => {
                         right={isAdmin ?
                             <ButtonGroup width="150px">
                                 <Button onClick={() => setEditing(true)}>Edit</Button>
-                                <Button color="red" onClick={deletePost}>Delete</Button>
+                                <Button color={themeColor("red")} onClick={deletePost}>Delete</Button>
                             </ButtonGroup> : null}
                     />
                     <Heading.h4>{newsPost.data.subtitle}</Heading.h4>
@@ -65,10 +66,7 @@ export const DetailedNews: React.FC = () => {
                         <Text fontSize={1}><Flex>By: <Text mx="6px" bold>{newsPost.data.postedBy}</Text></Flex></Text>
                         <Text fontSize={1}><Flex>Posted {format(newsPost.data.showFrom, "HH:mm dd/MM/yy")}</Flex></Text>
                         <Link to={`/news/list/${newsPost.data.category}`}>
-                            <Tag
-                                label={newsPost.data.category}
-                                bg={theme.appColors[appColor(hashF(newsPost.data.category))][0]}
-                            />
+                            <Tag label={newsPost.data.category}/>
                         </Link>
                     </Box>
                     <Markdown
@@ -144,7 +142,7 @@ function Editing(props: {post: NewsPost; stopEditing: (reload: boolean) => void;
                             <Flex>
                                 <Text fontSize={5}>Title: </Text><Input pt={0} pb={0} noBorder defaultValue={props.post.title} ref={titleRef} fontSize={5} />
                             </Flex>}
-                        right={<Button type="button" onClick={() => props.stopEditing(false)} color="red">Cancel</Button>}
+                        right={<Button type="button" onClick={() => props.stopEditing(false)} color={themeColor("red")}>Cancel</Button>}
                     />
                     <Flex><Text fontSize={3}>Subtitle: </Text><Input pt={0} pb={0} noBorder defaultValue={props.post.subtitle} ref={subtitleRef} fontSize={3} /></Flex>
                     <Box>

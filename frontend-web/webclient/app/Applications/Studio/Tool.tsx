@@ -21,6 +21,7 @@ import {HiddenInputField} from "ui-components/Input";
 import Truncate from "ui-components/Truncate";
 import {AppToolLogo} from "../AppToolLogo";
 import * as UCloud from "UCloud";
+import {themeColor} from "ui-components/theme";
 
 export const Tool: React.FunctionComponent<RouteComponentProps<{name: string}>> = props => {
     const name = props.match.params.name;
@@ -82,7 +83,7 @@ export const Tool: React.FunctionComponent<RouteComponentProps<{name: string}>> 
 
                     <Button
                         type="button"
-                        color="red"
+                        color={themeColor("red")}
                         disabled={commandLoading}
                         onClick={async () => {
                             await invokeCommand(clearLogo({type: "TOOL", name}));

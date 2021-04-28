@@ -4,6 +4,7 @@ import * as React from "react";
 import {snackbarStore} from "Snackbar/SnackbarStore";
 import {Box, Button, TextArea} from "ui-components";
 import {errorMessageOrDefault} from "UtilityFunctions";
+import {themeColor} from "ui-components/theme";
 
 interface ErrorBoundaryState {
     hasError: boolean;
@@ -49,7 +50,7 @@ export class ErrorBoundary extends React.Component<unknown, ErrorBoundaryState> 
                                     ref={this.ref}
                                 />
                             </Box>
-                            <Button mr="1em" onClick={this.submitError} color="blue">Submit</Button>
+                            <Button mr="1em" onClick={this.submitError} color={themeColor("blue")}>Submit</Button>
                             <Button onClick={ErrorBoundary.redirectToDashboard}>Go to dashboard</Button>
 
                             <Box pt="10px">We support Chrome, Edge, Firefox and Safari.

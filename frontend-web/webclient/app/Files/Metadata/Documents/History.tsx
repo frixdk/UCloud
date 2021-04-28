@@ -1,10 +1,9 @@
 import * as React from "react";
 import {file} from "UCloud";
-import metadataApi = file.orchestrator.metadata;
-import FileMetadataHistory = file.orchestrator.FileMetadataHistory;
+type FileMetadataHistory = file.orchestrator.FileMetadataHistory;
 import {useCallback, useEffect, useState} from "react";
 import {useCloudCommand} from "Authentication/DataHook";
-import FileMetadataOrDeleted = file.orchestrator.FileMetadataOrDeleted;
+type FileMetadataOrDeleted = file.orchestrator.FileMetadataOrDeleted;
 import {bulkRequestOf} from "DefaultObjects";
 import {Box, Button, Flex, Icon, List} from "ui-components";
 import {AppLogo, hashF} from "Applications/Card";
@@ -13,11 +12,12 @@ import {dateToString} from "Utilities/DateUtilities";
 import {ConfirmationButton} from "ui-components/ConfirmationAction";
 import {ConfirmCancelButtons} from "UtilityComponents";
 import {JsonSchemaForm} from "Files/Metadata/JsonSchemaForm";
-import styled from "styled-components";
 import {ListRow, ListRowStat, ListStatContainer} from "ui-components/List";
-import ApprovalStatus = file.orchestrator.FileMetadataDocumentNS.ApprovalStatus;
+type ApprovalStatus = file.orchestrator.FileMetadataDocumentNS.ApprovalStatus;
 import {deviceBreakpoint} from "ui-components/Hide";
-import FileMetadataTemplate = file.orchestrator.FileMetadataTemplate;
+type FileMetadataTemplate = file.orchestrator.FileMetadataTemplate;
+import {styled} from "@linaria/react";
+import {themeColor} from "ui-components/theme";
 
 export const History: React.FunctionComponent<{
     path: string;
@@ -51,7 +51,7 @@ export const History: React.FunctionComponent<{
     const deleteData = useCallback(async () => {
         if (commandLoading) return;
         await invokeCommand(
-            metadataApi.remove(bulkRequestOf({
+            file.orchestrator.metadata.remove(bulkRequestOf({
                 path,
                 templateId: template.id
             }))
@@ -65,7 +65,7 @@ export const History: React.FunctionComponent<{
         if (!editingDocument) return;
 
         await invokeCommand(
-            metadataApi.create(bulkRequestOf({
+            file.orchestrator.metadata.create(bulkRequestOf({
                 path,
                 metadata: {
                     templateId: template.id,
@@ -123,7 +123,8 @@ export const History: React.FunctionComponent<{
                                             <Icon name={"upload"} mr={8}/>
                                             New version
                                         </Button>
-                                        <ConfirmationButton color={"red"} actionText={"Delete"} icon={"trash"}
+                                        <ConfirmationButton color={themeColor("red")}
+                                                            actionText={"Delete"} icon={"trash"}
                                                             onAction={deleteData}/>
                                     </>
                                 }

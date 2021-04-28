@@ -1,12 +1,11 @@
 import * as React from "react";
 import * as UCloud from "UCloud";
-import templateApi = UCloud.file.orchestrator.metadata_template;
 import {useHistory} from "react-router";
 import {getQueryParam} from "Utilities/URIUtilities";
 import {useCloudAPI, useCloudCommand} from "Authentication/DataHook";
 import {useCallback, useEffect} from "react";
 import {file} from "UCloud";
-import FileMetadataTemplate = file.orchestrator.FileMetadataTemplate;
+type FileMetadataTemplate = file.orchestrator.FileMetadataTemplate;
 import {aclOptions, entityName} from "Files/Metadata/Templates/Browse";
 import {useLoading, useTitle} from "Navigation/Redux/StatusActions";
 import {useRefreshFunction} from "Navigation/Redux/HeaderActions";
@@ -26,7 +25,7 @@ const Properties: React.FunctionComponent = props => {
     const [commandLoading, invokeCommand] = useCloudCommand();
 
     const reload = useCallback(() => {
-        fetchTemplate(templateApi.retrieve({id: id ?? "?"}));
+        fetchTemplate(UCloud.file.orchestrator.metadata_template.retrieve({id: id ?? "?"}));
     }, [id]);
 
     useEffect(reload, [reload]);

@@ -7,19 +7,17 @@ import {useCloudAPI, useCloudCommand} from "Authentication/DataHook";
 import {useProjectId} from "Project";
 import {useLoading, useTitle} from "Navigation/Redux/StatusActions";
 import {SidebarPages, useSidebarPage} from "ui-components/Sidebar";
-import UFile = file.orchestrator.UFile;
-import FileCollection = file.orchestrator.FileCollection;
+type UFile = file.orchestrator.UFile;
+type FileCollection = file.orchestrator.FileCollection;
 import {useRefreshFunction} from "Navigation/Redux/HeaderActions";
 import {pathComponents} from "Utilities/FileUtilities";
-import collectionsApi = file.orchestrator.collections;
-import metadataApi = file.orchestrator.metadata;
-import filesApi = file.orchestrator.files;
 import MainContainer from "MainContainer/MainContainer";
 import {Box, Flex, Grid} from "ui-components";
 import {Section} from "ui-components/Section";
 import * as Heading from "ui-components/Heading";
 import HexSpin from "LoadingIcon/LoadingIcon";
 import {Browse} from "Files/Metadata/Documents/Browse";
+import * as UCloud from "UCloud";
 
 const Properties: React.FunctionComponent = () => {
     const history = useHistory();
@@ -32,7 +30,7 @@ const Properties: React.FunctionComponent = () => {
     const reload = useCallback(() => {
         if (!path) return;
 
-        fetchFile(filesApi.retrieve({
+        fetchFile(UCloud.file.orchestrator.files.retrieve({
             path,
             allowUnsupportedInclude: true,
             includePermissions: true,
@@ -48,7 +46,7 @@ const Properties: React.FunctionComponent = () => {
             const collectionId = components[3];
 
             if (collection.data?.id !== collectionId && !collection.loading) {
-                fetchCollection(collectionsApi.retrieve({id: collectionId, provider}));
+                fetchCollection(UCloud.file.orchestrator.collections.retrieve({id: collectionId, provider}));
             }
         }
     }, [path, projectId]);

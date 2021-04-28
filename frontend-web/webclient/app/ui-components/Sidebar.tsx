@@ -1,34 +1,39 @@
 import {Client} from "Authentication/HttpClientInstance";
 import * as React from "react";
 import {connect, useDispatch} from "react-redux";
-import styled, {css} from "styled-components";
 import {copyToClipboard, inDevEnvironment, useFrameHidden} from "UtilityFunctions";
 import CONF from "../../site.config.json";
 import Box from "./Box";
 import ExternalLink from "./ExternalLink";
-import Flex, {FlexCProps} from "./Flex";
+import Flex from "./Flex";
 import Icon, {IconName} from "./Icon";
 import Link from "./Link";
 import RatingBadge from "./RatingBadge";
 import RBox from "./RBox";
 import Text, {EllipsedText} from "./Text";
-import {ThemeColor} from "./theme";
+import theme, {themeColor, ThemeColor} from "./theme";
 import Tooltip from "./Tooltip";
 import {useEffect} from "react";
 import {setActivePage} from "Navigation/Redux/StatusActions";
+import {styled} from "@linaria/react";
+import {css} from "@linaria/core";
 
-const SidebarElementContainer = styled(Flex) <{hover?: boolean; active?: boolean}>`
-    justify-content: left;
-    flex-flow: row;
-    align-items: center;
+const SidebarElementContainer = styled.div`
+  margin-left: 22px;
+  display: flex;
+  justify-content: left;
+  flex-flow: row;
+  align-items: center;
 
-    & > ${Text} {
-        white-space: nowrap;
-    }
+  & > div {
+    white-space: nowrap;
+  }
 `;
 
 // This is applied to SidebarContainer on small screens
-const HideText = css`
+// TODO
+const HideText = css``;
+/*
 ${({theme}) => theme.mediaQueryLT.xl} {
 
     will-change: transform;
@@ -66,59 +71,54 @@ ${({theme}) => theme.mediaQueryLT.xl} {
     }
 }
 `;
+ */
 
-const SidebarContainer = styled(Flex) <FlexCProps>`
-    position: fixed;
-    z-index: 80;
-    top: 0;
-    left: 0;
-    padding-top: 48px;
-    height: 100%;
-    background-color: ${props => props.theme.colors.lightGray};
-    // border-right: 1px solid ${props => props.theme.colors.borderGray};
-    //background: linear-gradient(135deg, rgba(246,248,249,1) 0%,rgba(229,235,238,1) 69%,rgba(215,222,227,1) 71%,rgba(245,247,249,1) 100%);
-    ${HideText}
+const SidebarContainer = styled.div`
+  flex-direction: column;
+  width: 190px;
+  display: flex;
+  position: fixed;
+  z-index: 80;
+  top: 0;
+  left: 0;
+  padding-top: 48px;
+  height: 100%;
+  background-color: var(--lightGray);
+  // {HideText} 
 `;
 
-interface TextLabelProps {
+export const SidebarTextLabel: React.FunctionComponent<{
     icon: IconName;
-    children: React.ReactText | JSX.Element;
-    ml?: string;
-    height?: string;
-    color?: ThemeColor;
-    color2?: ThemeColor;
     iconSize?: string;
     textSize?: number;
     space?: string;
-    hover?: boolean;
-    title?: string;
-}
+}> = ({icon, iconSize = "24px", textSize = 3, children, space = "22px"}) => (
+    <SidebarElementContainer>
+        <Icon name={icon} color={themeColor("iconColor")} color2={themeColor("iconColor2")} size={iconSize}
+              mr={space}/>
+        <Text fontSize={theme.fontSizes[textSize] + "px"}> {children} </Text>
+    </SidebarElementContainer>
+);
 
-export const SidebarTextLabel = ({
-    icon, children, title, height = "30px", color = "iconColor", color2 = "iconColor2",
-    iconSize = "24", space = "22px", textSize = 3, hover = true
-}: TextLabelProps): JSX.Element => (
-        <SidebarElementContainer title={title} height={height} ml="22px" hover={hover}>
-            <Icon name={icon} color={color} color2={color2} size={iconSize} mr={space} />
-            <Text fontSize={textSize}> {children} </Text>
-        </SidebarElementContainer>
-    );
+const SidebarLink = styled(Link)`
+  &[data-active="true"]:not(:hover) > * > svg {
+    filter: saturate(500%);
+  }
+  
+  &[data-active="true"]:not(:hover) > * > div {
+    color: var(--blue);
+  }
+  
+  &:not([data-active="true"]):hover > * > div {
+    color: var(--blue);
+  }
+  
+  &:not([data-active="true"]):hover > * > svg {
+    filter: saturate(500%);
+  }
 
-const SidebarLink = styled(Link) <{active?: boolean}>`
-    ${props => props.active ?
-        `&:not(:hover) > * > ${Text} {
-            color: ${props.theme.colors.blue};
-        }
-        &:not(:hover) > * > ${Icon} {
-            filter: saturate(500%);
-        }
-    ` : null}
-
-    text-decoration: none;
-
-    &:hover > ${Text}, &:hover > * > ${Icon} {
-        filter: saturate(500%);
-    }
+  text-decoration: none;
+  color: rgb(30, 37, 46);
 `;
 
 interface SidebarElement {
@@ -130,7 +130,7 @@ interface SidebarElement {
 }
 
 const SidebarElement = ({icon, label, to, activePage}: SidebarElement): JSX.Element => (
-    <SidebarLink to={to} active={enumToLabel(activePage) === label ? true : undefined}>
+    <SidebarLink to={to} data-active={enumToLabel(activePage) === label ? true : undefined}>
         <SidebarTextLabel icon={icon}>{label}</SidebarTextLabel>
     </SidebarLink>
 );
@@ -158,13 +158,19 @@ function enumToLabel(value: SidebarPages): string {
     }
 }
 
-const SidebarSpacer = (): JSX.Element => (<Box mt="12px" />);
+const SidebarSpacer = (): JSX.Element => (<Box mt="12px"/>);
 
 const SidebarPushToBottom = styled.div`
-    flex-grow: 1;
+  flex-grow: 1;
 `;
 
-interface MenuElement {icon: IconName; label: string; to: string | (() => string); show?: () => boolean}
+interface MenuElement {
+    icon: IconName;
+    label: string;
+    to: string | (() => string);
+    show?: () => boolean
+}
+
 interface SidebarMenuElements {
     items: MenuElement[];
     predicate: () => boolean;
@@ -215,12 +221,16 @@ const Sidebar = ({sideBarEntries = sideBarMenuElements, page, loggedIn}: Sidebar
         .map(key => sideBarEntries[key])
         .filter(it => it.predicate());
     return (
-        <SidebarContainer color="sidebar" flexDirection="column" width={190}>
+        <SidebarContainer>
             {sidebar.map((category, categoryIdx) => (
                 <React.Fragment key={categoryIdx}>
-                    {category.items.filter((it: MenuElement) => it?.show?.() ?? true).map(({icon, label, to}: MenuElement) => (
+                    {category.items.filter((it: MenuElement) => it?.show?.() ?? true).map(({
+                                                                                               icon,
+                                                                                               label,
+                                                                                               to
+                                                                                           }: MenuElement) => (
                         <React.Fragment key={label}>
-                            <SidebarSpacer />
+                            <SidebarSpacer/>
                             <SidebarElement
                                 icon={icon}
                                 activePage={page}
@@ -231,52 +241,42 @@ const Sidebar = ({sideBarEntries = sideBarMenuElements, page, loggedIn}: Sidebar
                     ))}
                 </React.Fragment>
             ))}
-            <SidebarPushToBottom />
+            <SidebarPushToBottom/>
             {/* Screen size indicator */}
-            {inDevEnvironment() ? <Flex mb={"5px"} width={190} ml={19} justifyContent="left"><RBox /> </Flex> : null}
+            {inDevEnvironment() ? <Flex mb={"5px"} width={190} ml={19} justifyContent="left"><RBox/> </Flex> : null}
             {!Client.isLoggedIn ? null : (
                 <SidebarTextLabel
-                    height="25px"
-                    hover={false}
                     icon="id"
                     iconSize="1em"
                     textSize={1}
-                    space=".5em"
-                    title={Client.username ?? ""}
+                    space={".5em"}
                 >
-                    <Tooltip
-                        left="-50%"
-                        top="1"
-                        mb="35px"
-                        trigger={(
-                            <EllipsedText
-                                cursor="pointer"
-                                onClick={copyUserName}
-                                width="140px"
-                            >
-                                {Client.username}
-                            </EllipsedText>
-                        )}
-                    >
-                        Click to copy {Client.username} to clipboard
+                    <Tooltip tooltip={`Click top copy username to clipboard`}>
+                        <EllipsedText
+                            cursor="pointer"
+                            onClick={copyUserName}
+                            width="140px"
+                        >
+                            {Client.username}
+                        </EllipsedText>
                     </Tooltip>
                 </SidebarTextLabel>
             )}
             {!CONF.SITE_DOCUMENTATION_URL ? null : (
                 <ExternalLink href={CONF.SITE_DOCUMENTATION_URL}>
-                    <SidebarTextLabel height="25px" icon="docs" iconSize="1em" textSize={1} space=".5em">
+                    <SidebarTextLabel icon="docs" iconSize="1em" textSize={1} space={".5em"}>
                         {`${CONF.PRODUCT_NAME} Docs`}
                     </SidebarTextLabel>
                 </ExternalLink>
             )}
             {!CONF.DATA_PROTECTION_LINK ? null : (
                 <ExternalLink href={CONF.DATA_PROTECTION_LINK}>
-                    <SidebarTextLabel height="25px" icon="verified" iconSize="1em" textSize={1} space=".5em">
+                    <SidebarTextLabel icon="verified" iconSize="1em" textSize={1} space={".5em"}>
                         {CONF.DATA_PROTECTION_TEXT}
                     </SidebarTextLabel>
                 </ExternalLink>
             )}
-            <Box mb="10px" />
+            <Box mb="10px"/>
         </SidebarContainer>
     );
 };
@@ -298,7 +298,7 @@ const mapStateToProps = ({status, project}: ReduxObject): SidebarStateProps => (
     activeProject: project.project
 });
 
-export const enum SidebarPages {
+export enum SidebarPages {
     Files,
     Shares,
     Projects,

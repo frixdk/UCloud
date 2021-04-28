@@ -1,66 +1,24 @@
 import * as React from "react";
-import styled from "styled-components";
-import {
-    alignItems,
-    AlignItemsProps,
-    color,
-    ColorProps,
-    gridAutoFlow,
-    GridAutoFlowProps,
-    gridGap,
-    GridGapProps,
-    gridTemplateColumns,
-    GridTemplateColumnsProps,
-    gridTemplateRows,
-    GridTemplateRowsProps,
-    height,
-    HeightProps,
-    justifyItems,
-    JustifyItemsProps,
-    maxHeight,
-    MaxHeightProps,
-    maxWidth,
-    MaxWidthProps, overflow,
-    OverflowProps,
-    space,
-    SpaceProps,
-    width,
-    WidthProps
-} from "styled-system";
+import {styled} from "@linaria/react";
+import {StyledSystemProperties} from "styled-system";
+import {withStyledSystemCompatibility} from "ui-components/Compatibility";
 
-export type GridProps =
-    SpaceProps &
-    WidthProps &
-    HeightProps &
-    MaxHeightProps &
-    MaxWidthProps &
-    ColorProps &
-    AlignItemsProps &
-    JustifyItemsProps &
-    GridGapProps &
-    GridTemplateColumnsProps &
-    GridAutoFlowProps &
-    GridTemplateRowsProps;
+const Grid = withStyledSystemCompatibility([], styled.div`
+  display: grid;
+`);
 
-const Grid = styled.div<GridProps>`
-    display: grid;
-    ${gridAutoFlow}
-    ${space} ${width} ${height} ${color}
-    ${alignItems} ${justifyItems} ${gridGap}
-    ${gridTemplateColumns} ${gridTemplateRows}
-    ${maxHeight} ${maxWidth}
-`;
-
-export const GridCardGroup = ({
-    minmax = 400,
-    gridGap = 10,
-    ...props
-}): JSX.Element => (
+export const GridCardGroup = (
+    {
+        minmax = 400,
+        gridGap = 10,
+        ...props
+    }
+): JSX.Element => (
     <Grid
         mt="2px"
         width="100%"
-        gridTemplateColumns={`repeat(auto-fill, minmax(${minmax}px, 1fr) )`}
         gridGap={gridGap}
+        gridTemplateColumns={`repeat(auto-fill, minmax(${minmax}px, 1fr))`}
         {...props}
     />
 );

@@ -1,8 +1,8 @@
 import * as React from "react";
-import styled, {keyframes} from "styled-components";
 import {Box} from "ui-components";
 import {addStandardDialog} from "UtilityComponents";
 import {inDevEnvironment} from "UtilityFunctions";
+import {styled} from "@linaria/react";
 
 const TIMEOUT_DURATION = 180_000;
 
@@ -32,6 +32,7 @@ export function VersionManager(): JSX.Element {
     }
 }
 
+/*
 const animation = keyframes`
     from { 
         padding-left: 13px;
@@ -43,13 +44,15 @@ const animation = keyframes`
     }
 `;
 
+ */
+
 const NotifyBox = styled.div`
-    background-color: ${p => p.theme.colors.red};
+    background-color: var(--red, #f00);
     width: 32px;
     height: 32px;
     border-radius: 999px;
-    animation: ${animation} 0.7s infinite alternate;
 `;
+// animation: ${animation} 0.7s infinite alternate;
 
 function appVersionResource(): string {
     if (inDevEnvironment()) return "/Assets/AppVersion.txt";
@@ -73,9 +76,9 @@ async function initialFetch(setInitial: (v: string) => void): Promise<void> {
             it.text().then(version => setInitial(version));
         } else {
             console.warn("Failed to fetch version from backend. Retrying.");
-            setTimeout(initialFetch(setInitial), TIMEOUT_DURATION);
+            setTimeout(() => initialFetch(setInitial), TIMEOUT_DURATION);
         }
-    }).catch(() => setTimeout(initialFetch(setInitial), TIMEOUT_DURATION));
+    }).catch(() => setTimeout(() => initialFetch(setInitial), TIMEOUT_DURATION));
 }
 
 function notifyModal(): void {

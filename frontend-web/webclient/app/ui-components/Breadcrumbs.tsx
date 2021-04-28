@@ -1,17 +1,17 @@
 import * as React from "react";
-import styled from "styled-components";
 import {Box, Icon, Text, Flex} from "ui-components";
 import {addTrailingSlash, removeTrailingSlash} from "UtilityFunctions";
 import HttpClient from "Authentication/lib";
 import {pathComponents} from "Utilities/FileUtilities";
 import {ProjectStatus, useProjectStatus} from "Project/cache";
 import {Center} from "UtilityComponents";
+import {styled} from "@linaria/react";
 
 // https://www.w3schools.com/howto/howto_css_breadcrumbs.asp
 export const BreadCrumbsBase = styled(Flex) <{embedded: boolean}>`
     width: calc(100% - ${(props): string => props.embedded ? "50px" : "180px"});
     & > span {
-        width: 1;
+        width: 1px;
         font-size: 25px;
         display: inline-block;
         text-overflow: ellipsis;

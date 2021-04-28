@@ -1,22 +1,20 @@
-import networkApi = UCloud.compute.networkips;
 import * as React from "react";
 import {useCallback, useEffect, useState} from "react";
 import {useProjectId} from "Project";
 import {callAPI, useCloudAPI, useCloudCommand} from "Authentication/DataHook";
 import * as UCloud from "UCloud";
 import {accounting, compute, PageV2} from "UCloud";
-import ProductNS = accounting.ProductNS;
 import {Box, Button, Input, Label, Select} from "ui-components";
 import {snackbarStore} from "Snackbar/SnackbarStore";
 import {Spacer} from "ui-components/Spacer";
 import {bulkRequestOf, emptyPageV2} from "DefaultObjects";
-import NetworkIPsCreateResponse = compute.NetworkIPsCreateResponse;
-import NetworkIP = compute.NetworkIP;
+type NetworkIPsCreateResponse = compute.NetworkIPsCreateResponse;
+type NetworkIP = compute.NetworkIP;
 
 const Create: React.FunctionComponent<{computeProvider?: string; onCreateFinished?: (ip: NetworkIP) => void}> = props => {
     const [selectedProvider, setSelectedProvider] = useState(props.computeProvider);
     const canChangeProvider = props.computeProvider === undefined;
-    const [selectedProduct, setSelectedProduct] = useState<ProductNS.Ingress | null>(null);
+    const [selectedProduct, setSelectedProduct] = useState<accounting.ProductNS.Ingress | null>(null);
     const [, invokeCommand] = useCloudCommand();
 
     const projectId = useProjectId();
@@ -64,7 +62,7 @@ const Create: React.FunctionComponent<{computeProvider?: string; onCreateFinishe
                     <Label>
                         {!canChangeProvider ? "1" : "2"}. Select Product
                         <Select placeholder="Product..." onChange={e => {
-                            setSelectedProduct(allProducts.data.items.find(it => it.id === e.target.value) as ProductNS.Ingress ?? null);
+                            setSelectedProduct(allProducts.data.items.find(it => it.id === e.target.value) as accounting.ProductNS.Ingress ?? null);
                         }}>
                             <option onClick={() => setSelectedProduct(null)} />
                             {allProducts.data.items.map(product =>
@@ -90,7 +88,7 @@ const Create: React.FunctionComponent<{computeProvider?: string; onCreateFinishe
             return;
         }
 
-        const resp = await invokeCommand<NetworkIPsCreateResponse>(networkApi.create(bulkRequestOf({
+        const resp = await invokeCommand<NetworkIPsCreateResponse>(UCloud.compute.networkips.create(bulkRequestOf({
             product: {
                 category: selectedProduct.category.id,
                 id: selectedProduct.id,
@@ -101,7 +99,7 @@ const Create: React.FunctionComponent<{computeProvider?: string; onCreateFinishe
 
         if (resp?.ids?.length) {
             snackbarStore.addSuccess(`Allocated a public IP.`, false);
-            const ip = await callAPI(networkApi.retrieve({id: resp.ids[0], includeAcl: true, includeProduct: true,
+            const ip = await callAPI(UCloud.compute.networkips.retrieve({id: resp.ids[0], includeAcl: true, includeProduct: true,
                 includeUpdates: true}));
             props.onCreateFinished?.(ip);
         }

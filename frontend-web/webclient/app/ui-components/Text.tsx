@@ -1,75 +1,39 @@
 import * as React from "react";
-import styled from "styled-components";
-import {
-  color,
-  ColorProps, flexGrow, FlexGrowProps,
-  fontSize,
-  FontSizeProps,
-  fontWeight,
-  lineHeight,
-  maxWidth,
-  MaxWidthProps,
-  space,
-  SpaceProps,
-  textAlign,
-  TextAlignProps,
-  textStyle,
-  width,
-  WidthProps
-} from "styled-system";
-import {Theme} from "./theme";
-import {Cursor} from "./Types";
+import theme, {Theme} from "./theme";
+import {styled} from "@linaria/react";
+import {withStyledSystemCompatibility} from "ui-components/Compatibility";
 
-export const caps = (props: {caps?: boolean}): {textTransform: "uppercase"} | null =>
-  props.caps ? {textTransform: "uppercase"} : null;
-
-export const regular = (props: {regular?: boolean, theme: Theme}) =>
-  props.regular ? {fontWeight: props.theme.regular} : null;
-
-export const bold = (props: {bold?: boolean, theme: Theme}) =>
-  props.bold ? {fontWeight: props.theme.bold} : null;
-
-export const italic = (props: {italic?: boolean}) => (props.italic ? {fontStyle: "italic"} : null);
-
-export interface TextProps extends SpaceProps, TextAlignProps, FontSizeProps, ColorProps, WidthProps, FlexGrowProps {
-  align?: "left" | "right";
-  caps?: boolean;
-  regular?: boolean;
-  italic?: boolean;
-  bold?: boolean;
-  cursor?: Cursor;
-  selectable?: boolean;
+export interface TextProps {
+    caps?: boolean;
+    regular?: boolean;
+    italic?: boolean;
+    bold?: boolean;
+    selectable?: boolean;
 }
 
-const Text = styled.div<TextProps>`
-  cursor: ${props => props.cursor};
-  ${p => p.selectable === false ? "user-select: none;" : null}
-  ${width}
-  ${textStyle}
-  ${fontSize}
-  ${fontWeight}
-  ${textAlign}
-  ${lineHeight}
-  ${space}
-  ${color}
-  ${flexGrow}
-  ${caps}
-  ${regular}
-  ${bold}
-  ${italic}
-`;
+const Text = withStyledSystemCompatibility(
+    ["caps", "regular", "italic", "bold", "selectable"],
+    styled.div<TextProps>`
+      user-select: ${p => p.selectable === false ? "none" : "auto"};
+      text-transform: ${p => p.caps ? "uppercase" : "none"};
+      font-weight: ${p => p.bold ? theme.bold : theme.regular};
+      font-style: ${p => p.italic ? "italic" : "normal"};
+    `
+);
 
 export const TextDiv = Text;
 export const TextSpan = (props: any) => <Text as="span" {...props} />;
 export const TextP = (props: any) => <Text as="p" {...props} />;
 
-type EllipsedTextProps = TextProps & WidthProps & MaxWidthProps;
+type EllipsedTextProps = TextProps;
 export const EllipsedText = styled(Text) <EllipsedTextProps>`
+  user-select: ${p => p.selectable === false ? "none" : "auto"};
+  text-transform: ${p => p.caps ? "uppercase" : "none"};
+  font-weight: ${p => p.bold ? theme.bold : theme.regular};
+  font-style: ${p => p.italic ? "italic" : "normal"};
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  ${width};
-  ${maxWidth};
   display: inline-block;
   vertical-align: bottom;
 `;
@@ -77,7 +41,7 @@ export const EllipsedText = styled(Text) <EllipsedTextProps>`
 EllipsedText.displayName = "EllipsedText";
 
 Text.defaultProps = {
-  cursor: "inherit"
+    cursor: "inherit"
 };
 
 Text.displayName = "Text";

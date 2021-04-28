@@ -29,9 +29,10 @@ import {FavoriteToggle} from "Applications/FavoriteToggle";
 import {SidebarPages, useSidebarPage} from "ui-components/Sidebar";
 import {useTitle} from "Navigation/Redux/StatusActions";
 import {snackbarStore} from "Snackbar/SnackbarStore";
-import JobSpecification = compute.JobSpecification;
+type JobSpecification = compute.JobSpecification;
 import {NetworkIPResource} from "Applications/Jobs/Resources/NetworkIPs";
 import {bulkRequestOf} from "DefaultObjects";
+import {themeColor} from "ui-components/theme";
 
 interface InsufficientFunds {
     why?: string;
@@ -246,7 +247,7 @@ export const Create: React.FunctionComponent = () => {
                 </Link>
                 <OutlineButton
                     fullWidth
-                    color={"darkGreen"}
+                    color={themeColor("darkGreen")}
                     as={"label"}
                     onClick={() => setImportDialogOpen(true)}
                 >
@@ -257,7 +258,7 @@ export const Create: React.FunctionComponent = () => {
 
                 <Button
                     type={"button"}
-                    color={"blue"}
+                    color={themeColor("blue")}
                     disabled={isLoading}
                     onClick={() => submitJob(false)}
                 >

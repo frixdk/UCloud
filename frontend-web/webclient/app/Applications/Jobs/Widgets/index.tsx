@@ -3,11 +3,11 @@ import {BoolParameter, BoolSetter, BoolValidator} from "Applications/Jobs/Widget
 import * as UCloud from "UCloud";
 import * as Heading from "ui-components/Heading";
 import {compute} from "UCloud";
-import AppParameterValue = compute.AppParameterValue;
-import ApplicationParameter = compute.ApplicationParameter;
+
+type AppParameterValue = compute.AppParameterValue;
+type ApplicationParameter = compute.ApplicationParameter;
 import {Box, Button, Flex, Icon, Input, Label, Markdown, Text} from "ui-components";
 import {FilesParameter, FilesSetter, FilesValidator} from "./GenericFiles";
-import styled from "styled-components";
 import {EllipsedText, TextP, TextSpan} from "ui-components/Text";
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import Fuse from "fuse.js";
@@ -17,6 +17,8 @@ import {PeerParameter, PeerSetter, PeerValidator} from "Applications/Jobs/Widget
 import {LicenseParameter, LicenseSetter, LicenseValidator} from "Applications/Jobs/Widgets/License";
 import {IngressParameter, IngressSetter, IngressValidator} from "Applications/Jobs/Widgets/Ingress";
 import {NetworkIPParameter, NetworkIPSetter, NetworkIPValidator} from "Applications/Jobs/Widgets/NetworkIP";
+import {styled} from "@linaria/react";
+import {ButtonStyle} from "ui-components/Button";
 
 // Creating a new widget? Look here. Add it to the WidgetBody, validators and setters.
 export type WidgetValidator = (param: ApplicationParameter) => WidgetValidationAnswer;
@@ -25,24 +27,24 @@ export type WidgetSetter = (param: ApplicationParameter, value: AppParameterValu
 const WidgetBody: React.FunctionComponent<WidgetProps> = props => {
     switch (props.parameter.type) {
         case "boolean":
-            return <BoolParameter {...props} parameter={props.parameter} />;
+            return <BoolParameter {...props} parameter={props.parameter}/>;
         case "input_directory":
         case "input_file":
-            return <FilesParameter {...props} parameter={props.parameter} />;
+            return <FilesParameter {...props} parameter={props.parameter}/>;
         case "text":
         case "floating_point":
         case "integer":
-            return <GenericTextParameter {...props} parameter={props.parameter} />;
+            return <GenericTextParameter {...props} parameter={props.parameter}/>;
         case "enumeration":
-            return <EnumParameter {...props} parameter={props.parameter} />;
+            return <EnumParameter {...props} parameter={props.parameter}/>;
         case "peer":
-            return <PeerParameter {...props} parameter={props.parameter} />;
+            return <PeerParameter {...props} parameter={props.parameter}/>;
         case "license_server":
-            return <LicenseParameter {...props} parameter={props.parameter} />;
+            return <LicenseParameter {...props} parameter={props.parameter}/>;
         case "ingress":
-            return <IngressParameter {...props} parameter={props.parameter} />;
+            return <IngressParameter {...props} parameter={props.parameter}/>;
         case "network_ip":
-            return <NetworkIPParameter {...props} parameter={props.parameter} />;
+            return <NetworkIPParameter {...props} parameter={props.parameter}/>;
     }
 };
 
@@ -80,36 +82,37 @@ interface RootWidgetProps {
     onActivate?: () => void;
 }
 
-const InactiveWidget = styled(Flex)`
-    align-items: center;
-    cursor: pointer;
+const InactiveWidget = styled.div`
+  display: flex;
+  align-items: center;
+  cursor: pointer;
 
-    strong, & > ${EllipsedText} {
-        user-select: none;
-    }
+  strong, & > ${EllipsedText} {
+    user-select: none;
+  }
 
-    strong {
-        margin-right: 16px;
-        font-weight: bold;
-        flex-shrink: 0;
-    }
+  strong {
+    margin-right: 16px;
+    font-weight: bold;
+    flex-shrink: 0;
+  }
 
-    & > ${EllipsedText} {
-        color: var(--gray, #f00);
-        flex-grow: 1;
-    }
+  & > ${EllipsedText} {
+    color: var(--gray, #f00);
+    flex-grow: 1;
+  }
 
-    & > ${EllipsedText} > p {
-        margin: 0;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
+  & > ${EllipsedText} > p {
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 
-    & > ${Button} {
-        margin-left: 16px;
-        flex-shrink: 0;
-    }
+  & > ${ButtonStyle} {
+    margin-left: 16px;
+    flex-shrink: 0;
+  }
 `;
 
 export const Widget: React.FunctionComponent<WidgetProps & RootWidgetProps> = props => {
@@ -127,14 +130,14 @@ export const Widget: React.FunctionComponent<WidgetProps & RootWidgetProps> = pr
                     <Flex>
                         <Flex>
                             {parameter.title}
-                            {parameter.optional ? null : <MandatoryField />}
+                            {parameter.optional ? null : <MandatoryField/>}
                         </Flex>
                         {!parameter.optional || !props.onRemove ? null : (
                             <>
-                                <Box ml="auto" />
+                                <Box ml="auto"/>
                                 <Text color="red" cursor="pointer" mb="4px" onClick={props.onRemove} selectable={false}>
                                     Remove
-                                    <Icon ml="6px" size={16} name="close" />
+                                    <Icon ml="6px" size={16} name="close"/>
                                 </Text>
                             </>
                         )}
@@ -142,7 +145,7 @@ export const Widget: React.FunctionComponent<WidgetProps & RootWidgetProps> = pr
                 </Label>
                 <WidgetBody {...props} />
                 {error ? <TextP color={"red"}>{error}</TextP> : null}
-                <Markdown source={parameter.description} />
+                <Markdown source={parameter.description}/>
             </Box>
         </>;
     } else {
@@ -151,9 +154,9 @@ export const Widget: React.FunctionComponent<WidgetProps & RootWidgetProps> = pr
                 <strong>{parameter.title}</strong>
                 {!open ? (
                     <EllipsedText width="200px">
-                        <Markdown source={parameter.description} allowedTypes={["text", "paragraph"]} />
+                        <Markdown source={parameter.description} allowedTypes={["text", "paragraph"]}/>
                     </EllipsedText>
-                ) : <Box flexGrow={1} />}
+                ) : <Box flexGrow={1}/>}
 
                 <Button
                     type="button"
@@ -166,27 +169,27 @@ export const Widget: React.FunctionComponent<WidgetProps & RootWidgetProps> = pr
                     Use
                 </Button>
             </InactiveWidget>
-            {open ? <Markdown source={parameter.description} /> : null}
+            {open ? <Markdown source={parameter.description}/> : null}
         </Box>;
     }
 };
 
-const OptionalWidgetSearchWrapper = styled(Box)`
-    display: grid;
-    grid-template-columns: 1fr;
-    grid-gap: 10px;
-    max-height: 35em;
-    padding-top: 8px;
-    padding-right: 8px;
-    padding-bottom: 8px;
-    overflow-y: auto;
+const OptionalWidgetSearchWrapper = styled.div`
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-gap: 10px;
+  max-height: 35em;
+  padding-top: 8px;
+  padding-right: 8px;
+  padding-bottom: 8px;
+  overflow-y: auto;
 `;
 
 export const OptionalWidgetSearch: React.FunctionComponent<{
     pool: UCloud.compute.ApplicationParameter[];
     mapper: (p: UCloud.compute.ApplicationParameter) => React.ReactNode;
 }> = ({pool, mapper}) => {
-    const currentTimeout = useRef<number>(-1);
+    const currentTimeout = useRef<any>(-1);
     const [results, setResults] = useState(pool);
     const searchRef = useRef<HTMLInputElement>(null);
 
@@ -269,7 +272,7 @@ export function validateWidgets(params: ApplicationParameter[]): ValidatedWidget
     return result;
 }
 
-export function setWidgetValues(values: {param: ApplicationParameter, value: AppParameterValue}[]): void {
+export function setWidgetValues(values: { param: ApplicationParameter, value: AppParameterValue }[]): void {
     for (const value of values) {
         for (const setter of setters) {
             setter(value.param, value.value);

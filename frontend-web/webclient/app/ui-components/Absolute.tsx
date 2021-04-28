@@ -1,27 +1,10 @@
-import styled from "styled-components";
-import {
-  bottom,
-  BottomProps,
-  left,
-  LeftProps,
-  right,
-  RightProps,
-  top,
-  TopProps,
-  zIndex,
-  ZIndexProps
-} from "styled-system";
-import Box, {BoxProps} from "./Box";
+import * as React from "react";
+import {StyledSystemProperties, translateShorthandCSS} from "styled-system";
+import {CSSProperties, useMemo} from "react";
 
-interface AbsoluteProps extends BoxProps, TopProps, BottomProps, LeftProps, RightProps, ZIndexProps {
-}
-
-const Absolute = styled(Box) <AbsoluteProps>`
-  position: absolute;
-  ${top} ${bottom} ${left} ${right}
-  ${zIndex}
-`;
-
-Absolute.displayName = "Absolute";
+const Absolute = (props) => {
+    const style: CSSProperties = useMemo(() => translateShorthandCSS(props, {position: "absolute"}), [props]);
+    return <div style={style}>{props.children}</div>
+};
 
 export default Absolute;

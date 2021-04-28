@@ -4,6 +4,7 @@ import {useCallback, useRef, useState} from "react";
 import * as React from "react";
 import {Box, Button, Icon, Input, Label} from "ui-components";
 import * as Heading from "ui-components/Heading";
+import {themeColor} from "ui-components/theme";
 
 enum ChangePasswordError {
     BAD_CURRENT,
@@ -106,7 +107,7 @@ export const ChangePassword: React.FunctionComponent<{setLoading: (loading: bool
                 <Button
                     mt={"1em"}
                     type={"submit"}
-                    color="green"
+                    color={themeColor("green")}
                     disabled={commandLoading}
                 >
                     Change password

@@ -1,25 +1,16 @@
-import styled from "styled-components";
-import {
-    borderRadius,
-    BorderRadiusProps,
-    fontWeight,
-    FontWeightProps
-} from "styled-system";
-import Box, {BoxProps} from "./Box";
+import {styled} from "@linaria/react";
+import {withStyledSystemCompatibility} from "ui-components/Compatibility";
 
-export type RatingBadgeProps = BoxProps & FontWeightProps & BorderRadiusProps;
-
-const RatingBadge = styled(Box) <RatingBadgeProps>`
+const RatingBadge = withStyledSystemCompatibility([], styled.div`
   display: inline-block;
   line-height: 1.5;
-  ${fontWeight} ${borderRadius};
-`;
+`);
 
 RatingBadge.defaultProps = {
     fontWeight: "bold",
     px: 2,
     color: "white",
-    bg: "blue",
+    background: "var(--blue)",
     borderRadius: "0.3em"
 };
 

@@ -2,7 +2,6 @@ import {KeyCode} from "DefaultObjects";
 import {dialogStore} from "Dialog/DialogStore";
 import * as React from "react";
 import {snackbarStore} from "Snackbar/SnackbarStore";
-import styled, {keyframes, css} from "styled-components";
 import {
     Box, Button, Divider, Flex, ButtonGroup, Link, Text
 } from "ui-components";
@@ -14,6 +13,8 @@ import {Client} from "Authentication/HttpClientInstance";
 import {Spacer} from "ui-components/Spacer";
 import {ErrorWrapper} from "ui-components/Error";
 import {ThemeColor} from "ui-components/theme";
+import {styled} from "@linaria/react";
+import {css} from "@linaria/core";
 
 interface StandardDialog {
     title?: string;
@@ -248,11 +249,6 @@ export const Lorem: React.FunctionComponent<{ maxLength?: number }> = ({maxLengt
     return <>{builder}</>;
 };
 
-export const ImagePlaceholder = styled.div<WidthProps & HeightProps & PaddingProps>`
-  ${width} ${height} ${padding}
-  background-color: var(--purple, #f00);
-`;
-
 export const Center = styled(Box)`
   text-align: center;
 `;
@@ -276,6 +272,7 @@ export function useTraceUpdate(props: any, msg?: string): void {
     });
 }
 
+/*
 const shakeKeyframes = keyframes`
   10%, 90% {
     transform: translate3d(-1px, 0, 0);
@@ -293,8 +290,10 @@ const shakeKeyframes = keyframes`
     transform: translate3d(4px, 0, 0);
   }
 `;
+ */
 
-export const shakeAnimation = css<{ shaking?: boolean }>`
+export const shakeAnimation = css``;
+/*
   &.shaking {
     transform: translate3d(0, 0, 0);
     animation: ${shakeKeyframes} 0.82s cubic-bezier(.36, .07, .19, .97) both;
@@ -305,12 +304,14 @@ export const shakeAnimation = css<{ shaking?: boolean }>`
     animation: ${shakeKeyframes} 0.82s cubic-bezier(.36, .07, .19, .97) both;
   }` : null}
 `;
+ */
 
 export const shakingClassName = "shaking";
 
+
 export const ShakingBox = styled(Box) <{ shaking?: boolean }>`
-  ${shakeAnimation}
 `;
+//${shakeAnimation}
 
 const MISSING_COMPUTE_CREDITS = "NOT_ENOUGH_COMPUTE_CREDITS";
 const MISSING_STORAGE_CREDITS = "NOT_ENOUGH_STORAGE_CREDITS";

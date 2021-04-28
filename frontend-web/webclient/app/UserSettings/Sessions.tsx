@@ -14,6 +14,7 @@ import {invalidateAllSessions, listUserSessions, UserSession} from "UserSettings
 import {dateToString} from "Utilities/DateUtilities";
 import {addStandardDialog} from "UtilityComponents";
 import CONF from "../../site.config.json";
+import {themeColor} from "ui-components/theme";
 
 export interface SessionsProps {
     setLoading: (loading: boolean) => void;
@@ -117,7 +118,7 @@ export const Sessions: React.FunctionComponent<SessionsProps> = props => {
                 pageRenderer={pageRenderer}
             />
 
-            <Button color={"red"} onClick={onInvalidateSessions} disabled={commandLoading}>
+            <Button color={themeColor("red")} onClick={onInvalidateSessions} disabled={commandLoading}>
                 Invalidate all sessions
             </Button>
         </Box>

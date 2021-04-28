@@ -1,78 +1,63 @@
-import styled from "styled-components";
-import {
-    color,
-    ColorProps, margin, MarginProps, maxWidth, MaxWidthProps,
-    minWidth,
-    MinWidthProps,
-    padding,
-    PaddingProps,
-    textAlign,
-    TextAlignProps, verticalAlign, VerticalAlignProps,
-    width,
-    WidthProps
-} from "styled-system";
-import {Cursor} from "./Types";
+import {styled} from "@linaria/react";
+import {withStyledSystemCompatibility} from "ui-components/Compatibility";
 
-export const Table = styled.table<WidthProps & MinWidthProps & MaxWidthProps & ColorProps & MarginProps>`
-    ${color}
-    border: 0px;
-    border-spacing: 0;
-    table-layout: fixed;
-    ${width} ${minWidth} ${color} ${maxWidth} ${margin}
-`;
+export const Table = withStyledSystemCompatibility([], styled.table`
+  border: 0;
+  border-spacing: 0;
+  table-layout: fixed;
+`);
 
 Table.displayName = "Table";
 
 Table.defaultProps = {
-    backgroundColor: "white",
+    background: "var(--white)",
     width: "100%",
     minWidth: "15em"
 };
 
-export const TableCell = styled.td<TextAlignProps & VerticalAlignProps & MarginProps & PaddingProps>`
-    border: 0px;
-    border-spacing: 0;
-    ${textAlign} ${verticalAlign} ${margin} ${padding}
-`;
+export const TableCell = withStyledSystemCompatibility([], styled.td`
+  border: 0;
+  border-spacing: 0;
+`);
 
 TableCell.displayName = "TableCell";
 
-const isHighlighted = ({highlighted}: {highlighted?: boolean}): {backgroundColor: string} | null =>
+const isHighlighted = ({highlighted}: { highlighted?: boolean }): any =>
     highlighted ? {backgroundColor: "--var(tableRowHighlight)"} : null;
 
-export const TableRow = styled.tr<{highlighted?: boolean; contentAlign?: string; cursor?: Cursor} & ColorProps>`
-    ${isHighlighted};
-    cursor: ${props => props.cursor};
+export const TableRow = withStyledSystemCompatibility(
+    [],
+    styled.tr<{ highlighted?: boolean; contentAlign?: string; }>`
+      background-color: ${p => p.highlighted ? "var(--tableRowHighlight)" : "transparent"};
 
-    & > ${TableCell} {
+      & > td {
         border-spacing: 0;
-        border-top: 1px solid rgba(34,36,38,.1);
+        border-top: 1px solid rgba(34, 36, 38, .1);
         padding-top: 8px;
         padding-bottom: 8px;
-    }
-`;
+      }
+    `
+);
 
 TableRow.defaultProps = {
-    backgroundColor: "white",
+    background: "var(--white)",
     cursor: "auto"
 };
 
 TableRow.displayName = "TableRow";
 
 export const TableHeader = styled.thead`
-    background-color: var(--white, #f00);
-    padding-top: 11px;
-    padding-bottom: 11px;
+  background-color: var(--white, #f00);
+  padding-top: 11px;
+  padding-bottom: 11px;
 `;
 
 TableHeader.displayName = "TableHeader";
 
-export const TableHeaderCell = styled.th<TextAlignProps & WidthProps & PaddingProps>`
-    border-spacing: 0;
-    border: 0px;
-    ${textAlign};
-    ${width} ${minWidth} ${padding}
-`;
+export const TableHeaderCell = withStyledSystemCompatibility([], styled.th`
+  border-spacing: 0;
+  border: 0;
+`);
 
 TableHeaderCell.displayName = "TableHeaderCell";
 

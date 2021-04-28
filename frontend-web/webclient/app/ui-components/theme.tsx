@@ -51,108 +51,6 @@ const letterSpacings = {
     caps: "0.025em"
 };
 
-export const textStyles = {
-    display8: {
-        fontSize: fontSizes[8] + "px",
-        fontWeight: fontWeights.bold,
-        lineHeight: lineHeights.display
-    },
-    display7: {
-        fontSize: fontSizes[7] + "px",
-        fontWeight: fontWeights.bold,
-        lineHeight: lineHeights.display
-    },
-    display6: {
-        fontSize: fontSizes[6] + "px",
-        fontWeight: fontWeights.bold,
-        lineHeight: lineHeights.display
-    },
-    display5: {
-        fontSize: fontSizes[5] + "px",
-        fontWeight: fontWeights.bold,
-        lineHeight: lineHeights.display
-    },
-    display4: {
-        fontSize: fontSizes[4] + "px",
-        fontWeight: fontWeights.bold,
-        lineHeight: lineHeights.display
-    },
-    display3: {
-        fontSize: fontSizes[3] + "px",
-        fontWeight: fontWeights.bold,
-        lineHeight: lineHeights.display
-    },
-    display2: {
-        fontSize: fontSizes[2] + "px",
-        fontWeight: fontWeights.bold,
-        lineHeight: lineHeights.display
-    },
-    display1: {
-        fontSize: fontSizes[1] + "px",
-        fontWeight: fontWeights.bold,
-        lineHeight: lineHeights.display
-    },
-    display0: {
-        fontSize: fontSizes[0] + "px",
-        fontWeight: fontWeights.bold,
-        lineHeight: lineHeights.display,
-        letterSpacing: letterSpacings.caps,
-        textTransform: "uppercase"
-    },
-    body2: {
-        fontSize: fontSizes[2] + "px",
-        fontWeight: fontWeights.medium,
-        lineHeight: lineHeights.standard
-    },
-    body1: {
-        fontSize: fontSizes[1] + "px",
-        fontWeight: fontWeights.medium,
-        lineHeight: lineHeights.standard
-    },
-    body0: {
-        fontSize: fontSizes[0] + "px",
-        fontWeight: fontWeights.medium,
-        lineHeight: lineHeights.standard
-    }
-};
-
-
-/**
-* @deprecated
-*/
-// color palette
-const black = "#000";
-const white = "#fff";
-const textBlack = "#1e252e";
-//// Gray
-// const lightGray = "#ebeff3";
-const lightGray = "#f5f7f9";
-const midGray = "#c9d3df";
-const gray = "#8393A7";
-const darkGray = "#53657d";
-//// Blue
-const lightBlue = "#f0f6ff";
-const lightBlue2 = "#cdf";
-// const blue = "#0055d5";
-const blue = "#006aff";
-// const blue = "#007bff";
-const darkBlue = "#049";
-//// Green
-const lightGreen = "#00ff77";
-const green = "#00C05A"; // secondary
-const darkGreen = "#00823c";
-//// Red
-const lightRed = "#fcc";
-const red = "#c00"; // secondary
-const darkRed = "#800";
-//// Orange
-const orange = "#ff6400"; // secondary
-const darkOrange = "#ff5722";
-//// Purple
-const lightPurple = "#ecf";
-const purple = "#70b"; // secondary
-//// Yellow
-const yellow = "#ffed33";
 
 // Colors in the array come in 3 shades: light, medium , dark
 // last color is for logo centers only
@@ -173,212 +71,70 @@ const appColors = [
     ["#C9D3DF", "#8393A7", "#53657D"], // gray colors from the theme
 ];
 
+
 const chartColors = [
-    blue,
-    red,
-    green,
-    purple,
+    "#006aff",
+    "#c00",
+    "#00c05a",
+    "#70b",
     "#e98c33",
     "#9065d1",
-    yellow,
-    gray,
+    "#ffed33",
+    "#8393a7",
     "#0c95b7",
-    purple
+    "#70b"
 ];
 
-// Color Themes
-// should use colors from the palette above
-//// Light color theme
-// const text = "#001833";
-const text = textBlack;
-const textHighlight = blue;
-// const headerText = lightGray;
-const headerText = white;
-const headerBg = "#006aff";
-const headerIconColor = headerText;
-const headerIconColor2 = midGray;
-// const borderGray = "#d1d6db";
-const borderGray = midGray; // used for borders of cards, pagination, sidebar
-// const paginationHoverColor = "#f7f7f7"
-const paginationHoverColor = lightBlue;
-const paginationDisabled = lightGray;
-// Icons colors
-const iconColor = darkGray;
-const iconColor2 = gray;
-const FtIconColor = lightGray;
-const FtIconColor2 = midGray;
-const FtFolderColor = gray;
-const FtFolderColor2 = midGray;
-const spinnerColor = blue;
-// File table colors
-const tableRowHighlight = lightBlue;
-const appCard = "#ebeff3";
+export type ThemeColor =
+    "black" |
+    "white" |
+    "lightGray" |
+    "midGray" |
+    "gray" |
+    "darkGray" |
+    "blue" |
+    "lightBlue" |
+    "lightBlue2" |
+    "darkBlue" |
+    "green" |
+    "lightGreen" |
+    "darkGreen" |
+    "red" |
+    "lightRed" |
+    "darkRed" |
+    "orange" |
+    "darkOrange" |
+    "purple" |
+    "lightPurple" |
+    "text" |
+    "textHighlight" |
+    "headerText" |
+    "headerBg" |
+    "headerIconColor" |
+    "headerIconColor2" |
+    "borderGray" |
+    "paginationHoverColor" |
+    "paginationDisabled" |
+    "iconColor" |
+    "iconColor2" |
+    "FtIconColor" |
+    "FtIconColor2" |
+    "FtFolderColor" |
+    "FtFolderColor2" |
+    "spinnerColor" |
+    "tableRowHighlight" |
+    "wayfGreen" |
+    "appCard" |
+    "projectHighlight" |
+    "yellow";
 
 
-const colors = {
-    black,
-    white,
-    lightGray,
-    midGray,
-    gray,
-    darkGray,
-    blue,
-    lightBlue,
-    lightBlue2,
-    darkBlue,
-    green,
-    lightGreen,
-    darkGreen,
-    red,
-    lightRed,
-    darkRed,
-    orange,
-    darkOrange,
-    purple,
-    lightPurple,
-    text,
-    textHighlight,
-    headerText,
-    headerBg,
-    headerIconColor,
-    headerIconColor2,
-    borderGray,
-    paginationHoverColor,
-    paginationDisabled,
-    iconColor,
-    iconColor2,
-    FtIconColor,
-    FtIconColor2,
-    FtFolderColor,
-    FtFolderColor2,
-    spinnerColor,
-    tableRowHighlight,
-    wayfGreen: "#66b340",
-    appCard,
-    projectHighlight: "#dfffee",
-    yellow
-};
+export type CSSVarThemeColor = `var(--${ThemeColor})`;
 
-export const invertedColors = {
-    ...colors,
-    white: "#282c35",
-    /* blue: "#ff9500", */
-    tableRowHighlight: "#000",
-    black: "#a4a5a9",
-    text: "#e5e5e6",
-    lightGray: "#111",
-    lightBlue: "#000",
-    midGray: "#555",
-    paginationDisabled: "#111",
-    paginationHoverColor: "#444",
-    appCard: "#060707",
-    borderGray: "#111",
-    projectHighlight: "#00823c"
-};
+export function themeColor(color: ThemeColor): CSSVarThemeColor {
+    return `var(--${color})` as CSSVarThemeColor;
+}
 
-export type ThemeColor = keyof typeof colors;
-export type CSSVarThemeColor = `--${ThemeColor}`;
-
-export {colors};
-
-export const colorStyles = {
-    whiteOnText: {
-        color: colors.white,
-        backgroundColor: colors.text
-    },
-    whiteOnGray: {
-        color: colors.white,
-        backgroundColor: colors.gray
-    },
-    textOnLightGray: {
-        color: colors.text,
-        backgroundColor: colors.lightGray
-    },
-    whiteOnBlue: {
-        color: colors.white,
-        backgroundColor: colors.blue
-    },
-    blueOnLightBlue: {
-        color: colors.blue,
-        backgroundColor: colors.lightBlue
-    },
-    whiteOnGreen: {
-        color: colors.white,
-        backgroundColor: colors.green
-    },
-    greenOnLightGreen: {
-        color: colors.green,
-        backgroundColor: colors.lightGreen
-    },
-    whiteOnRed: {
-        color: colors.white,
-        backgroundColor: colors.red
-    },
-    redOnLightRed: {
-        color: colors.red,
-        backgroundColor: colors.lightRed
-    },
-    textOnOrange: {
-        color: colors.text,
-        backgroundColor: colors.orange
-    },
-    whiteOnPurple: {
-        color: colors.white,
-        backgroundColor: colors.purple
-    },
-    purpleOnLightPurple: {
-        color: colors.purple,
-        backgroundColor: colors.lightPurple
-    },
-    textOnWhite: {
-        color: colors.text,
-        backgroundColor: colors.white
-    },
-    grayOnWhite: {
-        color: colors.gray,
-        backgroundColor: colors.white
-    },
-    blueOnWhite: {
-        color: colors.blue,
-        backgroundColor: colors.white
-    },
-    greenOnWhite: {
-        color: colors.green,
-        backgroundColor: colors.white
-    },
-    redOnWhite: {
-        color: colors.red,
-        backgroundColor: colors.white
-    },
-    purpleOnWhite: {
-        color: colors.purple,
-        backgroundColor: colors.white
-    },
-    whiteOnDarkOrange: {
-        color: colors.white,
-        backgroundColor: colors.darkOrange
-    },
-    // info: textOnLightGray
-    info: {
-        color: colors.text,
-        backgroundColor: colors.lightGray
-    },
-    // success: whiteOnGreen
-    success: {
-        color: colors.white,
-        backgroundColor: colors.green
-    },
-    // warning: textOnOrange
-    warning: {
-        color: colors.text,
-        backgroundColor: colors.orange
-    },
-    // danger: whiteOnRed
-    danger: {
-        color: colors.white,
-        backgroundColor: colors.red
-    }
-};
 
 // styled-system's `borderRadius` function can hook into the `radii` object/array
 export const radii = [0, 2, 6];
@@ -403,6 +159,7 @@ export const maxContainerWidth = "1280px";
 //   `0 19px 38px rgba(0,0,0,0.30), 0 15px 12px rgba(0,0,0,0.22)`
 // ]
 // from Material design: 1dp to 24dp elevations
+export const shadowsSmall = "0px  3px  3px -2px rgba(0,0,0,0.2), 0px  3px  4px 0px rgba(0,0,0,.14),0px 1px  8px 0px rgba(0,0,0,.12)";
 const MDshadows = [
     `noshadow`,
     `0px  2px  1px -1px rgba(0,0,0,0.2), 0px  1px  1px 0px rgba(0,0,0,.14),0px 1px  3px 0px rgba(0,0,0,.12)`,
@@ -491,12 +248,9 @@ const theme = {
     lineHeights,
     letterSpacings,
     regular,
-    bold,
-    textStyles,
-    colors,
-    colorStyles,
-    appColors,
     chartColors,
+    bold,
+    appColors,
     radii,
     radius,
     shadows: shadows as string[] & {sm: string; md: string; lg: string; xl: string; xxl: string;},

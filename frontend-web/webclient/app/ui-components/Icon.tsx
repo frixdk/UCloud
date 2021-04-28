@@ -1,13 +1,13 @@
 import * as CSS from "csstype";
 import * as React from "react";
-import styled from "styled-components";
-import {color, ResponsiveValue, space, SpaceProps, style} from "styled-system";
 import Bug from "./Bug";
 import * as icons from "./icons";
-import theme, {Theme} from "./theme";
-import {Cursor} from "./Types";
+import theme, {ThemeColor} from "./theme";
+import {styled} from "@linaria/react";
+import {getCssVar} from "ui-components/Utils";
+import {withStyledSystemCompatibility} from "ui-components/Compatibility";
 
-const IconBase = ({name, size, squared, theme, color2, spin, hoverColor, ...props}: IconBaseProps): JSX.Element => {
+const IconBase = ({name, size, squared, color2, spin, hoverColor, ...props}: IconBaseProps): JSX.Element => {
     let Component = icons[name];
     if (!Component) {
         if (name === "bug") {
@@ -20,58 +20,52 @@ const IconBase = ({name, size, squared, theme, color2, spin, hoverColor, ...prop
     return (
         <Component
             width={size}
-            height={squared ? size : undefined }
-            color2={color2 ? theme.colors[color2] : undefined}
+            height={squared ? size : undefined}
+            color2={color2 ? color2 : undefined}
             {...props}
         />
     );
 };
 
-const hoverColor = style({
-    prop: "hoverColor",
-    cssProperty: "color",
-    key: "colors",
-});
-
-export interface IconBaseProps extends SpaceProps, React.SVGAttributes<HTMLDivElement> {
+export interface IconBaseProps extends React.SVGAttributes<HTMLDivElement> {
     name: IconName | "bug";
     color?: string;
     color2?: string;
     rotation?: number;
-    theme: Theme;
-    cursor?: Cursor;
+    cursor?: CSS.Property.Cursor;
     size?: string | number;
     squared?: boolean;
     spin?: boolean;
-    hoverColor?: ResponsiveValue<CSS.Property.Color>;
+    hoverColor?: CSS.Property.Color;
     title?: string;
 }
 
-const spin = (props: {spin?: boolean}): string | null => props.spin ? `
-  animation: spin 1s linear infinite;
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-` : null;
+const Icon = withStyledSystemCompatibility(
+    ["name", "color", "color2", "rotation", "cursor", "size", "squared", "spin", "hoverColor", "title"],
+    styled(IconBase) <IconBaseProps>`
+      flex: none;
+      vertical-align: middle;
+      cursor: ${props => props.cursor ?? "auto"};
+      transform: rotate(${props => props.rotation ?? 0} deg);
+      animation: ${p => p.spin ? "spin 1s linear infinite" : "none"};
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
 
-const Icon = styled(IconBase) <IconBaseProps>`
-  flex: none;
-  vertical-align: middle;
-  cursor: ${props => props.cursor};
-  ${props => props.rotation ? `transform: rotate(${props.rotation}deg);` : ""}
-  ${space} ${color};
-  ${spin};
-
-  &:hover {
-    ${hoverColor};
-  }
-`;
+      &:hover {
+        color: ${p => p.hoverColor ?? "unset"};
+      }
+    `
+);
 
 Icon.displayName = "Icon";
 
 Icon.defaultProps = {
-    theme,
     cursor: "inherit",
     name: "notification",
     size: 24,
@@ -82,7 +76,7 @@ Icon.defaultProps = {
 export const EveryIcon = (): JSX.Element => (
     <>
         {Object.keys(icons).map((it: IconName, i: number) =>
-            (<span key={i}><span>{it}</span>: <Icon name={it} key={i} /></span>)
+            (<span key={i}><span>{it}</span>: <Icon name={it} key={i}/></span>)
         )}
     </>
 );

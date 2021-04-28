@@ -17,12 +17,11 @@ import {accounting, auth, BulkResponse, PageV2, provider} from "UCloud";
 import {bulkRequestOf, emptyPageV2} from "DefaultObjects";
 import {ListV2} from "Pagination";
 import {NoResultsCardBody} from "Dashboard/Dashboard";
-import Product = accounting.Product;
+type Product = accounting.Product;
 import Warning from "ui-components/Warning";
-import Provider = provider.Provider;
-import AccessToken = auth.AccessToken;
+type Provider = provider.Provider;
+type AccessToken = auth.AccessToken;
 import {snackbarStore} from "Snackbar/SnackbarStore";
-import ProductNS = accounting.ProductNS;
 import {ListRow, ListRowStat, ListStatContainer} from "ui-components/List";
 import {creditFormatter} from "Project/ProjectUsage";
 import {useProjectId} from "Project";
@@ -288,7 +287,7 @@ const ProductCreationForm: React.FunctionComponent<{ provider: Provider, onCompl
                     category: {id: category, provider: props.provider.id},
                     hiddenInGrantApplications: false,
                     priority: 1,
-                } as ProductNS.Storage;
+                } as accounting.ProductNS.Storage;
                  */
                 break;
             case "compute":
@@ -303,7 +302,7 @@ const ProductCreationForm: React.FunctionComponent<{ provider: Provider, onCompl
                     cpu: actualCpu,
                     memoryInGigs: actualMemoryInGigs,
                     gpu: actualGpu
-                } as ProductNS.Compute;
+                } as accounting.ProductNS.Compute;
                 break;
         }
 

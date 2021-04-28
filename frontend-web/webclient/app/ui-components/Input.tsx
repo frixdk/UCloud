@@ -1,13 +1,10 @@
-import styled, {css} from "styled-components";
-import {
-    BorderProps, borderRadius, BorderRadiusProps,
-    fontSize, FontSizeProps, space, SpaceProps,
-    width, WidthProps
-} from "styled-system";
 import Text from "./Text";
-import theme from "./theme";
+import {styled} from "@linaria/react";
+import {css} from "@linaria/core";
+import theme, {CSSVarThemeColor} from "ui-components/theme";
+import {withStyledSystemCompatibility} from "ui-components/Compatibility";
 
-export const borders = ({color, theme, noBorder}: {color?: string, theme?: any, noBorder?: boolean}) => {
+export const borders = ({color, theme, noBorder}: any): any => {
     if (noBorder) return {"border-width": "0px"};
     const borderColor = color ? theme.colors[color] : theme.colors.borderGray;
     const focusColor = color ? borderColor : theme.colors.blue;
@@ -22,64 +19,64 @@ export const borders = ({color, theme, noBorder}: {color?: string, theme?: any, 
     };
 };
 
-export interface InputProps extends BorderProps, SpaceProps, BorderRadiusProps, FontSizeProps, WidthProps {
+interface InputProps {
     leftLabel?: boolean;
     rightLabel?: boolean;
-    id?: string;
-    color?: string;
     noBorder?: boolean;
     error?: boolean;
-    autocomplete?: "on" | "off";
 }
 
-const left = ({leftLabel}: {leftLabel?: boolean}): string =>
-    leftLabel ? `border-top-left-radius: 0; border-bottom-left-radius: 0;` : "";
-const right = ({rightLabel}: {rightLabel?: boolean}): string =>
-    rightLabel ? `border-top-right-radius: 0; border-bottom-right-radius: 0;` : "";
+export const InputStyle = css`
+  display: block;
+  font-family: inherit;
+  color: var(--black, #f00);
+  background-color: transparent;
+  border-width: ${theme.borderWidth};
+  border-color: var(--borderGray);
+  border-style: solid;
+  border-radius: ${theme.radius};
+  padding: 7px 12px;
+  width: 100%;
 
-const Input = styled.input<InputProps>`
-    display: block;
-    font-family: inherit;
-    ${fontSize}
-    color: var(--black, #f00);
+  margin: 0;
+
+  &:invalid {
+    border-color: var(--red, #f00);
+  }
+
+  ::placeholder {
+    color: var(--gray, #f00);
+  }
+
+  &:focus {
+    outline: none;
     background-color: transparent;
+  }
 
-    margin: 0;
+  &:disabled {
+    background-color: var(--lightGray, #f00);
+  }
 
-    ${borders} 
-    &:invalid {
-        border-color: var(--red, #f00);
-    }
-    ${p => p.error ? "border-color: var(--red, #f00);" : null}
-
-    ::placeholder {
-        color: var(--gray, #f00);
-    }
-
-    &:focus {
-        outline: none;
-        background-color: transparent;
-    }
-
-    &:disabled {
-        background-color: var(--lightGray, #f00);
-    }
-
-    ${space} ${borderRadius}
-    ${left} ${width} ${right}
 `;
+
+const Input = withStyledSystemCompatibility(
+    ["leftLabel", "rightLabel", "noBorder", "error"],
+    styled.input<InputProps>`
+      border-top-left-radius: ${p => p.leftLabel ? "0" : theme.radius};
+      border-bottom-left-radius: ${p => p.leftLabel ? "0" : theme.radius};
+      border-top-right-radius: ${p => p.rightLabel ? "0" : theme.radius};
+      border-bottom-right-radius: ${p => p.rightLabel ? "0" : theme.radius};
+      border-width: ${p => p.noBorder ? "0" : theme.borderWidth};
+      border-color: ${p => p.error ? "var(--red)" : "inherit"};
+    `,
+    InputStyle
+);
 
 Input.displayName = "Input";
 
 Input.defaultProps = {
     id: "default",
-    width: "100%",
     noBorder: false,
-    borderRadius: "5px",
-    pt: "7px",
-    pb: "7px",
-    pl: "12px",
-    pr: "12px",
 };
 
 export const HiddenInputField = styled(Input)`
@@ -88,26 +85,20 @@ export const HiddenInputField = styled(Input)`
 
 export default Input;
 
-const rightLabel = ({rightLabel}: {rightLabel?: boolean}) => rightLabel ?
-    css`border-top-right-radius: 5px; border-bottom-right-radius: 5px; border-left: 0px; margin-left: 0;` : null;
-const leftLabel = ({leftLabel}: {leftLabel?: boolean}) => leftLabel ?
-    css`border-top-left-radius: 5px; border-bottom-left-radius: 5px; border-right: 0px; margin-right: 0;` : null;
-const independent = ({independent}: {independent?: boolean}) => independent ?
-    css`border-radius: 5px; height: 42px;` : null;
-
-
-export interface InputLabelProps extends WidthProps {
-  leftLabel?: boolean;
-  rightLabel?: boolean;
-  independent?: boolean;
+export interface InputLabelProps {
+    leftLabel?: boolean;
+    rightLabel?: boolean;
+    independent?: boolean;
 }
 
 export const InputLabel = styled(Text) <InputLabelProps>`
-  border: ${({theme}) => theme.colors.borderGray} solid ${theme.borderWidth};
-  ${independent}
-  ${leftLabel}
-  ${rightLabel}
-  ${width}
+  // border: {theme.colors.borderGray} solid {theme.borderWidth};
+  /*
+  {independent}
+  {leftLabel}
+  {rightLabel}
+  {width}
+   */
   padding-left: 1em;
   padding-right: 1em;
   padding-top: 6px;

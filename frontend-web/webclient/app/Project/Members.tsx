@@ -13,7 +13,6 @@ import {
     membershipSearch,
     verifyMembership
 } from "Project";
-import styled from "styled-components";
 import GroupView from "./GroupList";
 import ProjectMembers from "./MembersPanel";
 import {dispatchSetProjectAction} from "Project/Redux";
@@ -21,6 +20,7 @@ import {ProjectSettings} from "Project/ProjectSettings";
 import {ProjectBreadcrumbs} from "Project/Breadcrumbs";
 import {useTitle} from "Navigation/Redux/StatusActions";
 import {useSidebarPage, SidebarPages} from "ui-components/Sidebar";
+import {styled} from "@linaria/react";
 
 const Members: React.FunctionComponent<MembersOperations> = props => {
     const {
@@ -80,7 +80,7 @@ const Members: React.FunctionComponent<MembersOperations> = props => {
             main={(
                 <>
                     {!shouldVerify ? null : (
-                        <Box borderRadius="6px" backgroundColor="orange" color="white" p={32} m={16}>
+                        <Box borderRadius="6px" background="orange" color="white" p={32} m={16}>
                             <Heading.h4>Time for a review!</Heading.h4>
 
                             <ul>

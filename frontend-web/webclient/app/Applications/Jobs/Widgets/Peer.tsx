@@ -2,17 +2,15 @@ import * as React from "react";
 import * as UCloud from "UCloud";
 import {widgetId, WidgetProps, WidgetSetter, WidgetValidator} from "./index";
 import {compute} from "UCloud";
-import ApplicationParameterNS = compute.ApplicationParameterNS;
 import Flex from "ui-components/Flex";
 import {useState} from "react";
 import Box from "ui-components/Box";
-import styled from "styled-components";
 import Input from "ui-components/Input";
 import Label from "ui-components/Label";
-import AppParameterValueNS = compute.AppParameterValueNS;
 import {ControlledJobSelector} from "../JobSelector";
 import {emptyPage} from "DefaultObjects";
 import {useCloudAPI} from "Authentication/DataHook";
+import {styled} from "@linaria/react";
 
 interface PeerProps extends WidgetProps {
     parameter: UCloud.compute.ApplicationParameterNS.Peer;
@@ -70,21 +68,21 @@ export const PeerSetter: WidgetSetter = (param, value) => {
     const job = findElementJob(param);
     if (name === null || job === null) throw "Missing element for: " + param;
 
-    const peerValue = value as AppParameterValueNS.Peer;
+    const peerValue = value as UCloud.compute.AppParameterValueNS.Peer;
     name.value = peerValue.hostname;
     job.value = peerValue.jobId;
 };
 
-function findElementName(param: ApplicationParameterNS.Peer): HTMLInputElement | null {
+function findElementName(param: compute.ApplicationParameterNS.Peer): HTMLInputElement | null {
     return document.getElementById(widgetId(param) + "name") as HTMLInputElement | null;
 }
 
-function findElementJob(param: ApplicationParameterNS.Peer): HTMLInputElement | null {
+function findElementJob(param: compute.ApplicationParameterNS.Peer): HTMLInputElement | null {
     return document.getElementById(widgetId(param) + "job") as HTMLInputElement | null;
 }
 
 interface JobSelectorProps {
-    parameter: ApplicationParameterNS.Peer;
+    parameter: compute.ApplicationParameterNS.Peer;
     suggestedApplication?: string;
     error: boolean;
 }

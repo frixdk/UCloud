@@ -31,7 +31,7 @@ import {snackbarStore} from "Snackbar/SnackbarStore";
 import {Client} from "Authentication/HttpClientInstance";
 import {stopPropagation} from "UtilityFunctions";
 import ClickableDropdown from "ui-components/ClickableDropdown";
-import {ThemeColor} from "ui-components/theme";
+import {themeColor, ThemeColor} from "ui-components/theme";
 import {useEffect, useState} from "react";
 import * as Heading from "ui-components/Heading";
 import {SidebarPages} from "ui-components/Sidebar";
@@ -214,7 +214,7 @@ const _List: React.FunctionComponent<DispatchProps & {project?: string}> = props
                                                         </>}
                                                         right={<Flex alignItems="center">
                                                             <Button
-                                                                color="green"
+                                                                color={themeColor("green")}
                                                                 height="42px"
                                                                 mr={8}
                                                                 onClick={async () => {
@@ -227,7 +227,7 @@ const _List: React.FunctionComponent<DispatchProps & {project?: string}> = props
                                                                 Accept
                                                             </Button>
                                                             <Button
-                                                                color="red"
+                                                                color={themeColor("red")}
                                                                 height="42px"
                                                                 onClick={async () => {
                                                                     await runCommand(
@@ -405,7 +405,7 @@ const _List: React.FunctionComponent<DispatchProps & {project?: string}> = props
 
                             <Toggle
                                 scale={1.5}
-                                activeColor="--green"
+                                activeColor={themeColor("green")}
                                 checked={isActive}
                                 onChange={() => {
                                     if (isActive) return;

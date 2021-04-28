@@ -3,9 +3,7 @@ import * as UCloud from "UCloud";
 import {widgetId, WidgetProps, WidgetSetter, WidgetValidator} from "./index";
 import {Select} from "ui-components";
 import {compute} from "UCloud";
-import ApplicationParameterNS = compute.ApplicationParameterNS;
 import Flex from "ui-components/Flex";
-import AppParameterValueNS = compute.AppParameterValueNS;
 
 interface BoolProps extends WidgetProps {
     parameter: UCloud.compute.ApplicationParameterNS.Bool;
@@ -42,10 +40,10 @@ export const BoolSetter: WidgetSetter = (param, value) => {
 
     const selector = findElement(param);
     if (!selector) throw "Missing element for: " + param.name;
-    selector.value = (value as AppParameterValueNS.Bool).value ? "true" : "false";
+    selector.value = (value as UCloud.compute.AppParameterValueNS.Bool).value ? "true" : "false";
 };
 
-function findElement(param: ApplicationParameterNS.Bool): HTMLSelectElement | null {
+function findElement(param: compute.ApplicationParameterNS.Bool): HTMLSelectElement | null {
     return document.getElementById(widgetId(param)) as HTMLSelectElement | null;
 }
 

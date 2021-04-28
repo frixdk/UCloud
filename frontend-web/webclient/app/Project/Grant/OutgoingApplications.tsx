@@ -14,7 +14,7 @@ import {Box, Button, Flex, Label, Link} from "ui-components";
 import {Center} from "UtilityComponents";
 import {TextP} from "ui-components/Text";
 import ClickableDropdown from "ui-components/ClickableDropdown";
-import styled from "styled-components";
+import {styled} from "@linaria/react";
 
 export const FilterTrigger = styled.div`
     user-select: none;

@@ -16,10 +16,10 @@ import {callAPI, useCloudAPI} from "Authentication/DataHook";
 import {emptyPage} from "DefaultObjects";
 import {errorMessageOrDefault} from "UtilityFunctions";
 import {compute} from "UCloud";
-import JobSpecification = compute.JobSpecification;
-import AppParameterValue = compute.AppParameterValue;
-import styled from "styled-components";
+type JobSpecification = compute.JobSpecification;
 import {TextP} from "ui-components/Text";
+import {styled} from "@linaria/react";
+import {themeColor} from "ui-components/theme";
 
 export const ImportParameters: React.FunctionComponent<{
     application: UCloud.compute.Application;
@@ -188,7 +188,7 @@ export const ImportParameters: React.FunctionComponent<{
                     </Button>
                 </div>
                 <Flex mt="20px">
-                    <Button onClick={onImportDialogClose} color="red" mr="5px">Cancel</Button>
+                    <Button onClick={onImportDialogClose} color={themeColor("red")} mr="5px">Cancel</Button>
                 </Flex>
             </div>
         </ReactModal>
@@ -225,7 +225,7 @@ async function importVersion1(application: UCloud.compute.Application, json: any
         });
     }
 
-    const userInputValues: Record<string, AppParameterValue> = {};
+    const userInputValues: Record<string, compute.AppParameterValue> = {};
     output.parameters = userInputValues;
     for (const param of application.invocation.parameters) {
         const valueFromFile = parameters[param.name];
@@ -274,7 +274,7 @@ async function importVersion1(application: UCloud.compute.Application, json: any
         }
     }
 
-    const resources: AppParameterValue[] = [];
+    const resources: compute.AppParameterValue[] = [];
     output.resources = resources;
     for (const mountedFolder of mountedFolders) {
         const path = mountedFolder["ref"]?.toString();
@@ -482,7 +482,7 @@ async function cleanupImportResult(
 const MessageBox = styled.ul`
     list-style-type: none;
     padding-left: 0;
-    ${Icon} {
+    svg {
         margin-right: 10px;
     }
 `;

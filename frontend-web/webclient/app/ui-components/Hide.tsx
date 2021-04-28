@@ -1,6 +1,5 @@
-import styled from "styled-components";
-import Box, {BoxProps} from "./Box";
 import theme, {Theme} from "./theme";
+import {styled} from "@linaria/react";
 
 const getMaxWidth = (px: string): string => (parseInt(px, 10) - 1) + "px";
 
@@ -52,7 +51,7 @@ export function deviceBreakpoint(props: {
   return builder;
 }
 
-export const hidden = (key: Sizes) => (props: any) =>
+export const hidden = (key: Sizes) => (props: any): any =>
   props[key]
     ? {
       [breakpoints(props)[key]]: {
@@ -61,7 +60,7 @@ export const hidden = (key: Sizes) => (props: any) =>
     }
     : null;
 
-export interface HideProps extends BoxProps {
+export interface HideProps {
   xs?: boolean;
   sm?: boolean;
   md?: boolean;
@@ -70,7 +69,8 @@ export interface HideProps extends BoxProps {
   xxl?: boolean;
 }
 
-const Hide = styled(Box) <HideProps>`
+const Hide = styled.div<HideProps>``;
+/*
   ${hidden("xs")}
   ${hidden("sm")}
   ${hidden("md")}
@@ -78,6 +78,7 @@ const Hide = styled(Box) <HideProps>`
   ${hidden("xl")}
   ${hidden("xxl")}
 `;
+ */
 
 Hide.displayName = "Hide";
 

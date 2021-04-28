@@ -23,15 +23,15 @@ import {
 } from "Accounting";
 import {useProjectManagementStatus} from "Project";
 import {ProjectBreadcrumbs} from "Project/Breadcrumbs";
-import styled from "styled-components";
 import {ThemeColor} from "ui-components/theme";
 import ClickableDropdown from "ui-components/ClickableDropdown";
 import {Client} from "Authentication/HttpClientInstance";
-import {getCssVar} from "Utilities/StyledComponentsUtilities";
 import {useTitle} from "Navigation/Redux/StatusActions";
 import {useSidebarPage, SidebarPages} from "ui-components/Sidebar";
 import {Dropdown} from "ui-components/Dropdown";
 import {capitalized} from "UtilityFunctions";
+import {styled} from "@linaria/react";
+import {getCssVar} from "ui-components/Utils";
 
 function dateFormatter(timestamp: number): string {
     const date = new Date(timestamp);
@@ -373,7 +373,7 @@ const VisualizationForArea: React.FunctionComponent<{
                                                 width={20}
                                                 height={20}
                                                 mr={"8px"}
-                                                backgroundColor={theme.chartColors[idx % theme.chartColors.length]}
+                                                background={theme.chartColors[idx % theme.chartColors.length]}
                                             />
                                             {line}
                                         </Flex>
@@ -403,7 +403,7 @@ const VisualizationForArea: React.FunctionComponent<{
                                         <TableRow key={p.projectTitle}>
                                             <TableCell>
                                                 <Box width={20} height={20}
-                                                    backgroundColor={idx > 3 ? theme.chartColors[4] : theme.chartColors[idx % theme.chartColors.length]} />
+                                                    background={idx > 3 ? theme.chartColors[4] : theme.chartColors[idx % theme.chartColors.length]} />
                                             </TableCell>
                                             <TableCell>
                                                 {p.projectTitle}
@@ -420,7 +420,7 @@ const VisualizationForArea: React.FunctionComponent<{
                                             result.push(<TableRow key={category.product}>
                                                 <TableCell>
                                                     <Box ml="20px" pl="6px" width={20} height={20}
-                                                        backgroundColor={idx > 3 ? theme.chartColors[4] : theme.chartColors[idx % theme.chartColors.length]} />
+                                                        background={idx > 3 ? theme.chartColors[4] : theme.chartColors[idx % theme.chartColors.length]} />
                                                 </TableCell>
                                                 <TableCell><Text pl="20px">{category.product}</Text></TableCell>
                                                 <TableCell textAlign="right">

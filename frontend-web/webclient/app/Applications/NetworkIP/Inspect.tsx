@@ -3,16 +3,16 @@ import {Box, Button, Icon, Input, Select} from "ui-components";
 import * as Heading from "ui-components/Heading";
 import {blankOrUndefined, prettierString, shortUUID} from "UtilityFunctions";
 import {compute} from "UCloud";
-import NetworkIP = compute.NetworkIP;
+type NetworkIP = compute.NetworkIP;
 import {useCloudCommand} from "Authentication/DataHook";
 import {useCallback, useRef, useState} from "react";
 import * as UCloud from "UCloud";
 import {ShakingBox} from "UtilityComponents";
 import {entityName} from ".";
-import networkApi = UCloud.compute.networkips;
 import Table, {TableCell, TableHeader, TableHeaderCell, TableRow} from "ui-components/Table";
 import {snackbarStore} from "Snackbar/SnackbarStore";
 import {ResourcePage} from "ui-components/ResourcePage";
+import {themeColor} from "ui-components/theme";
 
 const Inspect: React.FunctionComponent<{
     inspecting: NetworkIP,
@@ -50,7 +50,7 @@ const Inspect: React.FunctionComponent<{
             return;
         }
 
-        await invokeCommand(networkApi.updateFirewall({
+        await invokeCommand(UCloud.compute.networkips.updateFirewall({
             type: "bulk",
             items: [{
                 id: inspecting.id,
@@ -73,7 +73,7 @@ const Inspect: React.FunctionComponent<{
     const onRemoveRow = useCallback(async (idx: number) => {
         const ports = [...(inspecting.specification.firewall?.openPorts ?? [])];
         ports.splice(idx, 1);
-        await invokeCommand(networkApi.updateFirewall({
+        await invokeCommand(UCloud.compute.networkips.updateFirewall({
             type: "bulk",
             items: [{id: inspecting.id, firewall: {openPorts: ports}}]
         }));
@@ -87,7 +87,7 @@ const Inspect: React.FunctionComponent<{
         entity={inspecting}
         aclOptions={[{icon: "search", name: "USE", title: "Use"}]}
         reload={reload}
-        updateAclEndpoint={networkApi.updateAcl}
+        updateAclEndpoint={UCloud.compute.networkips.updateAcl}
         stats={[
             {title: "IP Address", render: t => t.status.ipAddress ?? "No address assigned"}
         ]}
@@ -127,7 +127,7 @@ const Inspect: React.FunctionComponent<{
                                 <TableCell>{row.end}</TableCell>
                                 <TableCell>{row.protocol}</TableCell>
                                 <TableCell>
-                                    <Button type={"button"} color={"red"} fullWidth
+                                    <Button type={"button"} color={themeColor("red")} fullWidth
                                             onClick={() => onRemoveRow(idx)}>Remove</Button>
                                 </TableCell>
                             </TableRow>

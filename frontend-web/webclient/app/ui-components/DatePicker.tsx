@@ -1,9 +1,8 @@
 import ReactDatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import styled from "styled-components";
-import {borders, fontSize, space} from "styled-system";
 import theme from "ui-components/theme";
 import {InputProps} from "./Input";
+import {styled} from "@linaria/react";
 
 export const DatePicker = styled(ReactDatePicker) <InputProps>`
     appearance: none;
@@ -11,9 +10,9 @@ export const DatePicker = styled(ReactDatePicker) <InputProps>`
     width: 100%;
     font-family: inherit;
     color: inherit;
-    font-size: ${theme.fontSizes[1]}px;
+    // font-size: {theme.fontSizes[1]}px;
     background-color: transparent;
-    border-radius: ${theme.radius};
+    // border-radius: {theme.radius};
     border-width: 0px;
     border-style: solid;
     border-color: var(--borderGray, #f00);
@@ -33,8 +32,7 @@ export const DatePicker = styled(ReactDatePicker) <InputProps>`
       display: none;
     }
 
-    ${borders} ${space} ${fontSize};
-
 `;
+// ${borders} ${space} ${fontSize};
 
 DatePicker.displayName = "DatePicker";

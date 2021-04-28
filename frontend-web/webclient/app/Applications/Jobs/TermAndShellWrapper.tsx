@@ -1,11 +1,11 @@
-import styled from "styled-components";
+import {styled} from "@linaria/react";
 
 export const TermAndShellWrapper = styled.div<{addPadding: boolean}>`
   display: flex;
   height: 100vh;
   width: 100vw;
   flex-direction: column;
-  ${p => p.addPadding ? "padding: 16px;" : null}
+  padding: ${p => p.addPadding ? "16px" : "0"};
 
   &.light {
     background: #ffffff;

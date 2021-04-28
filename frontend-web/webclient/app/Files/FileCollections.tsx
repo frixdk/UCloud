@@ -8,18 +8,18 @@ import {ListRow, ListRowStat, ListStatContainer} from "ui-components/List";
 import {creditFormatter} from "Project/ProjectUsage";
 import {Operation, Operations} from "ui-components/Operation";
 import MainContainer from "MainContainer/MainContainer";
-import FileCollection = file.orchestrator.FileCollection;
+type FileCollection = file.orchestrator.FileCollection;
 import {CommonFileProps} from "Files/FileBrowser";
-import collectionsApi = file.orchestrator.collections;
-import FileCollectionsProviderRetrieveManifestResponse = file.orchestrator.FileCollectionsProviderRetrieveManifestResponse;
-import ProductReference = accounting.ProductReference;
-import FSSupport = file.orchestrator.FSSupport;
+type FileCollectionsProviderRetrieveManifestResponse = file.orchestrator.FileCollectionsProviderRetrieveManifestResponse;
+type ProductReference = accounting.ProductReference;
+type FSSupport = file.orchestrator.FSSupport;
 import * as Heading from "ui-components/Heading";
 import {dialogStore} from "Dialog/DialogStore";
 import {doNothing} from "UtilityFunctions";
 import {bulkRequestOf} from "DefaultObjects";
 import {NamingField} from "UtilityComponents";
 import {buildQueryString} from "Utilities/URIUtilities";
+import {themeColor} from "ui-components/theme";
 
 export const entityName = "Drive";
 
@@ -76,7 +76,7 @@ export const FileCollections: React.FunctionComponent<CommonFileProps & {
         const value = renameRef.current?.value;
         if (!value || value.length === 0) return;
 
-        await props.invokeCommand(collectionsApi.rename(bulkRequestOf(
+        await props.invokeCommand(file.orchestrator.collections.rename(bulkRequestOf(
             {
                 provider: renaming.specification.product.provider,
                 id: renaming.id,
@@ -95,7 +95,7 @@ export const FileCollections: React.FunctionComponent<CommonFileProps & {
     }), [reload, manifest, startRenaming, props]);
 
     useEffect(() => {
-        fetchManifest(collectionsApi.retrieveManifest({provider: props.provider}));
+        fetchManifest(file.orchestrator.collections.retrieveManifest({provider: props.provider}));
     }, [props.provider]);
 
     const main = <>
@@ -235,7 +235,7 @@ const collectionOperations: Operation<CollectionWithSupport, CollectionsCallback
                 if (!product && options.length > 0) product = options[0].product;
                 if (!product) return;
 
-                await cb.invokeCommand(collectionsApi.create(bulkRequestOf({
+                await cb.invokeCommand(file.orchestrator.collections.create(bulkRequestOf({
                     title: name,
                     product
                 })));
@@ -273,8 +273,8 @@ const collectionOperations: Operation<CollectionWithSupport, CollectionsCallback
                         </form>
                     </div>
                     <Flex mt="20px">
-                        <Button onClick={dialogStore.failure} color={"red"} mr="5px">Cancel</Button>
-                        <Button onClick={onCreate} color={"green"}>
+                        <Button onClick={dialogStore.failure} color={themeColor("red")} mr="5px">Cancel</Button>
+                        <Button onClick={onCreate} color={themeColor("green")}>
                             Create {entityName.toLowerCase()}
                         </Button>
                     </Flex>
@@ -299,7 +299,7 @@ const collectionOperations: Operation<CollectionWithSupport, CollectionsCallback
         primary: false,
         onClick: async (selected, cb) => {
             await cb.invokeCommand(
-                collectionsApi.remove(bulkRequestOf(...selected.map(it => ({
+                file.orchestrator.collections.remove(bulkRequestOf(...selected.map(it => ({
                     id: it.collection.id,
                     provider: it.collection.specification.product.provider
                 }))))

@@ -8,17 +8,16 @@ import * as ReactModal from "react-modal";
 import {connect} from "react-redux";
 import {Dispatch} from "redux";
 import {snackbarStore} from "Snackbar/SnackbarStore";
-import styled from "styled-components";
 import {Icon} from "ui-components";
 import Box from "ui-components/Box";
 import ClickableDropdown from "ui-components/ClickableDropdown";
 import Flex from "ui-components/Flex";
 import IndeterminateProgressBar from "ui-components/IndeterminateProgress";
 import ProgressBar from "ui-components/Progress";
-import {sizeToHumanReadableWithUnit} from "Utilities/FileUtilities";
 import {defaultModalStyle} from "Utilities/ModalUtilities";
 import {buildQueryString} from "Utilities/URIUtilities";
 import {errorMessageOrDefault} from "UtilityFunctions";
+import {styled} from "@linaria/react";
 
 interface BackgroundTaskProps {
     tasks?: Record<string, TaskUpdate>;

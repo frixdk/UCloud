@@ -3,12 +3,12 @@ import {MainContainer} from "MainContainer/MainContainer";
 import {useTitle} from "Navigation/Redux/StatusActions";
 import {Text, Button, Flex, Icon, Link} from "ui-components";
 import {SidebarPages, useSidebarPage} from "ui-components/Sidebar";
-import styled from "styled-components";
 import {DashboardCard} from "Dashboard/Dashboard";
 import {Center} from "UtilityComponents";
 import {IconName} from "ui-components/Icon";
 import {ThemeColor} from "ui-components/theme";
 import {useProjectManagementStatus} from "Project";
+import {styled} from "@linaria/react";
 
 const LandingPageContainer = styled.div`
     display: grid;

@@ -3,7 +3,7 @@ import * as UCloud from "UCloud";
 import {widgetId, WidgetProps, WidgetSetter, WidgetValidator} from "./index";
 import {Input} from "ui-components";
 import {compute} from "UCloud";
-import ApplicationParameter = compute.ApplicationParameter;
+type ApplicationParameter = compute.ApplicationParameter;
 
 type GenericTextType =
     UCloud.compute.ApplicationParameterNS.Text |

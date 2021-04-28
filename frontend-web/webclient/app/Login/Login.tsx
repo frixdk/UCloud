@@ -3,7 +3,6 @@ import {usePromiseKeeper} from "PromiseKeeper";
 import * as React from "react";
 import {useEffect, useRef, useState} from "react";
 import {snackbarStore} from "Snackbar/SnackbarStore";
-import styled from "styled-components";
 import {Absolute, Box, Button, Flex, Icon, Image, Input, Text, ExternalLink, Link, Card} from "ui-components";
 import ClickableDropdown from "ui-components/ClickableDropdown";
 import {DropdownContent, Dropdown} from "ui-components/Dropdown";
@@ -14,6 +13,8 @@ import {Instructions} from "WebDav/Instructions";
 import CONF from "../../site.config.json";
 import {BG1} from "./BG1";
 import * as Heading from "ui-components/Heading";
+import {styled} from "@linaria/react";
+import {themeColor} from "ui-components/theme";
 
 const bg2 = require("Assets/Images/bg2.svg");
 const wayfLogo = require("Assets/Images/WAYFLogo.svg");
@@ -21,7 +22,7 @@ const aarhusu_logo = require("Assets/Images/aarhusu_logo.png")
 const aalborgu_logo = require("Assets/Images/aalborgu_logo.png")
 
 const BackgroundImage = styled.div<{image: string}>`
-    background: url(${({image}) => image}) no-repeat 40% 0%;
+    background: ${({image}) => image} no-repeat 40% 0%;
     background-size: cover;
     overflow: hidden;
 `;
@@ -258,7 +259,7 @@ export const LoginPage: React.FC<RouterLocationProps & {initialState?: any}> = p
                     )}
                     {enabledWayf && !challengeId && !isPasswordReset ? (
                         <a href={`/auth/saml/login?service=${service}`}>
-                            <Button mb="8px" disabled={loading} fullWidth color="wayfGreen">
+                            <Button mb="8px" disabled={loading} fullWidth color={themeColor("wayfGreen")}>
                                 <Image width="100px" src={wayfLogo} />
                                 <LoginTextSpan fontSize={2} ml="2.5em">Login</LoginTextSpan>
                             </Button>
@@ -339,7 +340,7 @@ export const LoginPage: React.FC<RouterLocationProps & {initialState?: any}> = p
                                                         <Button
                                                             fullWidth
                                                             disabled={loading}
-                                                            marginTop={10}
+                                                            mt={10}
                                                         >
                                                             Reset password
                                                         </Button>
@@ -387,7 +388,7 @@ export const LoginPage: React.FC<RouterLocationProps & {initialState?: any}> = p
                                                         <Button
                                                             fullWidth
                                                             disabled={loading}
-                                                            marginTop={10}
+                                                            mt={10}
                                                         >
                                                             Save new password
                                                             </Button>
@@ -565,7 +566,7 @@ function LoginWrapper(props: React.PropsWithChildren<{selection?: boolean}>): JS
             </Absolute>
         </Absolute>
 
-        <BackgroundImage image={bg2}>
+        <BackgroundImage image={`url(${bg2})`}>
             <Flex justifyContent="center" height="100vh" pt="20vh">
                 {props.children}
             </Flex>
@@ -584,7 +585,7 @@ export function LoginSelection(): JSX.Element {
                             width={1}
                             height={"110px"}
                             maxWidth="345px"
-                            backgroundColor="#1a62ca"
+                            background="#1a62ca"
                             boxShadow="sm"
                             borderWidth={0}
                             borderRadius={6}
@@ -592,7 +593,7 @@ export function LoginSelection(): JSX.Element {
                             <Flex alignItems="center" justifyContent="center" color="#fff" my="8px"><Heading.h4>{product.name}</Heading.h4></Flex>
                             <Flex justifyContent="center">
                                 <a href={product.site}>
-                                    <Button mb="8px" width="300px" color="green">
+                                    <Button mb="8px" width="300px" color={themeColor("green")}>
                                         <LoginTextSpan>Login</LoginTextSpan>
                                     </Button>
                                 </a>

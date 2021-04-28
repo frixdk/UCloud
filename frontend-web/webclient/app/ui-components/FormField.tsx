@@ -1,5 +1,4 @@
 import * as React from "react";
-import styled, {css, keyframes} from "styled-components";
 import Box from "./Box";
 import Flex from "./Flex";
 import Icon, {IconName} from "./Icon";
@@ -7,25 +6,12 @@ import Input from "./Input";
 import Label from "./Label";
 import Select from "./Select";
 import theme from "./theme";
+import {styled} from "@linaria/react";
 
 const Root = styled(Box)`
   & ${Box} {
     pointer-events: none;
   }
-`;
-
-const fadeIn = keyframes`
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
-`;
-
-const labelStyles = css`
-  animation: ${fadeIn} 0.3s;
 `;
 
 const getFieldStyles = (showLabel: boolean) =>
@@ -140,7 +126,6 @@ class FormField extends React.Component<{
           React.cloneElement(LabelChild, {
             pl: BeforeIcon ? 40 : 2,
             mt: "6px",
-            style: labelStyles,
             htmlFor: fieldId
           })}
         <Flex alignItems="center" width={1} mt={0}>

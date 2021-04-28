@@ -17,17 +17,15 @@ import {Operation, Operations} from "ui-components/Operation";
 import MainContainer from "MainContainer/MainContainer";
 import Icon, {IconName} from "ui-components/Icon";
 import FileBrowser, {CommonFileProps} from "Files/FileBrowser";
-import UFile = file.orchestrator.UFile;
-import filesApi = file.orchestrator.files;
-import collectionsApi = file.orchestrator.collections;
-import FileCollection = file.orchestrator.FileCollection;
+type UFile = file.orchestrator.UFile;
+type FileCollection = file.orchestrator.FileCollection;
 import ReactModal from "react-modal";
 import {FileType} from "./";
-import FilesMoveRequestItem = file.orchestrator.FilesMoveRequestItem;
+type FilesMoveRequestItem = file.orchestrator.FilesMoveRequestItem;
 import {EmbeddedShareCard} from "Files/Shares";
-import FileMetadataAttached = file.orchestrator.FileMetadataAttached;
+type FileMetadataAttached = file.orchestrator.FileMetadataAttached;
+import * as UCloud from "UCloud";
 import {associateBy} from "Utilities/CollectionUtilities";
-import metadataApi = file.orchestrator.metadata;
 import {buildQueryString} from "Utilities/URIUtilities";
 
 function fileName(path: string): string {
@@ -94,7 +92,7 @@ export const Files: React.FunctionComponent<CommonFileProps & {
 
     const trash = useCallback(async (batch: UFile[]) => {
         if (commandLoading) return;
-        await invokeCommand(filesApi.trash(bulkRequestOf(...(batch.map(it => ({path: it.path}))))));
+        await invokeCommand(UCloud.file.orchestrator.files.trash(bulkRequestOf(...(batch.map(it => ({path: it.path}))))));
         reload();
     }, [commandLoading, reload]);
 
@@ -120,7 +118,7 @@ export const Files: React.FunctionComponent<CommonFileProps & {
     const renameFile = useCallback(async () => {
         if (!renaming) return;
 
-        await props.invokeCommand(filesApi.move(bulkRequestOf(
+        await props.invokeCommand(UCloud.file.orchestrator.files.move(bulkRequestOf(
             {
                 conflictPolicy: "REJECT",
                 oldPath: renaming,
@@ -133,7 +131,7 @@ export const Files: React.FunctionComponent<CommonFileProps & {
 
     const createFolder = useCallback(async () => {
         if (!isCreatingFolder) return;
-        await props.invokeCommand(filesApi.createFolder(bulkRequestOf(
+        await props.invokeCommand(UCloud.file.orchestrator.files.createFolder(bulkRequestOf(
             {
                 conflictPolicy: "RENAME",
                 path: resolvePath(props.path) + "/" + creatingFolderRef.current?.value
@@ -150,7 +148,7 @@ export const Files: React.FunctionComponent<CommonFileProps & {
             const collectionId = components[3];
 
             if (collection.data?.id !== collectionId && !collection.loading) {
-                fetchCollection(collectionsApi.retrieve({id: collectionId, provider}));
+                fetchCollection(file.orchestrator.collections.retrieve({id: collectionId, provider}));
             }
         }
     }, [props.path]);
@@ -252,7 +250,7 @@ export const Files: React.FunctionComponent<CommonFileProps & {
                                     name={isFavorite ? "starFilled" : "starEmpty"}
                                     color={isFavorite ? "blue" : "midGray"}
                                     onClick={() => {
-                                        invokeCommand(metadataApi.create(bulkRequestOf({
+                                        invokeCommand(file.orchestrator.metadata.create(bulkRequestOf({
                                             path: it.path,
                                             metadata: {
                                                 templateId: "favorite",
@@ -432,7 +430,7 @@ const filesOperations: Operation<UFile, FilesCallbacks>[] = [
             const file = await cb.selectFile("DIRECTORY");
             if (!file) return;
 
-            await cb.invokeCommand(filesApi.copy(bulkRequestOf(
+            await cb.invokeCommand(UCloud.file.orchestrator.files.copy(bulkRequestOf(
                 ...(selected.map<FilesMoveRequestItem>(it => (
                     {
                         conflictPolicy: "RENAME",
@@ -454,7 +452,7 @@ const filesOperations: Operation<UFile, FilesCallbacks>[] = [
             const file = await cb.selectFile("DIRECTORY");
             if (!file) return;
 
-            await cb.invokeCommand(filesApi.move(bulkRequestOf(
+            await cb.invokeCommand(UCloud.file.orchestrator.files.move(bulkRequestOf(
                 ...(selected.map<FilesMoveRequestItem>(it => (
                     {
                         conflictPolicy: "RENAME",

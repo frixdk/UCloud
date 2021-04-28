@@ -3,11 +3,10 @@ import * as UCloud from "UCloud";
 import {widgetId, WidgetProps, WidgetSetter, WidgetValidator} from "./index";
 import {Input} from "ui-components";
 import {useLayoutEffect, useState} from "react";
-import styled from "styled-components";
 import {getProjectNames} from "Utilities/ProjectUtilities";
 import {useProjectStatus} from "Project/cache";
 import {compute} from "UCloud";
-import AppParameterValueNS = compute.AppParameterValueNS;
+import {styled} from "@linaria/react";
 
 type GenericFileParam =
     UCloud.compute.ApplicationParameterNS.InputFile |
@@ -94,7 +93,7 @@ export const FilesValidator: WidgetValidator = (param) => {
 
 export const FilesSetter: WidgetSetter = (param, value) => {
     if (param.type !== "input_directory" && param.type !== "input_file") return;
-    const file = value as AppParameterValueNS.File;
+    const file = value as UCloud.compute.AppParameterValueNS.File;
 
     const selector = findElement(param);
     selector.value = file.path;

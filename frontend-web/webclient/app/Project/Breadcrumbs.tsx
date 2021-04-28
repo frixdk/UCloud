@@ -1,9 +1,9 @@
 import * as React from "react";
-import styled from "styled-components";
 import Spinner, {HexSpinWrapper} from "LoadingIcon/LoadingIcon";
 import {BreadCrumbsBase} from "ui-components/Breadcrumbs";
 import {Link} from "ui-components";
 import {useProjectManagementStatus} from "Project/index";
+import {styled} from "@linaria/react";
 
 export interface ProjectBreadcrumbsProps {
     crumbs: {title: string, link?: string}[];
@@ -15,7 +15,7 @@ const ProjectBreadcrumbsWrapper = styled(BreadCrumbsBase)`
     max-width: unset;
     flex-grow: 1;
     
-    ${HexSpinWrapper} {
+    .ucloud-loading.icon {
         margin: 0;
         display: inline;
     }

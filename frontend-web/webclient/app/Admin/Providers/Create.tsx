@@ -23,7 +23,7 @@ function Create(): JSX.Element | null {
     if (!Client.userIsAdmin) return null;
 
     return <MainContainer
-        main={<Box maxWidth={800} mt={30} marginLeft="auto" marginRight="auto">
+        main={<Box maxWidth={800} mt={30} ml="auto" mr="auto">
             <Label>
                 ID
                 <Input error={idInput.hasError} ref={idInput.ref} placeholder="ID..."/>

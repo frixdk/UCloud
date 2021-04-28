@@ -54,7 +54,7 @@ const Snackbars: React.FunctionComponent = () => {
     }
 };
 
-export const enum SnackType {
+export enum SnackType {
     Success,
     Information,
     Failure,

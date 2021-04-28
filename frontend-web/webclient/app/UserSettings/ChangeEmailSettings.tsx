@@ -6,10 +6,9 @@ import * as Heading from "ui-components/Heading";
 import {snackbarStore} from "Snackbar/SnackbarStore";
 import {bulkRequestOf} from "DefaultObjects";
 import {file, mail} from "UCloud";
-import EmailSettings = mail.EmailSettings;
-import retrieveEmailSettings = mail.retrieveEmailSettings;
-import toggleEmailSettings = mail.toggleEmailSettings;
+type EmailSettings = mail.EmailSettings;
 import HexSpin from "LoadingIcon/LoadingIcon";
+import {themeColor} from "ui-components/theme";
 
 interface UserDetailsState {
     settings: EmailSettings
@@ -72,7 +71,7 @@ export const ChangeEmailSettings: React.FunctionComponent<{setLoading: (loading:
     const info = useCallback(async () => {
 
         const emailSettings = await invokeCommand(
-            retrieveEmailSettings({})
+            mail.retrieveEmailSettings({})
         )
 
         dispatch({
@@ -93,7 +92,7 @@ export const ChangeEmailSettings: React.FunctionComponent<{setLoading: (loading:
 
         if (commandLoading) return;
 
-        const wasSuccessful = await invokeCommand(toggleEmailSettings(bulkRequestOf({
+        const wasSuccessful = await invokeCommand(mail.toggleEmailSettings(bulkRequestOf({
             settings: state.settings
         }))) !== null;
 
@@ -308,7 +307,7 @@ export const ChangeEmailSettings: React.FunctionComponent<{setLoading: (loading:
                 <Button
                     mt="1em"
                     type="submit"
-                    color="green"
+                    color={themeColor("green")}
                     disabled={commandLoading}
                 >
                     Update Email Settings

@@ -1,6 +1,6 @@
 import * as React from "react";
-import styled from "styled-components";
 import Icon from "./Icon";
+import {styled} from "@linaria/react";
 
 const Radio = (props: RadioWrapProps & {onChange: (e: React.ChangeEvent<HTMLInputElement>) => void}): JSX.Element => {
     const {checked, disabled} = props;
@@ -24,7 +24,7 @@ const RadioWrap = styled.div<RadioWrapProps>`
     display: inline-block;
     color: var(--borderGray, #f00);
     &:hover {
-      ${props => props.checked || props.disabled ? null : `color: var(--blue, #f00);`};
+      color: ${p => p.checked || p.disabled ? "var(--blue)" : "var(--borderGray, #f00)"};
     }
 `;
 

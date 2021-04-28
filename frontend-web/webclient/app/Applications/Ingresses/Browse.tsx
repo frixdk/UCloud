@@ -6,7 +6,7 @@ import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {useProjectId} from "Project";
 import * as Pagination from "Pagination";
 import {compute} from "UCloud";
-import Ingress = compute.Ingress;
+type Ingress = compute.Ingress;
 import {PageRenderer} from "Pagination/PaginationV2";
 import {ListRow, ListRowStat, ListStatContainer} from "ui-components/List";
 import {Box, List} from "ui-components";
@@ -86,7 +86,7 @@ const Browse: React.FunctionComponent<{computeProvider?: string; onSelect?: (sel
         </List>
     }, [toggleSet]);
 
-    return <Box ref={scrollingContainerRef}>
+    return <div ref={scrollingContainerRef}>
         <StickyBox shadow={!scrollStatus.isAtTheTop} normalMarginX={"20px"}>
             <Operations selected={toggleSet.checked.items} location={"TOPBAR"} entityNameSingular={entityName}
                 extra={callbacks} operations={operations} />
@@ -99,7 +99,7 @@ const Browse: React.FunctionComponent<{computeProvider?: string; onSelect?: (sel
             }} />
         }
 
-        <Box style={{display: isCreating ? "none" : undefined}}>
+        <Box display={isCreating ? "none" : undefined}>
             <Pagination.ListV2
                 page={ingresses.data}
                 onLoadMore={loadMore}
@@ -109,7 +109,7 @@ const Browse: React.FunctionComponent<{computeProvider?: string; onSelect?: (sel
                 customEmptyPage={"No public links available. Click \"Create link\" to create a new one for use."}
             />
         </Box>
-    </Box>;
+    </div>;
 };
 
 interface IngressCallbacks {

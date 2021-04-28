@@ -1,8 +1,8 @@
 import * as React from "react";
-import styled from "styled-components";
 import {Button, Flex, Input, OutlineButton, Text} from "ui-components";
 import ClickableDropdown from "ui-components/ClickableDropdown";
 import {TextSpan} from "ui-components/Text";
+import {styled} from "@linaria/react";
 
 const EntriesPerPageSelectorOptions = [
     {key: 1, text: "10", value: 10},
@@ -14,7 +14,12 @@ const EntriesPerPageSelectorOptions = [
 const handleBoundaries = (page: number, maxPage: number): number =>
     Math.max(Math.min(page, maxPage - 1), 0);
 
-interface PaginationButtonsProps {totalPages: number; currentPage: number; toPage: (p: number) => void}
+interface PaginationButtonsProps {
+    totalPages: number;
+    currentPage: number;
+    toPage: (p: number) => void
+}
+
 export function PaginationButtons({totalPages, currentPage, toPage}: PaginationButtonsProps): JSX.Element | null {
     const ref = React.useRef<HTMLInputElement>(null);
     if (totalPages <= 1) return null;
@@ -22,7 +27,7 @@ export function PaginationButtons({totalPages, currentPage, toPage}: PaginationB
         <Flex ml="15px" width="75px">
             {totalPages > 20 ? (
                 <>
-                    <Input defaultValue="1" autoComplete="off" type="number" min={"1"} max={totalPages} ref={ref} />
+                    <Input defaultValue="1" autoComplete="off" type="number" min={"1"} max={totalPages} ref={ref}/>
                     <OutlineButton
                         ml="2px"
                         fullWidth
@@ -49,15 +54,15 @@ export function PaginationButtons({totalPages, currentPage, toPage}: PaginationB
                 <PaginationButton onClick={() => undefined} unclickable>...</PaginationButton>
             </React.Fragment>
         ) : (
-                <PaginationButton
-                    key={it}
-                    unclickable={currentPage === it}
-                    color={currentPage === it ? "gray" : "black"}
-                    onClick={() => toPage(it)}
-                >
-                    {it + 1}
-                </PaginationButton>
-            )
+            <PaginationButton
+                key={it}
+                unclickable={currentPage === it}
+                color={currentPage === it ? "gray" : "black"}
+                onClick={() => toPage(it)}
+            >
+                {it + 1}
+            </PaginationButton>
+        )
     );
     return (
         <PaginationGroup justifyContent="center" my="1em">
@@ -80,21 +85,24 @@ export function PaginationButtons({totalPages, currentPage, toPage}: PaginationB
 }
 
 
-const PaginationButtonBase = styled(Button) <{unclickable?: boolean}>`
-    color: var(--text, #f00);
-    background-color: ${props => props.unclickable ? "var(--paginationDisabled, #f00)" : "transparent"};
-    border-color: var(--borderGray, #f00);
-    border-width: 1px;
-    &:disabled {
-        opacity: 1;
-    }
-    border-right-width: 0px;
-    &:hover {
-        filter: brightness(100%);
-        background-color: ${props => props.unclickable ? null : "var(--paginationHoverColor, #f00)"};
-        cursor: ${props => props.unclickable ? "default" : null};
-        transform: none;
-    }
+const PaginationButtonBase = styled(Button) <{ unclickable?: boolean }>`
+  color: var(--text, #f00);
+  background-color: ${props => props.unclickable ? "var(--paginationDisabled, #f00)" : "transparent"};
+  border-color: var(--borderGray, #f00);
+  border-width: 1px;
+
+  &:disabled {
+    opacity: 1;
+  }
+
+  border-right-width: 0;
+
+  &:hover {
+    filter: brightness(100%);
+    background-color: ${p => !p.unclickable ? "var(--paginationHoverColor)" : "transparent"};
+    cursor: ${p => !p.unclickable ? "pointer" : "default"};
+    transform: none;
+  }
 `;
 
 
@@ -103,23 +111,23 @@ const PaginationButton = ({onClick, ...props}): JSX.Element => (
 );
 
 const PaginationGroup = styled(Flex)`
-    & > ${PaginationButtonBase} {
-        width: auto;
-        min-width: 42px;
+  & > ${PaginationButtonBase} {
+    width: auto;
+    min-width: 42px;
 
-        padding-left: 0px;
-        padding-right: 0px;
-        border-radius: 0px;
-    }
+    padding-left: 0px;
+    padding-right: 0px;
+    border-radius: 0px;
+  }
 
-    & > ${PaginationButtonBase}:nth-last-child(2) {
-        border-radius: 0 3px 3px 0;
-        border-right-width: 1px;
-    }
+  & > ${PaginationButtonBase}:nth-last-child(2) {
+    border-radius: 0 3px 3px 0;
+    border-right-width: 1px;
+  }
 
-    & > ${PaginationButtonBase}:first-child {
-        border-radius: 3px 0 0 3px;
-    }
+  & > ${PaginationButtonBase}:first-child {
+    border-radius: 3px 0 0 3px;
+  }
 `;
 
 interface EntriesPerPageSelectorProps {
@@ -129,25 +137,25 @@ interface EntriesPerPageSelectorProps {
 }
 
 export const EntriesPerPageSelector = ({
-    entriesPerPage,
-    onChange,
-    content
-}: EntriesPerPageSelectorProps): JSX.Element => (
-        <ClickableDropdown
-            left="85px"
-            minWidth="80px"
-            width="80px"
-            chevron
-            trigger={<TextSpan> {`${content ?? "Entries per page"} ${entriesPerPage}`}</TextSpan>}
-        >
-            {EntriesPerPageSelectorOptions.map((opt, i) => (
-                <Text
-                    cursor="pointer"
-                    key={i}
-                    onClick={() => entriesPerPage === opt.value ? undefined : onChange(opt.value)}
-                >
-                    {opt.text}
-                </Text>
-            ))}
-        </ClickableDropdown>
-    );
+                                           entriesPerPage,
+                                           onChange,
+                                           content
+                                       }: EntriesPerPageSelectorProps): JSX.Element => (
+    <ClickableDropdown
+        left="85px"
+        minWidth="80px"
+        width="80px"
+        chevron
+        trigger={<TextSpan> {`${content ?? "Entries per page"} ${entriesPerPage}`}</TextSpan>}
+    >
+        {EntriesPerPageSelectorOptions.map((opt, i) => (
+            <Text
+                cursor="pointer"
+                key={i}
+                onClick={() => entriesPerPage === opt.value ? undefined : onChange(opt.value)}
+            >
+                {opt.text}
+            </Text>
+        ))}
+    </ClickableDropdown>
+);

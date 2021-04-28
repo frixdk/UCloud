@@ -7,7 +7,6 @@ import * as Pagination from "Pagination";
 import {usePromiseKeeper} from "PromiseKeeper";
 import * as React from "react";
 import {snackbarStore} from "Snackbar/SnackbarStore";
-import styled from "styled-components";
 import {
     Box, Button, Flex, Input, InputGroup, List, TextArea, Link, Text, Card, Markdown, SelectableText, Checkbox, Label
 } from "ui-components";
@@ -21,6 +20,7 @@ import {buildQueryString} from "Utilities/URIUtilities";
 import {useCloudAPI} from "Authentication/DataHook";
 import Fuse from "fuse.js";
 import {addStandardDialog} from "UtilityComponents";
+import {styled} from "@linaria/react";
 
 export const DATE_FORMAT = "dd/MM/yyyy HH:mm:ss";
 
@@ -254,8 +254,8 @@ function NewsManagement(): JSX.Element | null {
 }
 
 const TextAreaWithMargin = styled(TextArea)`
-    marginTop: 5px;
-    marginLeft: 4px;
+    margin-top: 5px;
+    margin-left: 4px;
 `;
 
 interface NewsListProps {
@@ -284,7 +284,7 @@ function SingleNewsPost(props: {post: NewsPost, toggleHidden?: (id: number) => v
             <Flex>
                 <Input my="6px" mx="6px" width="210px" readOnly value={format(props.post.showFrom, DATE_FORMAT)} />
                 {props.post.hideFrom == null ?
-                    <Box style={{content: ""}} width="222px" /> :
+                    <Box width="222px">&nbsp;</Box> :
                     <Input
                         my="6px" mx="6px" readOnly width="210px" value={format(props.post.hideFrom, DATE_FORMAT)} />}
                 {props.toggleHidden ? (

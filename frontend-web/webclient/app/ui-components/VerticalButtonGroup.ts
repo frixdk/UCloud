@@ -1,20 +1,20 @@
-import styled from "styled-components";
-import Button from "./Button";
-import Flex from "./Flex";
-import OutlineButton from "./OutlineButton";
+import {styled} from "@linaria/react";
+import {withStyledSystemCompatibility} from "ui-components/Compatibility";
 
-const VerticalButtonGroup = styled(Flex)`
-    height: 98%;
-    flex-direction: column;
+const VerticalButtonGroup = withStyledSystemCompatibility([], styled.div`
+  display: flex;
+  height: 98%;
+  flex-direction: column;
 
-    //leave some space on top if buttons grow on hover
-    margin-top: 4px;
+  //leave some space on top if buttons grow on hover
+  margin-top: 4px;
 
-    & ${Button}, & ${OutlineButton} {
-        width: 100%;
-        margin-bottom: 8px;
-    }
-`;
+  & button {
+    width: 100%;
+    margin-bottom: 8px;
+  }
+`);
+
 
 VerticalButtonGroup.displayName = "VerticalButtonGroup";
 

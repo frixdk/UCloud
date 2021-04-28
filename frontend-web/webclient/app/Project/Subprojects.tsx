@@ -4,7 +4,6 @@ import {createProject, listSubprojects, Project, renameProject, useProjectManage
 import * as React from "react";
 import {useCallback, useEffect, useRef, useState} from "react";
 import {Box, Button, ButtonGroup, Card, Flex, Icon, Input, Label, Link, List, Text, Tooltip} from "ui-components";
-import styled from "styled-components";
 import {emptyPage, emptyPageV2} from "DefaultObjects";
 import {errorMessageOrDefault} from "UtilityFunctions";
 import {snackbarStore} from "Snackbar/SnackbarStore";
@@ -33,7 +32,10 @@ import {ListRow} from "ui-components/List";
 import {getRenamingStatusForSubProject} from "./ProjectSettings";
 import * as UCloud from "UCloud";
 import {accounting, PageV2} from "UCloud";
-import Product = accounting.Product;
+type Product = accounting.Product;
+import {styled} from "@linaria/react";
+import {themeColor} from "ui-components/theme";
+import {CardStyle} from "ui-components/Card";
 
 const WalletContainer = styled.div`
   display: grid;
@@ -45,12 +47,10 @@ const WalletContainer = styled.div`
   & > * {
     min-height: 145px;
   }
-
-  ${shakeAnimation}
 `;
 
 const SelectableWalletWrapper = styled.div`
-  ${Card} {
+  ${CardStyle} {
     cursor: pointer;
     min-width: 350px;
     transition: all 0.25s ease-out;
@@ -58,12 +58,12 @@ const SelectableWalletWrapper = styled.div`
     height: 100%;
   }
 
-  &.selected ${Card} {
+  &.selected ${CardStyle} {
     background-color: var(--lightBlue, #f00);
     transform: translate3d(0, -10px, 0);
   }
 
-  &:hover ${Card} {
+  &:hover ${CardStyle} {
     background-color: var(--lightGray, #f00);
   }
 
@@ -412,7 +412,7 @@ const AllocationEditor = styled(Box)`
   justify-content: flex-end;
   margin: 0 16px;
 
-  ${Input} {
+  input {
     width: 150px;
     flex-grow: 1;
     padding-top: 0;
@@ -420,7 +420,7 @@ const AllocationEditor = styled(Box)`
     text-align: right;
   }
 
-  ${HexSpinWrapper} {
+  .ucloud-loading-icon {
     margin: -12px 0 0 10px;
   }
 `;
@@ -561,8 +561,8 @@ const SubprojectRow: React.FunctionComponent<{
                     <>
                         <Input ref={subprojectRenamingRef} fontSize="large" defaultValue={subproject.title} />
                         <ButtonGroup ml="8px" width="130px">
-                            <Button width="45px" color="green" onClick={renameSubproject} attached><Icon name="check" /></Button>
-                            <Button width="45px" color="red" onClick={() => setEditingName(false)}><Icon name="close" /></Button>
+                            <Button width="45px" color={themeColor("green")} onClick={renameSubproject} attached><Icon name="check" /></Button>
+                            <Button width="45px" color={themeColor("red")} onClick={() => setEditingName(false)}><Icon name="close" /></Button>
                         </ButtonGroup>
                     </>
                     : <Text>{subproject.title}</Text>
@@ -615,7 +615,7 @@ const SubprojectRow: React.FunctionComponent<{
                                                         }
                                                     </AllocationEditor>
 
-                                                    <Button type="submit" color="green"
+                                                    <Button type="submit" color={themeColor("green")}
                                                         disabled={loading}>
                                                         Allocate
                                             </Button>
@@ -658,7 +658,7 @@ const SubprojectRow: React.FunctionComponent<{
                                                     }
                                                 </AllocationEditor>
 
-                                                <Button type="submit" color="green"
+                                                <Button type="submit" color={themeColor("green")}
                                                     disabled={loading}>
                                                     Allocate
                                             </Button>

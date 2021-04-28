@@ -1,10 +1,11 @@
 import * as React from "react";
-import styled from "styled-components";
 import Box from "ui-components/Box";
 import Card from "ui-components/Card";
 import Flex from "ui-components/Flex";
 import Icon from "ui-components/Icon";
 import Text from "ui-components/Text";
+import {styled} from "@linaria/react";
+import {ThemeColor, themeColor} from "ui-components/theme";
 
 interface ErrorProps {clearError?: () => void; error?: string; width?: string | number}
 function Error(props: ErrorProps): JSX.Element | null {
@@ -39,8 +40,8 @@ function Error(props: ErrorProps): JSX.Element | null {
 
 interface ErrorWrapperProps {
     width?: string | number;
-    bg: string;
-    borderColor: string;
+    bg: ThemeColor;
+    borderColor: ThemeColor;
 }
 
 export const ErrorWrapper: React.FunctionComponent<React.PropsWithChildren<ErrorWrapperProps>> = props => (
@@ -49,8 +50,8 @@ export const ErrorWrapper: React.FunctionComponent<React.PropsWithChildren<Error
         height="auto"
         p="1em 1em 1em 1em"
         color="black"
-        bg={props.bg}
-        borderColor={props.borderColor}
+        background={themeColor(props.bg)}
+        borderColor={themeColor(props.borderColor)}
         width={props.width}
     >
         {props.children}

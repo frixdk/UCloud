@@ -2,9 +2,6 @@ import * as React from "react";
 import * as Pagination from "Pagination";
 import {useCloudAPI, useCloudCommand} from "Authentication/DataHook";
 import {file, PageV2, provider} from "UCloud";
-import Share = file.orchestrator.Share;
-import sharesApi = file.orchestrator.shares;
-import filesApi = file.orchestrator.files;
 import {useProjectId} from "Project";
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import HexSpin from "LoadingIcon/LoadingIcon";
@@ -25,7 +22,6 @@ import {
 } from "ui-components";
 import Warning from "ui-components/Warning";
 import {PageRenderer} from "Pagination/PaginationV2";
-import styled from "styled-components";
 import * as Heading from "ui-components/Heading";
 import {getFilenameFromPath} from "Utilities/FileUtilities";
 import {FilePermission} from "./";
@@ -34,15 +30,18 @@ import Button from "../ui-components/Button";
 import {defaultErrorHandler, extensionFromPath, preventDefault, useDidMount} from "UtilityFunctions";
 import {AvatarType, defaultAvatar} from "UserSettings/Avataaar";
 import {UserAvatar} from "AvataaarLib/UserAvatar";
-import {getCssVar} from "Utilities/StyledComponentsUtilities";
 import {useAvatars} from "AvataaarLib/hook";
 import {groupBy} from "Utilities/CollectionUtilities";
 import {bulkRequestOf} from "DefaultObjects";
-import UFile = file.orchestrator.UFile;
+import * as UCloud from "UCloud";
+
+type UFile = file.orchestrator.UFile;
 import {ConfirmationButton} from "ui-components/ConfirmationAction";
-import ResourceAclEntry = provider.ResourceAclEntry;
+
 import {snackbarStore} from "Snackbar/SnackbarStore";
 import {buildQueryString} from "Utilities/URIUtilities";
+import {styled} from "@linaria/react";
+import {themeColor} from "ui-components/theme";
 
 const Tab: React.FunctionComponent<{ selected: boolean, onClick: () => void }> = props => {
     return <SelectableText
@@ -58,22 +57,22 @@ const Tab: React.FunctionComponent<{ selected: boolean, onClick: () => void }> =
 
 const Shares: React.FunctionComponent = () => {
     const [scrollGeneration, setScrollGeneration] = useState(0);
-    const [shares, fetchShares] = useCloudAPI<PageV2<Share> | null>({noop: true}, null);
+    const [shares, fetchShares] = useCloudAPI<PageV2<file.orchestrator.Share> | null>({noop: true}, null);
     const projectId = useProjectId();
     const [sharedByMe, setSharedByMe] = useState(false);
 
     const reload = useCallback(() => {
-        fetchShares(sharesApi.browse({itemsPerPage: 100, sharedByMe}));
+        fetchShares(file.orchestrator.shares.browse({itemsPerPage: 100, sharedByMe}));
         setScrollGeneration(prev => prev + 1);
     }, [projectId, sharedByMe]);
 
     const loadMore = useCallback(() => {
         if (shares.data?.next) {
-            fetchShares(sharesApi.browse({next: shares.data?.next, itemsPerPage: 100, sharedByMe}));
+            fetchShares(file.orchestrator.shares.browse({next: shares.data?.next, itemsPerPage: 100, sharedByMe}));
         }
     }, [shares, sharedByMe]);
 
-    const pageRenderer = useCallback<PageRenderer<Share>>(items => {
+    const pageRenderer = useCallback<PageRenderer<file.orchestrator.Share>>(items => {
         const sharesByPath = groupBy(items, it => it.path);
 
         return Object.values(sharesByPath).map(it => (
@@ -145,7 +144,6 @@ const FilePermissionTiles: React.FunctionComponent<{
                 name={"READ"}
                 checked={props.selected === "READ"}
                 height={40}
-                fontSize={"0.5em"}
             />
             <RadioTile
                 label={"Edit"}
@@ -154,7 +152,6 @@ const FilePermissionTiles: React.FunctionComponent<{
                 name={"WRITE"}
                 checked={props.selected === "WRITE"}
                 height={40}
-                fontSize={"0.5em"}
             />
         </RadioTilesContainer>
     </form>;
@@ -163,11 +160,11 @@ const FilePermissionTiles: React.FunctionComponent<{
 export const EmbeddedShareCard: React.FunctionComponent<{
     path: string;
 }> = ({path}) => {
-    const [shares, fetchShares] = useCloudAPI<PageV2<Share> | null>({noop: true}, null);
+    const [shares, fetchShares] = useCloudAPI<PageV2<file.orchestrator.Share> | null>({noop: true}, null);
     const [scrollGeneration, setScrollGeneration] = useState(0);
 
     const reload = useCallback(() => {
-        fetchShares(sharesApi.browse({itemsPerPage: 100, sharedByMe: true, filterPath: path}));
+        fetchShares(file.orchestrator.shares.browse({itemsPerPage: 100, sharedByMe: true, filterPath: path}));
         setScrollGeneration(prev => prev + 1);
     }, [path]);
 
@@ -175,14 +172,14 @@ export const EmbeddedShareCard: React.FunctionComponent<{
 
     const loadMore = useCallback(() => {
         if (shares.data?.next) {
-            fetchShares(sharesApi.browse({
+            fetchShares(file.orchestrator.shares.browse({
                 itemsPerPage: 100, sharedByMe: true, filterPath: path,
                 next: shares.data.next
             }));
         }
     }, [shares.data?.next, path]);
 
-    const pageRenderer = useCallback<PageRenderer<Share>>(items => {
+    const pageRenderer = useCallback<PageRenderer<file.orchestrator.Share>>(items => {
         const sharesByPath = groupBy(items, it => it.path);
 
         const values = Object.values(sharesByPath);
@@ -216,13 +213,13 @@ export const EmbeddedShareCard: React.FunctionComponent<{
 interface ShareWithAclEntry {
     sharedWith: string;
     sharedBy?: string;
-    aclEntry?: ResourceAclEntry<FilePermission>;
-    share?: Share;
+    aclEntry?: UCloud.provider.ResourceAclEntry<FilePermission>;
+    share?: file.orchestrator.Share;
 }
 
 const GroupedShareCard: React.FunctionComponent<{
     sharedByMe: boolean;
-    shares: Share[];
+    shares: file.orchestrator.Share[];
     path: string;
     reload: () => void;
 }> = props => {
@@ -236,7 +233,11 @@ const GroupedShareCard: React.FunctionComponent<{
     const didMount = useDidMount();
     useEffect(() => {
         if (!didMount) {
-            fetchFile(filesApi.retrieve({path: props.path, includePermissions: true, allowUnsupportedInclude: true}));
+            fetchFile(UCloud.file.orchestrator.files.retrieve({
+                path: props.path,
+                includePermissions: true,
+                allowUnsupportedInclude: true
+            }));
         }
     }, [didMount]);
 
@@ -278,7 +279,11 @@ const GroupedShareCard: React.FunctionComponent<{
     }, [file.data, props.shares]);
 
     const reload = useCallback(() => {
-        fetchFile(filesApi.retrieve({path: props.path, includePermissions: true, allowUnsupportedInclude: true}));
+        fetchFile(UCloud.file.orchestrator.files.retrieve({
+            path: props.path,
+            includePermissions: true,
+            allowUnsupportedInclude: true
+        }));
         props.reload();
     }, [props.reload]);
 
@@ -305,7 +310,7 @@ const GroupedShareCard: React.FunctionComponent<{
         }
 
         try {
-            await invokeCommand(filesApi.updateAcl(bulkRequestOf({
+            await invokeCommand(UCloud.file.orchestrator.files.updateAcl(bulkRequestOf({
                 path: props.path,
                 newAcl: [
                     ...file.data.permissions.others,
@@ -313,7 +318,7 @@ const GroupedShareCard: React.FunctionComponent<{
                 ]
             })), {defaultErrorHandler: false});
 
-            await invokeCommand(sharesApi.create(bulkRequestOf({
+            await invokeCommand(UCloud.file.orchestrator.shares.create(bulkRequestOf({
                 sharedWith: usernameRef.current!.value,
                 path: props.path
             })), {defaultErrorHandler: false});
@@ -465,7 +470,7 @@ const ShareRow: React.FunctionComponent<{
         if (commandLoading) return;
         if (!share) return;
 
-        await invokeCommand(sharesApi.approve(bulkRequestOf({
+        await invokeCommand(UCloud.file.orchestrator.shares.approve(bulkRequestOf({
             path: share.path
         })));
 
@@ -481,7 +486,7 @@ const ShareRow: React.FunctionComponent<{
                 return;
             }
 
-            const success = await invokeCommand(filesApi.updateAcl(bulkRequestOf({
+            const success = await invokeCommand(UCloud.file.orchestrator.files.updateAcl(bulkRequestOf({
                 path: file.path,
                 newAcl: acl.filter(it =>
                     it.entity.type === "user" && it.entity.username !== aclEntry.entity["username"]
@@ -491,7 +496,7 @@ const ShareRow: React.FunctionComponent<{
             if (!success) return;
         }
 
-        await invokeCommand(sharesApi.remove(bulkRequestOf({
+        await invokeCommand(UCloud.file.orchestrator.shares.remove(bulkRequestOf({
             path: file.path,
             sharedWith: sharedByMe ? share?.sharedWith : undefined
         })));
@@ -508,7 +513,7 @@ const ShareRow: React.FunctionComponent<{
                 return;
             }
 
-            const success = await invokeCommand(filesApi.updateAcl(bulkRequestOf({
+            const success = await invokeCommand(UCloud.file.orchestrator.files.updateAcl(bulkRequestOf({
                 path: file.path,
                 newAcl: acl.filter(it =>
                     it.entity.type === "user" && it.entity.username !== aclEntry.entity["username"]
@@ -528,12 +533,12 @@ const ShareRow: React.FunctionComponent<{
     }, [commandLoading, share, aclEntry, sharedByMe, file, reload]);
 
     return <Flex alignItems={"center"} mb={"16px"}>
-        <UserAvatar avatar={avatar} mr={"10px"}/>
+        <UserAvatar avatar={avatar}/>
 
         <div>
             <Text bold>{sharedByMe ? sharedWith : sharedBy}</Text>
             {share && share.approved && simplePermission ?
-                <><Icon size={20} color={getCssVar("green")} name="check"/> The share has been accepted.</>
+                <><Icon size={20} color={themeColor("green")} name="check"/> The share has been accepted.</>
                 : null
             }
             {share && !share.approved && simplePermission ?
@@ -559,14 +564,14 @@ const ShareRow: React.FunctionComponent<{
         {!sharedByMe && share && !share.approved ? <>
             <Box flexShrink={1}>
                 <Button
-                    color="red"
+                    color={themeColor("red")}
                     mx="8px"
                     onClick={revoke}
                 >
                     <Icon name="close" size="1em" mr=".7em"/>Reject
                 </Button>
                 <Button
-                    color="green"
+                    color={themeColor("green")}
                     onClick={accept}
                 >
                     <Icon name="check" size="1em" mr=".7em"/>Accept
@@ -581,7 +586,7 @@ const ShareRow: React.FunctionComponent<{
                 icon={"close"}
                 onAction={revoke}
                 ml={"8px"}
-                color={"red"}
+                color={themeColor("red")}
                 width={"150px"}
             />
         </> : null}

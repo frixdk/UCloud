@@ -1,4 +1,3 @@
-import styled from "styled-components";
 import Box from "./Box";
 import * as React from "react";
 import Flex from "./Flex";
@@ -6,35 +5,25 @@ import Truncate from "./Truncate";
 import {stopPropagationAndPreventDefault} from "UtilityFunctions";
 import {IconName} from "ui-components/Icon";
 import {Icon, Text} from "ui-components/index";
-import {ThemeColor} from "./theme";
+import theme, {ThemeColor} from "./theme";
 import {Cursor} from "ui-components/Types";
+import {styled} from "@linaria/react";
 
-type StringOrNumber = string | number;
-
-interface UseChildPaddingProps {
-    childPadding?: StringOrNumber;
-}
-
-function useChildPadding(
-    props: UseChildPaddingProps
-): null | {marginBottom: StringOrNumber; marginTop: StringOrNumber} {
-    return props.childPadding ? {marginBottom: props.childPadding, marginTop: props.childPadding} : null;
-}
-
-const List = styled(Box) <{fontSize?: string; childPadding?: string | number; bordered?: boolean}>`
-    font-size: ${props => props.fontSize};
+const List = styled(Box) <{fontSize?: string; childPadding?: string; bordered?: boolean}>`
+  font-size: ${p => p.fontSize!}px;
     & > * {
-        ${props => props.bordered ? "border-bottom: 1px solid lightGrey;" : null}
-        ${useChildPadding};
+      border-bottom: ${p => p.bordered ? "1px solid var(--lightGray)" : "0"};
+      margin-bottom: ${p => p.childPadding ?? "0"};
+      margin-top: ${p => p.childPadding ?? "0"};
     }
 
     & > *:last-child {
-        ${props => props.bordered ? "border-bottom: 0px;" : null}
+      border-bottom: 0;
     }
 `;
 
 List.defaultProps = {
-    fontSize: "large",
+    fontSize: theme.fontSizes[3],
     bordered: true
 };
 
@@ -65,7 +54,7 @@ export function ListRow(props: ListRowProps): JSX.Element {
                     e.stopPropagation();
                 }}
                 mb="-4px"
-                width={1}
+                width={"100%"}
                 fontSize={props.fontSize ?? 20}
             >{props.left}</Truncate>
             <Flex mt="4px">
@@ -75,7 +64,7 @@ export function ListRow(props: ListRowProps): JSX.Element {
     ) : props.left;
     return (
         <HoverColorFlex
-            backgroundColor={props.bg}
+            background={props.bg}
             isSelected={isSelected}
             onClick={props.select}
             pt="5px"
@@ -128,7 +117,7 @@ export const ListRowStat: React.FunctionComponent<{
 
 const HoverColorFlex = styled(Flex) <{isSelected: boolean}>`
     transition: background-color 0.3s;
-    ${p => p.isSelected ? "background-color: var(--lightBlue);" : null}
+    ${p => p.isSelected ? "background-color: var(--lightBlue);" : ""}
     &:hover {
         background-color: var(--lightBlue, #f00);
     }

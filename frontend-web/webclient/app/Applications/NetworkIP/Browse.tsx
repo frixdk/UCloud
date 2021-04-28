@@ -10,11 +10,8 @@ import {Box, Button, Text} from "ui-components";
 import {doNothing, prettierString, shortUUID} from "UtilityFunctions";
 import HexSpin from "LoadingIcon/LoadingIcon";
 import * as Heading from "ui-components/Heading";
-import {Link} from "react-router-dom";
 import {useLoading, useTitle} from "Navigation/Redux/StatusActions";
 import {SidebarPages, useSidebarPage} from "ui-components/Sidebar";
-import ProductNS = accounting.ProductNS;
-import networkApi = UCloud.compute.networkips;
 import {useRefreshFunction} from "Navigation/Redux/HeaderActions";
 import MainContainer from "MainContainer/MainContainer";
 import {NoResultsCardBody} from "Dashboard/Dashboard";
@@ -27,7 +24,7 @@ import {Client} from "Authentication/HttpClientInstance";
 import {isAdminOrPI} from "Utilities/ProjectUtilities";
 import {StickyBox} from "ui-components/StickyBox";
 import {useScrollStatus} from "Utilities/ScrollStatus";
-import NetworkIP = compute.NetworkIP;
+type NetworkIP = compute.NetworkIP;
 import Create from "Applications/NetworkIP/Create";
 import {creditFormatter} from "Project/ProjectUsage";
 import Inspect from "Applications/NetworkIP/Inspect";
@@ -42,7 +39,7 @@ export const Browse: React.FunctionComponent<{
     const projectStatus = useProjectStatus();
     const history = useHistory();
     const [networkIps, fetchNetworkIps] = useCloudAPI<PageV2<NetworkIP>>({noop: true}, emptyPageV2);
-    const [products, setProducts] = useState<ProductNS.NetworkIP[]>([]);
+    const [products, setProducts] = useState<accounting.ProductNS.NetworkIP[]>([]);
     const [loadingProducts, setLoadingProducts] = useState(false);
     const [commandLoading, invokeCommand] = useCloudCommand();
     const scrollingContainerRef = useRef<HTMLDivElement>(null);
@@ -92,7 +89,7 @@ export const Browse: React.FunctionComponent<{
                 setInspecting(newInspecting);
             } else {
                 (async () => {
-                    const retrievedInspecting = await callAPI(networkApi.retrieve({
+                    const retrievedInspecting = await callAPI(UCloud.compute.networkips.retrieve({
                         id: inspecting.id,
                         includeProduct: true,
                         includeAcl: true,
@@ -146,9 +143,9 @@ export const Browse: React.FunctionComponent<{
                 })
             );
 
-            const allProducts: ProductNS.NetworkIP[] = res.items
+            const allProducts: accounting.ProductNS.NetworkIP[] = res.items
                 .filter(it => it.type === "network_ip")
-                .map(it => it as ProductNS.NetworkIP)
+                .map(it => it as accounting.ProductNS.NetworkIP)
 
             if (!didCancel) {
                 setLoadingProducts(false);
@@ -367,7 +364,7 @@ const operations: Operation<NetworkIP, OpCallback>[] = [
         onClick: async (selected, cb) => {
             if (cb.commandLoading) return;
 
-            await cb.invokeCommand(networkApi.remove({
+            await cb.invokeCommand(UCloud.compute.networkips.remove({
                 type: "bulk",
                 items: selected.map(entity => ({
                     id: entity.id

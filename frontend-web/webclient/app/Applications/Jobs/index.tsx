@@ -1,7 +1,7 @@
 import * as UCloud from "UCloud";
 import {PropType, shortUUID} from "UtilityFunctions";
 import {compute} from "UCloud";
-import Job = compute.Job;
+type Job = compute.Job;
 
 export type JobState = NonNullable<PropType<UCloud.compute.JobUpdate, "state">>;
 export type JobSortBy = NonNullable<PropType<UCloud.compute.JobsBrowseRequest, "sortBy">>;

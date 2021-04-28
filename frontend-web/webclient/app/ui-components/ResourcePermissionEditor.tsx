@@ -11,8 +11,8 @@ import * as Pagination from "Pagination";
 import {TextSpan} from "ui-components/Text";
 import {Link} from "react-router-dom";
 import {BulkRequest, provider} from "UCloud";
-import ResourceAclEntry = provider.ResourceAclEntry;
-import ResourceDoc = provider.ResourceDoc;
+type ResourceAclEntry = provider.ResourceAclEntry;
+type ResourceDoc = provider.ResourceDoc;
 import {IconName} from "ui-components/Icon";
 
 interface ResourcePermissionEditorProps<T extends ResourceDoc> {

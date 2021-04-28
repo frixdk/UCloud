@@ -1,8 +1,7 @@
 import {useCallback, useRef, useState} from "react";
 import * as React from "react";
 import {compute} from "UCloud";
-import ApplicationParameter = compute.ApplicationParameter;
-import AppParameterValue = compute.AppParameterValue;
+type ApplicationParameter = compute.ApplicationParameter;
 import {setWidgetValues} from "Applications/Jobs/Widgets";
 
 export interface ResourceHook {
@@ -48,7 +47,7 @@ export function useResource(ns: ResourceTypes, provider: string | undefined,
 
 export function createSpaceForLoadedResources(
     resources: ResourceHook,
-    values: AppParameterValue[],
+    values: compute.AppParameterValue[],
     type: string,
     jobBeingLoaded: React.MutableRefObject<Partial<compute.JobSpecification> | null>,
     importedJob: Partial<compute.JobSpecification>
@@ -64,7 +63,7 @@ export function createSpaceForLoadedResources(
 
 export function injectResources(
     resources: ResourceHook,
-    values: AppParameterValue[],
+    values: compute.AppParameterValue[],
     type: string
 ): void {
     let i = 0;

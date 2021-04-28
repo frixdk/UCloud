@@ -4,12 +4,9 @@ import {useProjectId} from "Project";
 import {useCallback, useEffect, useMemo, useState} from "react";
 import {InvokeCommand, useCloudAPI, useCloudCommand} from "Authentication/DataHook";
 import {file, PageV2} from "UCloud";
-import UFile = file.orchestrator.UFile;
+type UFile = file.orchestrator.UFile;
 import {emptyPageV2} from "DefaultObjects";
-import FileCollection = file.orchestrator.FileCollection;
-import metadataApi = file.orchestrator.metadata;
-import filesApi = file.orchestrator.files;
-import collectionsApi = file.orchestrator.collections;
+type FileCollection = file.orchestrator.FileCollection;
 import {useLoading, useTitle} from "Navigation/Redux/StatusActions";
 import {SidebarPages, useSidebarPage} from "ui-components/Sidebar";
 import {buildQueryString, getQueryParam} from "Utilities/URIUtilities";
@@ -20,8 +17,8 @@ import {FileCollections} from "Files/FileCollections";
 import {Files} from "Files/Files";
 import {FileType} from "Files/index";
 import * as H from 'history';
-import FileMetadataRetrieveAllResponse = file.orchestrator.FileMetadataRetrieveAllResponse;
-import FileMetadataAttached = file.orchestrator.FileMetadataAttached;
+type FileMetadataRetrieveAllResponse = file.orchestrator.FileMetadataRetrieveAllResponse;
+type FileMetadataAttached = file.orchestrator.FileMetadataAttached;
 import {associateBy, groupBy} from "Utilities/CollectionUtilities";
 
 interface FileBrowserProps {
@@ -65,24 +62,24 @@ const FileBrowser: React.FunctionComponent<FileBrowserProps> = props => {
     }, [metadata.data]);
 
     const reload = useCallback((): void => {
-        fetchMetadata(metadataApi.retrieveAll({parentPath: path}));
+        fetchMetadata(file.orchestrator.metadata.retrieveAll({parentPath: path}));
         if (path === "/") {
-            fetchCollections(collectionsApi.browse({provider: UCLOUD_PROVIDER, itemsPerPage: 50}));
+            fetchCollections(file.orchestrator.collections.browse({provider: UCLOUD_PROVIDER, itemsPerPage: 50}));
         } else {
-            fetchFiles(filesApi.browse({itemsPerPage: 50, path}));
+            fetchFiles(file.orchestrator.files.browse({itemsPerPage: 50, path}));
         }
         setGeneration(gen => gen + 1);
     }, [path]);
 
     const loadMore = useCallback(() => {
         if (path === "/") {
-            fetchCollections(collectionsApi.browse({
+            fetchCollections(file.orchestrator.collections.browse({
                 provider: UCLOUD_PROVIDER,
                 itemsPerPage: 50,
                 next: collections.data.next
             }));
         } else {
-            fetchFiles(filesApi.browse({itemsPerPage: 50, next: files.data.next, path}));
+            fetchFiles(file.orchestrator.files.browse({itemsPerPage: 50, next: files.data.next, path}));
         }
     }, [path, files, collections]);
 

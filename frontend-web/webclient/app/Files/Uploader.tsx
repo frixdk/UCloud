@@ -1,7 +1,6 @@
 import * as React from "react";
 import {useCallback, useEffect, useMemo, useState} from "react";
 import {useGlobal} from "Utilities/ReduxHooks";
-import styled from "styled-components";
 import ReactModal from "react-modal";
 import {Box, Divider, Flex, FtIcon, Icon, List, Truncate} from "ui-components";
 import {TextSpan} from "ui-components/Text";
@@ -17,12 +16,12 @@ import {ListRow, ListRowStat, ListStatContainer} from "ui-components/List";
 import {useToggleSet} from "Utilities/ToggleSet";
 import {Operation, Operations} from "ui-components/Operation";
 import * as UCloud from "UCloud";
-import FileApi = UCloud.file.orchestrator;
 import {callAPI} from "Authentication/DataHook";
 import {bulkRequestOf} from "DefaultObjects";
 import {BulkResponse} from "UCloud";
 import {ChunkedFileReader} from "Files/ChunkedFileReader";
 import {sizeToString} from "Utilities/FileUtilities";
+import {styled} from "@linaria/react";
 
 const maxConcurrentUploads = 5;
 const entityName = "Upload";
@@ -108,7 +107,7 @@ const Uploader: React.FunctionComponent = props => {
 
         const maxUploadsToUse = maxConcurrentUploads - activeUploads;
         if (maxUploadsToUse > 0) {
-            const creationRequests: FileApi.FilesCreateUploadRequestItem[] = [];
+            const creationRequests: UCloud.file.orchestrator.FilesCreateUploadRequestItem[] = [];
             const actualUploads: Upload[] = [];
             for (const upload of batch) {
                 if (upload.state !== UploadState.PENDING) continue;
@@ -127,8 +126,8 @@ const Uploader: React.FunctionComponent = props => {
             if (actualUploads.length === 0) return;
 
             try {
-                const responses = (await callAPI<BulkResponse<FileApi.FilesCreateUploadResponseItem>>(
-                    FileApi.files.createUpload(bulkRequestOf(...creationRequests))
+                const responses = (await callAPI<BulkResponse<UCloud.file.orchestrator.FilesCreateUploadResponseItem>>(
+                    UCloud.file.orchestrator.files.createUpload(bulkRequestOf(...creationRequests))
                 )).responses;
 
                 let i = 0;
@@ -280,7 +279,7 @@ const Uploader: React.FunctionComponent = props => {
                             left={
                                 <Truncate
                                     title={upload.row.rootEntry.name}
-                                    width={["320px", "320px", "320px", "320px", "440px", "560px"]}
+                                    width={"320px"}
                                     fontSize={20}
                                     children={upload.row.rootEntry.name}
                                 />
@@ -366,7 +365,8 @@ const modalStyle = {
 
 const DropZoneBox = styled.div<{ slim?: boolean }>`
   width: 100%;
-  ${p => p.slim ? {height: "80px"} : {height: "280px"}}
+  height: ${p => p.slim ? "80px" : "280px"};
+  
   border-width: 2px;
   border-color: rgb(102, 102, 102);
   border-style: dashed;

@@ -1,13 +1,13 @@
 import * as React from "react";
-import styled from "styled-components";
-import {fontSize, space, SpaceProps} from "styled-system";
-import {Icon, Text} from ".";
-import {IconName} from "./Icon";
+import Icon, {IconName} from "./Icon";
 import theme, {Theme, ThemeColor} from "./theme";
+import {styled} from "@linaria/react";
+import {default as Text} from "./Text";
+import {withStyledSystemCompatibility} from "ui-components/Compatibility";
+import {StyledSystemProperties} from "styled-system";
 
-const useFullWidth = ({fullWidth}: {fullWidth?: boolean}): {width: string} | null => fullWidth ? {width: "100%"} : null;
-
-export const colorScheme = (props: {theme: Theme; color: ThemeColor}) => {
+/*
+export const colorScheme = (props: { theme: Theme; color: ThemeColor }) => {
     const badgeColors = {
         white: {
             backgroundColor: props.theme.colors.black,
@@ -64,24 +64,28 @@ export const colorScheme = (props: {theme: Theme; color: ThemeColor}) => {
     return color || badgeColors.white;
 };
 
-const StampBase = styled.div<StampProps>`
+ */
+
+const StampBase = withStyledSystemCompatibility(["fullWidth"], styled.div<{ fullWidth?: boolean }>`
   display: inline-flex;
   align-items: center;
   vertical-align: top;
   min-height: 24px;
-  ${useFullWidth}
   font-weight: 600;
   letter-spacing: ${theme.letterSpacings.caps};
   border-radius: 4px;
   border-width: 1px;
   border-style: solid;
-  ${colorScheme}
-  ${space} ${fontSize};
-`;
+  width: ${p => p.fullWidth ? "100%" : "auto"};
+  
+  background-color: var(--black);
+  border-color: var(--black);
+  color: var(--black);
+`);
 
 StampBase.displayName = "Stamp";
 
-interface StampProps extends SpaceProps {
+interface StampProps {
     color?: ThemeColor;
     theme?: Theme;
     fontSize?: number | string;
@@ -97,11 +101,12 @@ StampBase.defaultProps = {
     fullWidth: false
 };
 
-const Stamp = (props: StampProps & {icon?: IconName; onClick?: () => void; text: string}): JSX.Element => (
+const Stamp = (props: StyledSystemProperties & StampProps & { icon?: IconName; onClick?: () => void; text: string }): JSX.Element => (
+    // @ts-ignore
     <StampBase {...props}>
-        {props.icon ? <Icon name={props.icon} size={12} /> : null}
+        {props.icon ? <Icon name={props.icon} size={12}/> : null}
         <Text ml="4px" mr="6px">{props.text}</Text>
-        {props.onClick ? <Icon name={"close"} size={12} onClick={props.onClick} /> : null}
+        {props.onClick ? <Icon name={"close"} size={12} onClick={props.onClick}/> : null}
     </StampBase>
 );
 

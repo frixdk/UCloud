@@ -1,88 +1,17 @@
-const webpack = require("webpack");
+const webpack = require('webpack');
+const path = require('path');
+const MiniCSSExtractPlugin = require('mini-css-extract-plugin');
 const HtmlWebpackPlugin = require("html-webpack-plugin");
-const MiniCSSExtractPlugin = require("mini-css-extract-plugin");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
-const path = require("path");
+
 const baseHref = "/app";
 
+const dev = process.env.NODE_ENV !== 'production';
+
 module.exports = {
+    mode: dev ? 'development' : 'production',
+    devtool: 'source-map',
     entry: "./app/App.tsx",
-
-    resolve: {
-        //root: path.join(__dirname, ''),
-        modules: [path.resolve(__dirname, "app"), "node_modules"],
-        extensions: [".js", ".jsx", ".json", ".ts", ".tsx"],
-        // For webpack 5. Remember to install the 3 require.resolve packages
-        //
-        fallback: {
-            path: require.resolve("path-browserify"),
-            http: false,
-        }
-        // fallback: {
-        /*    buffer: require.resolve("buffer"),
-            util: require.resolve("util"),
-            stream: require.resolve("stream-browserify"), */
-        // path: false, http: false, crypto: false
-        // }
-    },
-
-    module: {
-        rules: [
-            {
-                test: /node_modules\/vfile\/core\.js/,
-                use: [{
-                    loader: 'imports-loader',
-                    options: {
-                        type: 'commonjs',
-                        imports: ['single process/browser process'],
-                    },
-                }],
-            },
-            {
-                test: /\.[jt]sx?$/,
-                exclude: /node_modules/,
-                loader: "ts-loader"
-            },
-            {
-                test: /\.js$/,
-                use: ["source-map-loader"],
-                enforce: "pre"
-            },
-            {
-                test: /\.css$/,
-                exclude: path.join(__dirname, '/app'),
-                use: ["style-loader", "css-loader"]
-            },
-            {
-                test: /\.(woff|woff2|svg|ttf|eot)$/,
-                use: [{
-                    loader: "file-loader",
-                    options: {
-                        esModule: false
-                    }
-                }]
-            }, {
-                test: /\.(png|jpg|gif)$/,
-                use: [{
-                    loader: "url-loader",
-                    options: {
-                        fallback: "file-loader",
-                        limit: 10000,
-                        esModule: false
-                    }
-                }]
-            }
-        ]
-    },
-
-    optimization: {
-        splitChunks: {
-            chunks: "all"
-        },
-        // minimizer: [
-        //     new UglifyJsPlugin()
-        // ]
-    },
 
     plugins: [
         // Simplifies creation of HTML files to serve your webpack bundles.
@@ -102,5 +31,74 @@ module.exports = {
             }],
             options: {}
         })
-    ]
+    ],
+
+    resolve: {
+        modules: [path.resolve(__dirname, "app"), "node_modules"],
+        extensions: [".js", ".jsx", ".json", ".ts", ".tsx"],
+        fallback: {
+            path: require.resolve("path-browserify"),
+            http: false
+        }
+    },
+
+    module: {
+        rules: [
+            {
+                test: /\.tsx?$/,
+                exclude: /node_modules/,
+                use: [
+                    {
+                        loader: 'babel-loader',
+                        options: {
+                            presets: [
+                                "@babel/preset-env",
+                                "@babel/preset-typescript",
+                                "@babel/preset-react",
+                                "@linaria"
+                            ],
+                            plugins: [
+                                "@babel/plugin-proposal-class-properties",
+                                ["@babel/plugin-transform-runtime",
+                                {
+                                    "regenerator": true
+                                }]
+                            ]
+                        }
+                    },
+                    {
+                        loader: '@linaria/webpack-loader',
+                        options: {
+                            sourceMap: dev,
+                            babelOptions: {
+                                presets: [
+                                    "@babel/preset-typescript",
+                                    "@babel/preset-react",
+                                ]
+                            }
+                        },
+                    },
+                ],
+            },
+            {
+                test: /\.css$/,
+                use: [
+                    {
+                        loader: MiniCSSExtractPlugin.loader,
+                        options: {
+                            // hmr: process.env.NODE_ENV !== 'production',
+                        },
+                    },
+                    {
+                        loader: 'css-loader',
+                        options: {sourceMap: dev},
+                    },
+                ],
+            },
+            {
+                test: /\.(jpg|png|gif|woff|woff2|eot|ttf|svg)$/,
+                use: [{loader: 'file-loader'}],
+            },
+        ],
+    }
 };

@@ -1,7 +1,6 @@
 import {AppToolLogo} from "Applications/AppToolLogo";
 import {MainContainer} from "MainContainer/MainContainer";
 import * as React from "react";
-import styled from "styled-components";
 import {
     Box,
     Flex,
@@ -26,8 +25,10 @@ import {useEffect} from "react";
 import {useCloudAPI} from "Authentication/DataHook";
 import HexSpin from "LoadingIcon/LoadingIcon";
 import {compute} from "UCloud";
-import Application = compute.Application;
+type Application = compute.Application;
 import {useTitle} from "Navigation/Redux/StatusActions";
+import {styled} from "@linaria/react";
+import {themeColor} from "ui-components/theme";
 
 const View: React.FunctionComponent = () => {
     const {appName, appVersion} = useRouteMatch<{appName: string, appVersion: string}>().params;
@@ -113,12 +114,12 @@ const Sidebar: React.FunctionComponent<{application: UCloud.compute.ApplicationW
 
         {!props.application.metadata.website ? null : (
             <ExternalLink href={props.application.metadata.website}>
-                <OutlineButton fullWidth color={"blue"}>Documentation</OutlineButton>
+                <OutlineButton fullWidth color={themeColor("blue")}>Documentation</OutlineButton>
             </ExternalLink>
         )}
 
         <Link to={Pages.runApplication(props.application.metadata)}>
-            <OutlineButton fullWidth color={"blue"}>Run Application</OutlineButton>
+            <OutlineButton fullWidth color={themeColor("blue")}>Run Application</OutlineButton>
         </Link>
     </VerticalButtonGroup>
 );

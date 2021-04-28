@@ -5,7 +5,7 @@ import {useCloudAPI, useCloudCommand} from "Authentication/DataHook";
 import {Button, Input, Label, Markdown} from "ui-components";
 import * as UCloud from "UCloud";
 import {compute} from "UCloud";
-import Job = compute.Job;
+type Job = compute.Job;
 import {useRef} from "react";
 import {JobState} from "Applications/Jobs";
 import {snackbarStore} from "Snackbar/SnackbarStore";

@@ -19,7 +19,7 @@ import {Spacer} from "./Spacer";
 import {TextDiv, TextSpan} from "./Text";
 import TextArea from "./TextArea";
 
-const enum SupportType {
+enum SupportType {
     SUGGESTION = "SUGGESTION",
     BUG = "BUG"
 }

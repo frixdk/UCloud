@@ -1,17 +1,10 @@
-import styled from "styled-components";
-import {Theme} from "./theme";
+import {withStyledSystemCompatibility} from "ui-components/Compatibility";
+import {styled} from "@linaria/react";
 
-const maxWidth = (props: {maxWidth?: number | string, theme: Theme}) =>
-  props.maxWidth
-    ? {maxWidth: `${props.maxWidth}px`}
-    : {maxWidth: props.theme.maxContainerWidth};
-
-const Container = styled.div<{maxWidth?: number}> `
+const Container = withStyledSystemCompatibility([], styled.div<{ maxWidth?: number }>`
   margin-left: auto;
   margin-right: auto;
-
-  ${maxWidth};
-`;
+`);
 
 Container.displayName = "Container";
 

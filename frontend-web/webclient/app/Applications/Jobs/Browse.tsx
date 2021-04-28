@@ -24,12 +24,13 @@ import {DatePicker} from "ui-components/DatePicker";
 import {getStartOfDay, getStartOfWeek} from "Activity/Page";
 import {isJobStateTerminal, jobAppTitle, jobAppVersion, JobSortBy, JobState, jobTitle, stateToTitle} from "./index";
 import {JobStateIcon} from "./JobStateIcon";
-import styled from "styled-components";
 import {useToggleSet} from "Utilities/ToggleSet";
 import {compute} from "UCloud";
-import JobsBrowseRequest = compute.JobsBrowseRequest;
+type JobsBrowseRequest = compute.JobsBrowseRequest;
 import {Operation, Operations} from "ui-components/Operation";
 import {creditFormatter} from "Project/ProjectUsage";
+import {styled} from "@linaria/react";
+import {themeColor} from "ui-components/theme";
 
 const itemsPerPage = 50;
 
@@ -178,7 +179,7 @@ export const Browse: React.FunctionComponent = () => {
         header={<Heading.h3>Runs</Heading.h3>}
         main={
             <>
-                <StickyBox backgroundColor="white">
+                <StickyBox background={themeColor("white")}>
                     <Box flexGrow={1}>
                         <Label ml={10} width="auto">
                             <Checkbox

@@ -1,6 +1,5 @@
 import * as React from "react";
 import * as UCloud from "UCloud";
-import jobs = UCloud.compute.jobs;
 import {snackbarStore} from "Snackbar/SnackbarStore";
 import {useCloudAPI} from "Authentication/DataHook";
 import {errorMessageOrDefault, isAbsoluteUrl, shortUUID, useNoFrame} from "UtilityFunctions";
@@ -8,7 +7,7 @@ import {useTitle} from "Navigation/Redux/StatusActions";
 import {useParams} from "react-router";
 import {useCallback, useEffect, useLayoutEffect, useState} from "react";
 import {compute} from "UCloud";
-import JobsOpenInteractiveSessionResponse = compute.JobsOpenInteractiveSessionResponse;
+type JobsOpenInteractiveSessionResponse = compute.JobsOpenInteractiveSessionResponse;
 import RFB from "@novnc/novnc/core/rfb";
 import * as VncLog from '@novnc/novnc/core/util/logging.js';
 import {Box, Button} from "ui-components";
@@ -24,7 +23,7 @@ export const Vnc: React.FunctionComponent = () => {
     const {jobId, rank} = useParams<{ jobId: string, rank: string }>();
     const [isConnected, setConnected] = React.useState(false);
     const [sessionResp] = useCloudAPI<JobsOpenInteractiveSessionResponse | null>(
-        jobs.openInteractiveSession(bulkRequestOf({sessionType: "VNC", id: jobId, rank: parseInt(rank, 10)})),
+        UCloud.compute.jobs.openInteractiveSession(bulkRequestOf({sessionType: "VNC", id: jobId, rank: parseInt(rank, 10)})),
         null
     );
 

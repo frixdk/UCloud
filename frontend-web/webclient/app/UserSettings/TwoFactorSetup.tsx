@@ -6,7 +6,8 @@ import {Button, Divider, ExternalLink, Flex, Input} from "ui-components";
 import Box from "ui-components/Box";
 import * as Heading from "ui-components/Heading";
 import {TwoFactorSetupState} from ".";
-import {getCssVar} from "Utilities/StyledComponentsUtilities";
+import {themeColor} from "ui-components/theme";
+import {getCssVar} from "ui-components/Utils";
 
 const googlePlay = require("Assets/Images/google-play-badge.png");
 const appStore = require("Assets/Images/app-store-badge.png");
@@ -28,7 +29,7 @@ export class TwoFactorSetup extends React.Component<SetStatusLoading & TwoFactor
             <React.StrictMode>
                 <Heading.h2>Two Factor Authentication</Heading.h2>
                 {this.props.mustActivate2fa ? (
-                    <Heading.h3 color={getCssVar("red")}>
+                    <Heading.h3 color={themeColor("red")}>
                         You must activate 2FA for your account before you can continue
                     </Heading.h3>
                 ) : null}
@@ -97,7 +98,7 @@ export class TwoFactorSetup extends React.Component<SetStatusLoading & TwoFactor
                         <p>Once you are ready click the button below to get started:</p>
 
                         <Button
-                            color="green"
+                            color={themeColor("green")}
                             disabled={this.props.loading}
                             onClick={() => this.onSetupStart()}
                         >
@@ -159,7 +160,7 @@ export class TwoFactorSetup extends React.Component<SetStatusLoading & TwoFactor
 
                     <Button
                         mt={8}
-                        color="blue"
+                        color={themeColor("blue")}
                         type="submit"
                         disabled={this.props.loading}
                     >

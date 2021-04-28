@@ -1,4 +1,3 @@
-import styled from "styled-components";
 import * as React from "react";
 import {Button} from "ui-components/index";
 import {useCallback, useLayoutEffect, useRef, useState} from "react";
@@ -6,19 +5,20 @@ import {ButtonProps} from "ui-components/Button";
 import Icon, {IconName} from "ui-components/Icon";
 import {shakeAnimation} from "UtilityComponents";
 import {doNothing} from "UtilityFunctions";
-import {fontSize, FontSizeProps} from "styled-system";
-import {selectHoverColor, ThemeColor} from "ui-components/theme";
+import {StyledSystemProperties} from "styled-system";
+import {selectHoverColor, themeColor, ThemeColor} from "ui-components/theme";
+import {styled} from "@linaria/react";
+import {CSSVarThemeColor} from "ui-components/theme";
 
-const Wrapper = styled(Button)<{ align?: "left" | "center", hoverColor?: string } & FontSizeProps>`
+// ${shakeAnimation};
+// & React.DetailedHTMLProps<React.ButtonHTMLAttributes<HTMLButtonElement>, HTMLButtonElement>>``;
+const Wrapper = styled(Button)<{ align?: "left" | "center", hoverColor?: CSSVarThemeColor }>`
   --progress-border: var(--background, #f00);
   --progress-active: var(--white, #f00);
   --progress-success: var(--color, #f00);
-  --color: var(--${p => p.textColor}, #f00);
-  --background: var(--${p => p.color}, #f00);
+  --color: ${p => p.textColor!};
+  --background: ${p => p.color!};
   --tick-stroke: var(--progress-active);
-
-  ${shakeAnimation};
-  ${fontSize};
 
   outline: none;
   user-select: none;
@@ -28,12 +28,10 @@ const Wrapper = styled(Button)<{ align?: "left" | "center", hoverColor?: string 
   -webkit-tap-highlight-color: transparent;
   min-width: 200px;
   background: var(--background, #f00);
-  
+
   &:hover {
-    ${p => p.asSquare ? ({
-        "--progress-border": `var(--${p.hoverColor ?? selectHoverColor(p.color ?? "blue")}, #f00)`,
-        "--background": `var(--${p.hoverColor ?? selectHoverColor(p.color ?? "blue")}, #f00)`
-    }) : ({})}
+    --progress-border: ${p => p.asSquare ? p.hoverColor ?? "var(--darkRed)" : "var(--background)"};
+    --background: ${p => p.asSquare ? p.hoverColor ?? "var(--darkRed)" : p.color!};
   }
 
   & > .icons {
@@ -100,13 +98,8 @@ const Wrapper = styled(Button)<{ align?: "left" | "center", hoverColor?: string 
 
   ul {
     padding: 0;
-    margin: 0;
-    ${p => p.align !== "left" ? ({
-      textAlign: "center",
-    }) : ({
-      textAlign: "left",
-    })}
-    ${p => p.align === "left" && p.asSquare ? ({ marginLeft: "34px"}) : ({})}
+    text-align: ${p => p.align !== "left" ? "center" : "left"};
+    margin: 0 0 0 ${p => p.align === "left" && p.asSquare ? "34px" : 0};
     pointer-events: none;
     list-style: none;
     min-width: 80%;
@@ -170,11 +163,7 @@ const Wrapper = styled(Button)<{ align?: "left" | "center", hoverColor?: string 
   }
 
   &:hover {
-    ${p => !p.asSquare ? ({
-      transform: "translateY(-2px)"
-    }) : ({
-      transform: "scale(1)"
-    })}
+    transform: ${p => !p.asSquare ? "translateY(-2px)" : "scale(1)"};
   }
 
   &.success {
@@ -201,7 +190,12 @@ const Wrapper = styled(Button)<{ align?: "left" | "center", hoverColor?: string 
   }
 `;
 
-export const ConfirmationButton: React.FunctionComponent<ButtonProps & {
+Wrapper.defaultProps = {
+    color: themeColor("blue"),
+    textColor: themeColor("white")
+};
+
+export const ConfirmationButton: React.FunctionComponent<StyledSystemProperties & ButtonProps & {
     actionText: string,
     doneText?: string,
     icon: IconName,
@@ -210,7 +204,7 @@ export const ConfirmationButton: React.FunctionComponent<ButtonProps & {
     hoverColor?: ThemeColor;
 }> = props => {
     const buttonRef = useRef<HTMLButtonElement>(null);
-    const timeout = useRef(-1);
+    const timeout = useRef<any>(-1);
     const timer = useRef(1600);
     const tickRate = 50;
     const [showHelp, setShowHelp] = useState(false);
@@ -291,6 +285,7 @@ export const ConfirmationButton: React.FunctionComponent<ButtonProps & {
     const passedProps = {...props};
     delete passedProps.onAction;
 
+    // @ts-ignore
     return <Wrapper {...passedProps} onMouseDown={start} onTouchStart={start} onMouseUp={end} onTouchEnd={end}
                     onClick={doNothing} ref={buttonRef}>
         <div className={"ucloud-native-icons"}>

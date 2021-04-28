@@ -3,13 +3,13 @@ import * as React from "react";
 import {useCallback, useEffect, useRef, useState} from "react";
 import {connect} from "react-redux";
 import {Area, AreaChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis} from "recharts";
-import styled from "styled-components";
 import Box from "ui-components/Box";
 import Flex from "ui-components/Flex";
 import * as Heading from "ui-components/Heading";
 import IndeterminateProgressBar from "ui-components/IndeterminateProgress";
 import ProgressBar from "ui-components/Progress";
 import {groupBy, takeLast} from "Utilities/CollectionUtilities";
+import {styled} from "@linaria/react";
 
 interface DetailedTaskOwnProps {
     taskId: string;
@@ -49,7 +49,7 @@ const DetailedTask: React.FunctionComponent<DetailedTaskOwnProps & DetailedTaskS
                 <p><b>Status:</b> {task.newStatus ?? "No recent status update."}</p>
 
                 {!task.progress ?
-                    <IndeterminateProgressBar color="green" label={task.newTitle ?? ""} /> : (
+                    <IndeterminateProgressBar color="green" label={task.newTitle ?? ""}/> : (
                         <ProgressBar
                             active={true}
                             color="green"
@@ -74,25 +74,27 @@ const DetailedTask: React.FunctionComponent<DetailedTaskOwnProps & DetailedTaskS
                                     {lastElement.asText}
                                 </div>
                             </Flex>
-                            <Container aspect={16 / 9} maxHeight={200}>
-                                <AreaChart data={speeds}>
-                                    <XAxis
-                                        dataKey="clientTimestamp"
-                                        type={"number"}
-                                        domain={["dataMin", "dataMax"]}
-                                        tickFormatter={() => ""}
-                                    />
-                                    <YAxis dataKey="speed" type={"number"} />
-                                    <CartesianGrid strokeDasharray="3 3" />
-                                    <Area
-                                        isAnimationActive={false}
-                                        type="monotone"
-                                        stroke="#8884d8"
-                                        dataKey="speed"
-                                        name={lastElement.title}
-                                    />
-                                </AreaChart>
-                            </Container>
+                            <ContainerWrapper>
+                                <ResponsiveContainer aspect={16 / 9} maxHeight={200}>
+                                    <AreaChart data={speeds}>
+                                        <XAxis
+                                            dataKey="clientTimestamp"
+                                            type={"number"}
+                                            domain={["dataMin", "dataMax"]}
+                                            tickFormatter={() => ""}
+                                        />
+                                        <YAxis dataKey="speed" type={"number"}/>
+                                        <CartesianGrid strokeDasharray="3 3"/>
+                                        <Area
+                                            isAnimationActive={false}
+                                            type="monotone"
+                                            stroke="#8884d8"
+                                            dataKey="speed"
+                                            name={lastElement.title}
+                                        />
+                                    </AreaChart>
+                                </ResponsiveContainer>
+                            </ContainerWrapper>
                         </>
                     );
                 })}
@@ -110,16 +112,16 @@ const DetailedTask: React.FunctionComponent<DetailedTaskOwnProps & DetailedTaskS
     );
 };
 
-const Container = styled(ResponsiveContainer)`
-    & > div > svg {
-        overflow: visible;
-    }
+const ContainerWrapper = styled.div`
+  & > * > div > svg {
+    overflow: visible;
+  }
 `;
 
 const StatusBox = styled.div`
-    margin-top: 16px;
-    flex: 1 1 auto;
-    overflow-y auto;
+  margin-top: 16px;
+  flex: 1 1 auto;
+  overflow-y: auto;
 `;
 
 const mapStateToProps = (state: ReduxObject, props: DetailedTaskOwnProps): DetailedTaskStateProps => ({

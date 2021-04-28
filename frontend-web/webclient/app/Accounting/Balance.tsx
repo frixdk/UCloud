@@ -8,17 +8,17 @@ import {
 } from "Accounting/index";
 import {Text, Tooltip} from "ui-components";
 import {addThousandSeparators, creditFormatter} from "Project/ProjectUsage";
-import styled from "styled-components";
-import {TextAlignProps} from "styled-system";
 import {useGlobalCloudAPI} from "Authentication/DataHook";
+import * as CSS from "csstype";
 import {emptyPage} from "DefaultObjects";
+import {styled} from "@linaria/react";
 
 
 export const Balance: React.FunctionComponent<{
     amount: number;
     productCategory: ProductCategoryId;
     precision?: number;
-} & TextAlignProps> = props => {
+} & {textAlign?: CSS.Property.TextAlign}> = props => {
     return (
         <Tooltip
             position={"top"}

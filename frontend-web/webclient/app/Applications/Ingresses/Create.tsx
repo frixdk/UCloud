@@ -4,7 +4,6 @@ import {useProjectId} from "Project";
 import {useCloudAPI, useCloudCommand} from "Authentication/DataHook";
 import * as UCloud from "UCloud";
 import {accounting, PageV2} from "UCloud";
-import ProductNS = accounting.ProductNS;
 import {Box, Button, Flex, Input, Label, Select, Text} from "ui-components";
 import {snackbarStore} from "Snackbar/SnackbarStore";
 import {Spacer} from "ui-components/Spacer";
@@ -13,7 +12,7 @@ import {bulkRequestOf, emptyPageV2} from "DefaultObjects";
 const Create: React.FunctionComponent<{computeProvider?: string; onCreateFinished?: () => void}> = props => {
     const [selectedProvider, setSelectedProvider] = useState(props.computeProvider);
     const canChangeProvider = props.computeProvider === undefined;
-    const [selectedProduct, setSelectedProduct] = useState<ProductNS.Ingress | null>(null);
+    const [selectedProduct, setSelectedProduct] = useState<accounting.ProductNS.Ingress | null>(null);
     const [, invokeCommand] = useCloudCommand();
     const domainRef = React.useRef<HTMLInputElement>(null);
 
@@ -77,7 +76,7 @@ const Create: React.FunctionComponent<{computeProvider?: string; onCreateFinishe
                 <Label>
                     {!canChangeProvider ? "1" : "2"}. Select Product
                     <Select placeholder="Product..." onChange={e => {
-                        setSelectedProduct(allProducts.data.items.find(it => it.id === e.target.value) as ProductNS.Ingress ?? null);
+                        setSelectedProduct(allProducts.data.items.find(it => it.id === e.target.value) as accounting.ProductNS.Ingress ?? null);
                     }}>
                         <option onClick={() => setSelectedProduct(null)} />
                         {allProducts.data.items.map(product =>

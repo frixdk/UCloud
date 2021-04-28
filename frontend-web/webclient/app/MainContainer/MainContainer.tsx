@@ -1,10 +1,11 @@
 import Spinner from "LoadingIcon/LoadingIcon";
 import * as React from "react";
 import {useSelector} from "react-redux";
-import styled from "styled-components";
 import {Absolute, Box, Hide} from "ui-components";
 import * as Heading from "ui-components/Heading";
 import {ResponsiveReduxObject} from "DefaultObjects";
+import {styled} from "@linaria/react";
+import {themeColor} from "ui-components/theme";
 
 export interface MainContainerProps {
     sidebar?: React.ReactNode;
@@ -33,7 +34,7 @@ export const MainContainer = ({
 
     return (
         <React.StrictMode>
-            <Box backgroundColor="white" ml={leftSidebarSize} pt={topMenuSize} pb={pad} pl={pad} pr="0">
+            <Box background={themeColor("white")} ml={leftSidebarSize} pt={topMenuSize} pb={pad} pl={pad} pr="0">
                 {header && (
                     <HeaderContainer
                         top={topMenuSize}

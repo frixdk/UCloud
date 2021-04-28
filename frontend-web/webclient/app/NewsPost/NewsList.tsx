@@ -93,7 +93,7 @@ export const NewsList: React.FC = () => {
                         <Flex>
                             <Text fontSize={1}>Posted {format(item.showFrom, "HH:mm dd/MM/yy")}</Text>
                             <Box mt="-3px" ml="4px">
-                                <Tag bg={theme.appColors[appColor(hashF(item.category))][0]} label={item.category} />
+                                <Tag label={item.category} />
                             </Box>
                         </Flex>
                         <IsExpired now={now} expiration={item.hideFrom} />

@@ -5,6 +5,7 @@ import {useCallback, useEffect, useRef} from "react";
 import {Box, Button, Checkbox, Input, Label} from "ui-components";
 import * as Heading from "ui-components/Heading";
 import {snackbarStore} from "Snackbar/SnackbarStore";
+import {themeColor} from "ui-components/theme";
 
 interface UserDetailsState {
     placeHolderFirstNames: string;
@@ -128,7 +129,7 @@ export const ChangeUserDetails: React.FunctionComponent<{setLoading: (loading: b
                     <Button
                         mt="1em"
                         type="submit"
-                        color="green"
+                        color={themeColor("green")}
                         disabled={commandLoading}
                     >
                         Update Information

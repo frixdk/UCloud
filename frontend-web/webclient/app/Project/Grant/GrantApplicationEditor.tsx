@@ -31,7 +31,6 @@ import {
     RetrieveBalanceResponse,
     WalletBalance
 } from "Accounting";
-import styled from "styled-components";
 import {DashboardCard} from "Dashboard/Dashboard";
 import {
     approveGrantApplication,
@@ -68,9 +67,8 @@ import {useDispatch} from "react-redux";
 import {setRefreshFunction} from "Navigation/Redux/HeaderActions";
 import {loadingAction} from "Loading";
 import * as UCloud from "UCloud";
-import grantApi = UCloud.grant.grant;
 import {grant} from "UCloud";
-import GrantsRetrieveProductsResponse = grant.GrantsRetrieveProductsResponse;
+type GrantsRetrieveProductsResponse = grant.GrantsRetrieveProductsResponse;
 import {IconName} from "ui-components/Icon";
 import {AppToolLogo} from "Applications/AppToolLogo";
 import ClickableDropdown from "ui-components/ClickableDropdown";
@@ -80,6 +78,7 @@ import {defaultModalStyle} from "Utilities/ModalUtilities";
 import {emptyPage} from "DefaultObjects";
 import {Spacer} from "ui-components/Spacer";
 import {ConfirmationButton} from "ui-components/ConfirmationAction";
+import {styled} from "@linaria/react";
 
 export const RequestForSingleResourceWrapper = styled.div`
   ${Icon} {
@@ -329,7 +328,7 @@ function useRequestInformation(target: RequestTarget): UseRequestInformation {
 
         reloadProducts = useCallback(() => {
             if (targetProject && targetProject !== "unknown") {
-                fetchProducts(grantApi.retrieveProducts({
+                fetchProducts(UCloud.grant.grant.retrieveProducts({
                     projectId: targetProject,
                     recipientType: recipient.type,
                     recipientId:
@@ -1432,7 +1431,7 @@ const PostCommentWrapper = styled.form`
 
 const HelpText = styled.p`
   margin: 0;
-  font-size: ${theme.fontSizes[1]}px;
+  // font-size: {theme.fontSizes[1]}px;
   color: var(--gray, #f00);
 `;
 

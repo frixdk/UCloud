@@ -5,7 +5,7 @@ import * as Heading from "ui-components/Heading";
 import BaseLink from "ui-components/BaseLink";
 import {Widget} from "Applications/Jobs/Widgets";
 import {compute} from "UCloud";
-import ApplicationParameter = compute.ApplicationParameter;
+type ApplicationParameter = compute.ApplicationParameter;
 
 export const PeerResource: React.FunctionComponent<{
     application: UCloud.compute.Application;

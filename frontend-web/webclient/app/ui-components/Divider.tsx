@@ -1,19 +1,16 @@
-import styled from "styled-components";
-import {borderColor, BorderColorProps, space, SpaceProps, width, WidthProps} from "styled-system";
+import {styled} from "@linaria/react";
+import {withStyledSystemCompatibility} from "ui-components/Compatibility";
 
-export type DividerProps = SpaceProps & WidthProps & BorderColorProps;
-
-const Divider = styled.hr <DividerProps>`
+const Divider = withStyledSystemCompatibility([], styled.hr`
   border: 0;
   border-bottom-style: solid;
   border-bottom-width: 1px;
-  ${space} ${width} ${borderColor};
-`;
+`);
 
 Divider.displayName = "Divider";
 
 Divider.defaultProps = {
-    borderColor: "borderGray",
+    borderColor: "var(--borderGray)",
     ml: 0,
     mr: 0
 };

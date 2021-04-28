@@ -10,7 +10,7 @@ import {notificationRead, readAllNotifications} from "Notifications/Redux/Notifi
 import * as React from "react";
 import {connect} from "react-redux";
 import {Dispatch} from "redux";
-import {Box, Button, Card, Flex, Icon, Link, Markdown, Text} from "ui-components";
+import {Box, Button, Card, Flex, Icon, Link, Markdown, Text, theme} from "ui-components";
 import Error from "ui-components/Error";
 import * as Heading from "ui-components/Heading";
 import List from "ui-components/List";
@@ -31,7 +31,7 @@ import {
 import {getProjectNames} from "Utilities/ProjectUtilities";
 import {useProjectStatus} from "Project/cache";
 import {dateToString} from "Utilities/DateUtilities";
-import theme, {ThemeColor} from "ui-components/theme";
+import {themeColor, ThemeColor} from "ui-components/theme";
 import {dispatchSetProjectAction} from "Project/Redux";
 import Table, {TableCell, TableRow} from "ui-components/Table";
 import {Balance} from "Accounting/Balance";
@@ -48,7 +48,7 @@ import {computeUsageInPeriod} from "Project/ProjectDashboard";
 import {useProjectManagementStatus} from "Project";
 import * as UCloud from "UCloud";
 import {accounting, PageV2} from "UCloud";
-import Product = accounting.Product;
+type Product = accounting.Product;
 import {groupBy} from "Utilities/CollectionUtilities";
 import {JobStateIcon} from "Applications/Jobs/JobStateIcon";
 import {isRunExpired} from "Utilities/ApplicationUtilities";
@@ -85,13 +85,13 @@ export const DashboardCard: React.FunctionComponent<{
         height={height}
         width={width}
         minWidth={minWidth}
-        boxShadow="sm"
-        borderWidth={0}
+        boxShadow={theme.shadows[0]}
+        borderWidth={"0"}
         borderRadius={6}
         minHeight={minHeight}
     >
-        <Box style={{borderTop: `5px solid var(--${color}, #f00)`}}/>
-        <Box px={3} py={1} height={"calc(100% - 5px)"}>
+        <Box borderTop={`5px solid var(--${color}, #f00)`}/>
+        <Box px={16} py={4} height={"calc(100% - 5px)"}>
             <Flex alignItems="center">
                 {icon !== undefined ? (
                     <Icon
@@ -99,12 +99,12 @@ export const DashboardCard: React.FunctionComponent<{
                         m={8}
                         ml={0}
                         size="20"
-                        color={theme.colors.darkGray}
+                        color={themeColor("darkGray")}
                     />
                 ) : null}
                 {typeof title === "string" ? <Heading.h3>{title}</Heading.h3> : title ? title : null}
                 <Box flexGrow={1}/>
-                {subtitle ? <Box color={theme.colors.gray}>{subtitle}</Box> : null}
+                {subtitle ? <Box color={themeColor("gray")}>{subtitle}</Box> : null}
             </Flex>
             {!isLoading ? children : <Spinner/>}
         </Box>

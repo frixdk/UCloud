@@ -7,7 +7,6 @@ import {Redirect, useHistory} from "react-router";
 import {Dispatch} from "redux";
 import {Snack} from "Snackbar/Snackbars";
 import {snackbarStore} from "Snackbar/SnackbarStore";
-import styled, {ThemeProvider} from "styled-components";
 import {Absolute, Badge, Box, Button, Divider, Flex, Icon, Relative} from "ui-components";
 import ClickableDropdown from "ui-components/ClickableDropdown";
 import {IconName} from "ui-components/Icon";
@@ -23,6 +22,7 @@ import {
 import {dispatchSetProjectAction} from "Project/Redux";
 import {useProjectStatus} from "Project/cache";
 import {getProjectNames} from "Utilities/ProjectUtilities";
+import {styled} from "@linaria/react";
 
 interface NotificationProps {
     items: Notification[];
@@ -95,14 +95,14 @@ function Notifications(props: Notifications): JSX.Element {
     ));
 
     if (props.redirectTo) {
-        return <Redirect to={props.redirectTo} />;
+        return <Redirect to={props.redirectTo}/>;
     }
 
     const unreadLength = props.items.filter(e => !e.read).length;
     const readAllButton = unreadLength ? (
         <>
             <Button onClick={props.readAll} fullWidth>Mark all as read</Button>
-            <Divider />
+            <Divider/>
         </>
     ) : null;
     return (
@@ -123,18 +123,16 @@ function Notifications(props: Notifications): JSX.Element {
                             />
                         </Flex>
                         {unreadLength > 0 ? (
-                            <ThemeProvider theme={theme}>
-                                <Absolute top="-12px" left="28px">
-                                    <Badge bg="red">{unreadLength}</Badge>
-                                </Absolute>
-                            </ThemeProvider>
+                            <Absolute top="-12px" left="28px">
+                                <Badge bg="red">{unreadLength}</Badge>
+                            </Absolute>
                         ) : null}
                     </Relative>
                 </Flex>
             )}
         >
             <ContentWrapper>
-                {entries.length ? <>{readAllButton}{entries}</> : <NoNotifications />}
+                {entries.length ? <>{readAllButton}{entries}</> : <NoNotifications/>}
             </ContentWrapper>
         </ClickableDropdown>
     );
@@ -142,11 +140,11 @@ function Notifications(props: Notifications): JSX.Element {
 }
 
 const ContentWrapper = styled(Box)`
-    height: 600px;
-    overflow-y: auto;
-    padding: 5px;
-    // this is to compensate for the negative margin in the dropdown element
-    padding-right: 17px;
+  height: 600px;
+  overflow-y: auto;
+  padding: 5px;
+  // this is to compensate for the negative margin in the dropdown element
+  padding-right: 17px;
 `;
 
 const NoNotifications = (): JSX.Element => <TextSpan>No notifications</TextSpan>;
@@ -196,7 +194,7 @@ export function NotificationEntry(props: NotificationEntryProps): JSX.Element {
         if (props.onAction) props.onAction(props.notification);
     }
 
-    function resolveEventType(eventType: string): {name: IconName; color: ThemeColor; color2: ThemeColor} {
+    function resolveEventType(eventType: string): { name: IconName; color: ThemeColor; color2: ThemeColor } {
         switch (eventType) {
             case "REVIEW_PROJECT":
                 return {name: "projects", color: "black", color2: "midGray"};
@@ -217,19 +215,17 @@ export function NotificationEntry(props: NotificationEntryProps): JSX.Element {
     }
 }
 
-const read = (p: {read: boolean; theme: Theme}): {backgroundColor: string} => p.read ?
-    {backgroundColor: "var(--white, #f00)"} : {backgroundColor: "var(--lightGray, #f00)"};
+const NotificationWrapper = styled(Flex) <{ read: boolean }>`
+  background-color: ${p => p.read ? "var(--white)" : "var(--lightGray)"};
+  margin: 0.1em 0.1em 0.1em 0.1em;
+  padding: 0.3em 0.3em 0.3em 0.3em;
+  border-radius: 3px;
+  cursor: pointer;
+  width: 100%;
 
-const NotificationWrapper = styled(Flex) <{read: boolean}>`
-    ${read};
-    margin: 0.1em 0.1em 0.1em 0.1em;
-    padding: 0.3em 0.3em 0.3em 0.3em;
-    border-radius: 3px;
-    cursor: pointer;
-    width: 100%;
-    &:hover {
-        background-color: var(--lightGray, #f00);
-    }
+  &:hover {
+    background-color: var(--lightGray, #f00);
+  }
 `;
 
 interface NotificationsOperations {

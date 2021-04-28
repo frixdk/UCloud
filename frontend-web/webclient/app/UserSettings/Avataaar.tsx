@@ -14,6 +14,7 @@ import {findAvatarQuery} from "Utilities/AvatarUtilities";
 import {errorMessageOrDefault} from "UtilityFunctions";
 import * as Options from "./AvatarOptions";
 import {saveAvatar} from "./Redux/AvataaarActions";
+import {themeColor} from "ui-components/theme";
 
 type AvataaarModificationStateProps = AvatarType;
 
@@ -55,7 +56,7 @@ function Modification(props: AvataaarModificationOperations): JSX.Element {
                             onClick={() => props.save(avatar)}
                             mt="5px"
                             mb="5px"
-                            color="blue"
+                            color={themeColor("blue")}
                         >
                             Update avatar
                         </OutlineButton>

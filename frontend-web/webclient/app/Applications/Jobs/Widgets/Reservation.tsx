@@ -12,7 +12,6 @@ import {useCloudAPI} from "Authentication/DataHook";
 import {useProjectId} from "Project";
 import {MandatoryField} from "Applications/Jobs/Widgets/index";
 import {accounting} from "UCloud";
-import ProductNS = accounting.ProductNS;
 import {productCategoryEquals} from "Accounting";
 import {emptyPageV2} from "DefaultObjects";
 import {joinToString} from "UtilityFunctions";
@@ -29,7 +28,7 @@ export const ReservationParameter: React.FunctionComponent<{
 }> = ({application, errors, onEstimatedCostChange}) => {
     // Estimated cost
     const [selectedMachine, setSelectedMachine] = useState<UCloud.accounting.ProductNS.Compute | null>(null);
-    const [wallet, fetchWallet] = useCloudAPI<UCloud.PageV2<ProductNS.Compute>>({noop: true}, emptyPageV2);
+    const [wallet, fetchWallet] = useCloudAPI<UCloud.PageV2<accounting.ProductNS.Compute>>({noop: true}, emptyPageV2);
     const balance = !selectedMachine ?
         0 :
         wallet.data.items.find(it => productCategoryEquals(it.category, selectedMachine.category))?.balance ?? 0;
@@ -59,7 +58,7 @@ export const ReservationParameter: React.FunctionComponent<{
         }
     }, [wallet]);
 
-    const allMachines = ([] as ProductNS.Compute[]).concat.apply(
+    const allMachines = ([] as accounting.ProductNS.Compute[]).concat.apply(
         [],
         Object.values(machineSupport.data.productsByProvider).map(products => {
             return products

@@ -26,7 +26,6 @@ import {
     Checkbox
 } from "ui-components";
 import * as Heading from "ui-components/Heading";
-import styled from "styled-components";
 import {addStandardDialog} from "UtilityComponents";
 import {callAPIWithErrorHandler, useAsyncCommand, useCloudAPI} from "Authentication/DataHook";
 import {useHistory, useParams} from "react-router";
@@ -50,6 +49,9 @@ import {
     ToggleSubProjectsRenamingRequest
 } from "Project/Grant";
 import {buildQueryString} from "Utilities/URIUtilities";
+import {styled} from "@linaria/react";
+import {themeColor} from "ui-components/theme";
+import {ButtonStyle} from "ui-components/Button";
 
 const ActionContainer = styled.div`
     & > * {
@@ -61,17 +63,17 @@ const ActionBox = styled.div`
     display: flex;
     margin-bottom: 16px;
     
-    & > ${Box} {
+    & > div {
         flex-grow: 1;
     }
     
-    & > ${Flex} {
+    & > div {
         margin-left: 8px;
         flex-direction: column;
         justify-content: center;
     }
     
-    & > ${Flex} > ${Button} {
+    & > div > ${ButtonStyle} {
         min-width: 100px;
     }
 `;
@@ -273,7 +275,7 @@ const DataManagementPlan: React.FunctionComponent = () => {
                 />
                 <ButtonGroup mt={8}>
                     <Button type={"button"} onClick={updateDmp}>Save Data Management Plan</Button>
-                    <Button type={"button"} onClick={deleteDmp} color={"red"}>Delete Data Management Plan</Button>
+                    <Button type={"button"} onClick={deleteDmp} color={themeColor("red")}>Delete Data Management Plan</Button>
                 </ButtonGroup>
             </Box>
         )}
@@ -481,7 +483,7 @@ export const ArchiveSingleProject: React.FC<ArchiveSingleProjectProps> = props =
                 </Box>
                 <Flex>
                     <Button
-                        color={"orange"}
+                        color={themeColor("orange")}
                         onClick={() => {
                             addStandardDialog({
                                 title: "Are you sure?",
@@ -565,7 +567,7 @@ export const ArchiveProject: React.FC<ArchiveProjectProps> = props => {
                 </Box>
                 <Flex>
                     <Button
-                        color={"orange"}
+                        color={themeColor("orange")}
                         onClick={() => {
                             addStandardDialog({
                                 title: "Are you sure?",
@@ -636,7 +638,7 @@ export const LeaveProject: React.FC<LeaveProjectProps> = props => {
             </Box>
             <Flex>
                 <Button
-                    color="red"
+                    color={themeColor("red")}
                     disabled={props.projectRole === ProjectRole.PI}
                     onClick={() => {
                         addStandardDialog({

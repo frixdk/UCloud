@@ -1,16 +1,16 @@
 import * as React from "react";
-import styled from "styled-components";
-import Button, {ButtonProps} from "./Button";
+import Button, {ButtonProps, ButtonStyle} from "./Button";
 import Icon, {IconName} from "./Icon";
+import {styled} from "@linaria/react";
 
-export interface IconButtonProps extends ButtonProps {
+export interface IconButtonProps {
     name: IconName;
     size?: number | string;
     color?: string;
     onClick?: (e?: React.SyntheticEvent<HTMLButtonElement>) => void;
 }
 
-const TransparentButton = styled(Button)`
+const TransparentButton = styled.button`
   padding: 0;
   height: auto;
   background-color: transparent;
@@ -22,7 +22,7 @@ const TransparentButton = styled(Button)`
 `;
 
 const IconButton = ({name, size, ...props}: IconButtonProps): JSX.Element => (
-    <TransparentButton {...props}>
+    <TransparentButton {...props} className={ButtonStyle}>
         <Icon name={name} size={size} />
     </TransparentButton>
 );

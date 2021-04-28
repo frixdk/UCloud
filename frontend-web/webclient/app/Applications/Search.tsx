@@ -12,6 +12,7 @@ import * as UCloud from "UCloud";
 import {GridCardGroup} from "ui-components/Grid";
 import {ApplicationCard} from "Applications/Card";
 import * as Pagination from "Pagination";
+import {themeColor} from "ui-components/theme";
 
 interface SearchQuery {
     tags: string[];
@@ -130,7 +131,7 @@ export const SearchWidget: React.FunctionComponent<{ partOfResults?: boolean }> 
             pl="0.5em"
             pr="0.5em"
             maxWidth={"500px"}
-            margin={"0 auto"}
+            m={"0 auto"}
             mb={partOfResults ? "50px" : undefined}
         >
             <Box mt="0.5em">
@@ -172,7 +173,7 @@ export const SearchWidget: React.FunctionComponent<{ partOfResults?: boolean }> 
                             onClick={toggleShowAllVersions}
                         />
                     </Label>
-                    <Button mt="0.5em" type="submit" fullWidth color="blue">Search</Button>
+                    <Button mt="0.5em" type="submit" fullWidth color={themeColor("blue")}>Search</Button>
                 </form>
             </Box>
         </Flex>

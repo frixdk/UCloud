@@ -1,8 +1,8 @@
-import styled from "styled-components";
-import Relative from "./Relative";
+import {styled} from "@linaria/react";
 
-const InlinedRelative = styled(Relative)`
-    display: inline-block;
+const InlinedRelative = styled.div`
+  position: relative;
+  display: inline-block;
 `;
 
 InlinedRelative.displayName = "InlinedRelative";

@@ -8,15 +8,14 @@ import Box from "ui-components/Box";
 import {Button, Link, theme} from "ui-components";
 import {useEffect, useState} from "react";
 import {accounting} from "UCloud";
-import ComputeProductReference = accounting.ProductReference;
-import styled from "styled-components";
-import ProductNS = accounting.ProductNS;
+type ComputeProductReference = accounting.ProductReference;
 import {NoResultsCardBody} from "Dashboard/Dashboard";
+import {styled} from "@linaria/react";
 
 export const reservationMachine = "reservation-machine";
 
 export const Machines: React.FunctionComponent<{
-    machines: ProductNS.Compute[];
+    machines: accounting.ProductNS.Compute[];
     onMachineChange?: (product: UCloud.accounting.ProductNS.Compute) => void;
 }> = props => {
     const [selected, setSelectedOnlyByListener] = useState<UCloud.accounting.ProductNS.Compute | null>(null);
@@ -113,7 +112,7 @@ const Wrapper = styled.div`
     margin-left: -9px;
   }
 
-  & > table > tbody > ${TableRow}:hover {
+  & > table > tbody > tr:hover {
     cursor: pointer;
     background-color: var(--lightGray, #f00);
     color: var(--black, #f00);
@@ -159,14 +158,14 @@ const MachineBox: React.FunctionComponent<{ machine: UCloud.accounting.ProductNS
 const MachineDropdown = styled(Box)`
   cursor: pointer;
   border-radius: 5px;
-  border: ${theme.borderWidth} solid var(--midGray, #f00);
+  // border: {theme.borderWidth} solid var(--midGray, #f00);
   width: 100%;
 
   & p {
     margin: 0;
   }
 
-  & ${Icon} {
+  & svg {
     position: absolute;
     bottom: 15px;
     right: 15px;

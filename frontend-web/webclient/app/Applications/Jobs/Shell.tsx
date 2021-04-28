@@ -7,17 +7,16 @@ import {useParams} from "react-router";
 import {Box, Button} from "ui-components";
 import {isLightThemeStored, shortUUID, useEffectSkipMount, useNoFrame} from "UtilityFunctions";
 import {useTitle} from "Navigation/Redux/StatusActions";
-import {compute} from "UCloud";
-import jobs = compute.jobs;
 import {TermAndShellWrapper} from "Applications/Jobs/TermAndShellWrapper";
 import {bulkRequestOf} from "DefaultObjects";
+import * as UCloud from "UCloud";
 
 
 export const Shell: React.FunctionComponent = () => {
     const {termRef, terminal, fitAddon} = useXTerm();
     const {jobId, rank} = useParams<{jobId: string, rank: string}>();
     const [sessionResp, openSession] = useCloudAPI(
-        jobs.openInteractiveSession(
+        UCloud.compute.jobs.openInteractiveSession(
             bulkRequestOf({id: jobId, rank: parseInt(rank, 10), sessionType: "SHELL"})
         ),
         {sessions: []},
@@ -29,7 +28,7 @@ export const Shell: React.FunctionComponent = () => {
     useTitle(`Job ${shortUUID(jobId)} [Node: ${parseInt(rank, 10) + 1}]`);
 
     useEffectSkipMount(() => {
-        openSession(jobs.openInteractiveSession(
+        openSession(UCloud.compute.jobs.openInteractiveSession(
             bulkRequestOf({id: jobId, rank: parseInt(rank, 10), sessionType: "SHELL"}))
         );
     }, [jobId, rank]);

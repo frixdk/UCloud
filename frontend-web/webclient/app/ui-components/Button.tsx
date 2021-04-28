@@ -1,59 +1,21 @@
-import styled from "styled-components";
-import {ButtonStyleProps, height, HeightProps, SizeProps, space, SpaceProps, width, WidthProps} from "styled-system";
-import theme, {Theme, ThemeColor} from "./theme";
+import {styled} from "@linaria/react";
+import theme, {CSSVarThemeColor, ThemeColor} from "ui-components/theme";
+import {withStyledSystemCompatibility} from "ui-components/Compatibility";
+import {css} from "@linaria/core";
 
-const size = (p: {size: string; theme: Theme}) => {
-    switch (p.size) {
-        case "tiny":
-            return {
-                fontSize: `${theme.fontSizes[0]}px`,
-                padding: "5px 10px"
-            };
-        case "small":
-            return {
-                fontSize: `${theme.fontSizes[0]}px`,
-                padding: "7px 12px"
-            };
-        case "medium":
-            return {
-                fontSize: `${theme.fontSizes[1]}px`,
-                padding: "9.5px 18px"
-            };
-        case "large":
-            return {
-                fontSize: `${theme.fontSizes[2]}px`,
-                padding: "12px 22px"
-            };
-        default:
-            return {
-                fontSize: `${theme.fontSizes[1]}px`,
-                padding: "9.5px 18px"
-            };
-    }
-};
+export const fullWidth = (props: { fullWidth?: boolean }): any => props.fullWidth ? {width: "100%"} : null;
 
-export const fullWidth = (props: {fullWidth?: boolean}) => props.fullWidth ? {width: "100%"} : null;
-
-export const attached = (props: {attached?: boolean}): string | null => props.attached ?
-    `border-top-left-radius: 0;
-    border-bottom-left-radius: 0;`
-    : null;
-
-export const asSquare = (props: {asSquare?: boolean}) => props.asSquare ? {
-    borderRadius: 0
-} : null;
-
-export interface ButtonProps extends ButtonStyleProps, HeightProps, SpaceProps, SizeProps, WidthProps {
+export interface ButtonProps {
     fullWidth?: boolean;
-    textColor?: ThemeColor;
-    color?: string | ThemeColor;
+    textColor?: CSSVarThemeColor;
+    color?: CSSVarThemeColor;
     lineHeight?: number | string;
     title?: string;
     attached?: boolean;
     asSquare?: boolean;
 }
 
-const Button = styled.button<ButtonProps>`
+export const ButtonStyle = css`
   font-smoothing: antialiased;
   display: inline-flex;
   justify-content: center;
@@ -62,14 +24,10 @@ const Button = styled.button<ButtonProps>`
   text-decoration: none;
   font-family: inherit;
   font-weight: ${theme.bold};
-  line-height: ${props => props.lineHeight};
+  line-height: 1.5;
   cursor: pointer;
-  border-radius: ${theme.radius};
-  background-color: var(--${p => p.color}, #f00);
-  color: var(--${p => p.textColor}, #f00);
   border-width: 0;
   border-style: solid;
-
   transition: ${theme.timingFunctions.easeInOut} ${theme.transitionDelays.small};
 
   &:disabled {
@@ -83,14 +41,31 @@ const Button = styled.button<ButtonProps>`
   &:hover {
     transform: translateY(-2px);
   }
-
-  ${attached} ${asSquare} ${fullWidth} ${size} ${space} ${height} ${width};
+  padding: 9.5px 18px;
+  font-size: ${theme.fontSizes[1]}px;
 `;
 
+const Button = withStyledSystemCompatibility(
+    ["fullWidth", "textColor", "color", "lineHeight", "title", "attached", "asSquare"],
+    styled.button<ButtonProps>`
+      background-color: ${p => p.color!};
+      color: ${p => p.textColor!};
+
+      width: ${p => p.fullWidth ? "100%" : "unset"};
+      border-radius: ${p => p.asSquare ? "0" : theme.radius};
+      border-top-left-radius: ${p => p.attached ? "0" : theme.radius};
+      border-bottom-left-radius: ${p => p.attached ? "0" : theme.radius};
+    `,
+    ButtonStyle
+);
+
 Button.defaultProps = {
-    textColor: "white",
-    color: "blue",
-    lineHeight: 1.5
+    textColor: "var(--white)",
+    color: "var(--blue)",
+    lineHeight: 1.5,
+    fullWidth: false,
+    attached: false,
+    asSquare: false
 };
 
 Button.displayName = "Button";

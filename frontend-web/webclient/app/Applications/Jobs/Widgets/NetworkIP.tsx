@@ -8,9 +8,7 @@ import {widgetId, WidgetProps, WidgetSetter, WidgetValidator} from "Applications
 import {PointerInput} from "Applications/Jobs/Widgets/Peer";
 import {useCallback, useLayoutEffect, useState} from "react";
 import {compute} from "UCloud";
-import NetworkIP = compute.NetworkIP;
-import ApplicationParameterNS = compute.ApplicationParameterNS;
-import AppParameterValueNS = compute.AppParameterValueNS;
+type NetworkIP = compute.NetworkIP;
 import {callAPI} from "Authentication/DataHook";
 
 interface NetworkIPProps extends WidgetProps {
@@ -96,10 +94,10 @@ export const NetworkIPSetter: WidgetSetter = (param, value) => {
 
     const selector = findElement(param);
     if (selector === null) throw "Missing element for: " + param.name;
-    selector.value = (value as AppParameterValueNS.Network).id;
+    selector.value = (value as UCloud.compute.AppParameterValueNS.Network).id;
     selector.dispatchEvent(new Event("change"));
 };
 
-function findElement(param: ApplicationParameterNS.NetworkIP): HTMLSelectElement | null {
+function findElement(param: compute.ApplicationParameterNS.NetworkIP): HTMLSelectElement | null {
     return document.getElementById(widgetId(param)) as HTMLSelectElement | null;
 }

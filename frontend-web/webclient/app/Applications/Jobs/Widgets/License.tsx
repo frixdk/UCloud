@@ -2,14 +2,12 @@ import * as React from "react";
 import * as UCloud from "UCloud";
 import {widgetId, WidgetProps, WidgetSetter, WidgetValidator} from "./index";
 import {compute} from "UCloud";
-import ApplicationParameterNS = compute.ApplicationParameterNS;
 import Flex from "ui-components/Flex";
-import AppParameterValueNS = compute.AppParameterValueNS;
 import {PointerInput} from "Applications/Jobs/Widgets/Peer";
 import * as Licenses from "Applications/Licenses";
 import {useCallback, useState} from "react";
 import ReactModal from "react-modal";
-import License = compute.License;
+type License = compute.License;
 import {largeModalStyle} from "Utilities/ModalUtilities";
 
 interface LicenseProps extends WidgetProps {
@@ -70,9 +68,9 @@ export const LicenseSetter: WidgetSetter = (param, value) => {
 
     const selector = findElement(param);
     if (selector === null) throw "Missing element for: " + param.name;
-    selector.value = (value as AppParameterValueNS.License).id;
+    selector.value = (value as UCloud.compute.AppParameterValueNS.License).id;
 };
 
-function findElement(param: ApplicationParameterNS.LicenseServer): HTMLSelectElement | null {
+function findElement(param: compute.ApplicationParameterNS.LicenseServer): HTMLSelectElement | null {
     return document.getElementById(widgetId(param)) as HTMLSelectElement | null;
 }

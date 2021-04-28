@@ -10,8 +10,8 @@ import {useProjectManagementStatus} from "Project/index";
 import {addGroupMember} from "Project";
 import {MembersList} from "Project/MembersList";
 import * as Pagination from "Pagination";
-import styled from "styled-components";
-import {getCssVar} from "Utilities/StyledComponentsUtilities";
+import {styled} from "@linaria/react";
+import {themeColor} from "ui-components/theme";
 
 const SearchContainer = styled(Flex)`
     flex-wrap: wrap;
@@ -88,7 +88,7 @@ const MembersPanel: React.FunctionComponent = () => {
                     />
                     <Button
                         asSquare
-                        color="green"
+                        color={themeColor("green")}
                         type="button"
                         title="Bulk invite"
                         onClick={async () => {
@@ -198,9 +198,9 @@ const Circle = styled(Box)`
     border-radius: 500px;
     width: 20px;
     height: 20px;
-    border: 1px solid ${getCssVar("black")};
+    border: 1px solid var(--black);
     margin: 4px;
-    marginLeft: 2px;
+    margin-left: 2px;
     cursor: pointer;
 `;
 

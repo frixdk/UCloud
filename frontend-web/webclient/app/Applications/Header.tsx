@@ -1,8 +1,8 @@
 import * as React from "react";
-import styled from "styled-components";
-import * as Heading from "ui-components/Heading";
+import Text from "ui-components/Text";
+import {styled} from "@linaria/react";
 
-const HeaderStyle = styled(Heading.h1)`
+const HeaderStyle = styled(Text)`
     > small {
         padding-left: 10px;
         font-size: 50%;
@@ -10,7 +10,7 @@ const HeaderStyle = styled(Heading.h1)`
 `;
 
 export const Header: React.FunctionComponent<{ name: string, version: string }> = props => (
-    <HeaderStyle>
+    <HeaderStyle as={"h1"}>
         {props.name}
         <small>v. {props.version}</small>
     </HeaderStyle>

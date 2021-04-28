@@ -11,7 +11,6 @@ import * as React from "react";
 import {useState} from "react";
 import {useRouteMatch} from "react-router";
 import {snackbarStore} from "Snackbar/SnackbarStore";
-import styled from "styled-components";
 import {Button, Checkbox, Flex, Icon, Label, Text, VerticalButtonGroup} from "ui-components";
 import Box from "ui-components/Box";
 import ClickableDropdown from "ui-components/ClickableDropdown";
@@ -21,12 +20,14 @@ import Table, {TableCell, TableHeader, TableHeaderCell, TableRow} from "ui-compo
 import {addStandardDialog} from "UtilityComponents";
 import {PropType, stopPropagation} from "UtilityFunctions";
 import {compute} from "UCloud";
-import ApplicationSummaryWithFavorite = compute.ApplicationSummaryWithFavorite;
+type ApplicationSummaryWithFavorite = compute.ApplicationSummaryWithFavorite;
 import {clearLogo, uploadLogo} from "Applications/api";
 import {useLoading, useTitle} from "Navigation/Redux/StatusActions";
 import {SidebarPages, useSidebarPage} from "ui-components/Sidebar";
 import {usePrioritizedSearch} from "Utilities/SearchUtilities";
 import {useRefreshFunction} from "Navigation/Redux/HeaderActions";
+import {styled} from "@linaria/react";
+import {themeColor} from "ui-components/theme";
 
 interface AppVersion {
     version: string;
@@ -163,7 +164,7 @@ export const App: React.FunctionComponent = () => {
 
                     <Button
                         type="button"
-                        color="red"
+                        color={themeColor("red")}
                         disabled={commandLoading}
                         onClick={async () => {
                             await invokeCommand(clearLogo({type: "APPLICATION", name}));
@@ -187,7 +188,7 @@ export const App: React.FunctionComponent = () => {
                                     </Box>
                                     <Box>
                                         <Button
-                                            color={"red"}
+                                            color={themeColor("red")}
                                             type={"button"}
 
                                             disabled={commandLoading}
@@ -375,7 +376,7 @@ export const App: React.FunctionComponent = () => {
                                                     <TableCell>{prettifyAccessRight(permissionEntry.permission)}</TableCell>
                                                     <TableCell textAlign="right">
                                                         <Button
-                                                            color={"red"}
+                                                            color={themeColor("red")}
                                                             type={"button"}
                                                             onClick={() => addStandardDialog({
                                                                 title: `Are you sure?`,

@@ -2,7 +2,6 @@ import {emptyPage} from "DefaultObjects";
 import {MainContainer} from "MainContainer/MainContainer";
 import * as React from "react";
 import {useCallback, useEffect, useState} from "react";
-import styled from "styled-components";
 import {Box, Flex, Link} from "ui-components";
 import Grid from "ui-components/Grid";
 import * as Heading from "ui-components/Heading";
@@ -17,8 +16,9 @@ import {useRefreshFunction} from "Navigation/Redux/HeaderActions";
 import {useCloudAPI, useCloudCommand} from "Authentication/DataHook";
 import * as UCloud from "UCloud";
 import {compute} from "UCloud";
-import ApplicationSummaryWithFavorite = compute.ApplicationSummaryWithFavorite;
+type ApplicationSummaryWithFavorite = compute.ApplicationSummaryWithFavorite;
 import {AppToolLogo} from "Applications/AppToolLogo";
+import {styled} from "@linaria/react";
 
 export const ShowAllTagItem: React.FunctionComponent<{tag?: string}> = props => (
     <Link to={props.tag ? Pages.browseByTag(props.tag) : Pages.browse()}>{props.children}</Link>
@@ -137,7 +137,7 @@ const ToolGroupWrapper = styled(Box)`
     padding-right: 10px;
     margin-top: 30px;
     background-color: var(--appCard, #f00);
-    box-shadow: ${theme.shadows.sm};
+    //box-shadow: {theme.shadows.sm};
     border-radius: 5px;
     background-image: url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxkZWZzPjxwYXR0ZXJuIHZpZXdCb3g9IjAgMCBhdXRvIGF1dG8iIHg9IjAiIHk9IjAiIGlkPSJwMSIgd2lkdGg9IjU2IiBwYXR0ZXJuVHJhbnNmb3JtPSJyb3RhdGUoMTUpIHNjYWxlKDAuNSAwLjUpIiBoZWlnaHQ9IjEwMCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTTI4IDY2TDAgNTBMMCAxNkwyOCAwTDU2IDE2TDU2IDUwTDI4IDY2TDI4IDEwMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjYzlkM2RmNDQiIHN0cm9rZS13aWR0aD0iMS41Ij48L3BhdGg+PHBhdGggZD0iTTI4IDBMMjggMzRMMCA1MEwwIDg0TDI4IDEwMEw1NiA4NEw1NiA1MEwyOCAzNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjYzlkM2RmNDQiIHN0cm9rZS13aWR0aD0iNCI+PC9wYXRoPjwvcGF0dGVybj48L2RlZnM+PHJlY3QgZmlsbD0idXJsKCNwMSkiIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPjwvcmVjdD48L3N2Zz4=");
 `;
@@ -178,13 +178,15 @@ const TagGridTopBox = styled.div<TagGridBoxProps>`
     background-color: var(${props => props.isFavorite ? "--appStoreFavBg" : "--lightGray"},#f00);
 `;
 
-const TagGridBottomBox = styled.div<TagGridBoxProps>`
+const TagGridBottomBox = styled.div<TagGridBoxProps>``;
+/*
     padding: 0px 10px 15px 10px;
-    ${props => props.isFavorite ? null : "overflow-x: scroll;"}
+    ${props => props.isFavorite ? "" : "overflow-x: scroll;"}
     border-bottom-left-radius: 10px;
     border-bottom-right-radius: 10px;
     background-color: var(${props => props.isFavorite ? "--appStoreFavBg" : "--lightGray"},#f00);
 `;
+ */
 
 
 interface TagGridProps {

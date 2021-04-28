@@ -1,9 +1,8 @@
 import * as React from "react";
 import * as UCloud from "UCloud";
 import {Operation, Operations} from "ui-components/Operation";
-import templateApi = UCloud.file.orchestrator.metadata_template;
 import {file, PageV2} from "UCloud";
-import FileMetadataTemplate = file.orchestrator.FileMetadataTemplate;
+type FileMetadataTemplate = file.orchestrator.FileMetadataTemplate;
 import {InvokeCommand, useCloudAPI, useCloudCommand} from "Authentication/DataHook";
 import {bulkRequestOf} from "DefaultObjects";
 import {useCallback, useEffect, useMemo, useState} from "react";
@@ -41,13 +40,13 @@ const Browse: React.FunctionComponent<{
     const projectId = useProjectId();
 
     const reload = useCallback(() => {
-        fetchTemplates(templateApi.browse({itemsPerPage: 100}));
+        fetchTemplates(file.orchestrator.metadata_template.browse({itemsPerPage: 100}));
         setScrollGeneration(prev => prev + 1);
     }, [projectId]);
     useEffect(reload, [reload]);
 
     const loadMore = useCallback(() => {
-        fetchTemplates(templateApi.browse({itemsPerPage: 100, next: templates?.data?.next}));
+        fetchTemplates(file.orchestrator.metadata_template.browse({itemsPerPage: 100, next: templates?.data?.next}));
     }, [templates]);
 
     const pageRenderer: PageRenderer<FileMetadataTemplate> = useCallback((items) => {
@@ -195,7 +194,7 @@ const operations: Operation<FileMetadataTemplate, Callbacks>[] = [
         enabled: (selected, cb) => selected.length >= 1,
         onClick: async (selected, cb) => {
             if (cb.commandLoading) return;
-            await cb.invokeCommand(templateApi.deprecate(bulkRequestOf(
+            await cb.invokeCommand(file.orchestrator.metadata_template.deprecate(bulkRequestOf(
                 ...selected.map(it => ({id: it.id}))
             )));
             cb.reload();

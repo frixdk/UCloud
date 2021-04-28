@@ -1,34 +1,14 @@
-import styled from "styled-components";
-import {
-    bottom,
-    BottomProps,
-    boxShadow,
-    BoxShadowProps,
-    height,
-    left,
-    LeftProps,
-    right,
-    RightProps,
-    top,
-    TopProps,
-    HeightProps,
-} from "styled-system";
-import {Button} from "ui-components";
-import {CSSVarThemeColor} from "./theme";
+import theme, {CSSVarThemeColor} from "./theme";
 import {Cursor} from "./Types";
-
-interface FullWidthProps {fullWidth?: boolean}
-const useFullWidth = ({fullWidth}: FullWidthProps) => fullWidth ? {width: "100%"} : null;
+import {styled} from "@linaria/react";
 
 export const Dropdown = styled.div<DropdownProps>`
-    position: relative;
-    display: inline-block;
-    ${useFullWidth};
-    ${props => props.hover ?
-        `&:hover > div {
-            display: block;
-        }` : ""
-    }
+  position: relative;
+  display: inline-block;
+  width: ${p => p.fullWidth ? "100%": "auto"};
+  &:hover > div {
+    display: ${p => p.hover ? "block" : "none"};
+  }
 `;
 
 Dropdown.defaultProps = {
@@ -41,71 +21,58 @@ interface DropdownProps {
 }
 
 export const DropdownContent = styled.div<DropdownContentProps>`
-    ${props => props.overflow ?
-        `overflow: ${props.overflow};` :
-        `overflow-y: auto;
-        overflow-x: hidden;`
-    }
-    border-bottom-left-radius: 5px;
-    border-bottom-right-radius: 5px;
-    border-top-left-radius: ${props => props.squareTop ? "0" : "5px"};
-    border-top-right-radius: ${props => props.squareTop ? "0" : "5px"};
-    ${boxShadow}
-    ${props => props.hover ? "display: none;" : ""}
-    position: absolute;
-    background-color: var(${p => p.backgroundColor}, #f00);
-    color: var(--${p => p.color}, #f00);
-    width: ${props => props.width};
-    ${props => props.minWidth ? `min-width: ${props.minWidth};` : "min-width: 138px;"}
-    max-height: ${props => props.maxHeight ? props.maxHeight : ""};
-    padding: 12px 16px;
-    z-index: 47;
-    text-align: left;
-    cursor: ${props => props.cursor};
-    visibility: ${props => props.visible ? "visible" : "hidden"};
-    opacity: ${props => props.visible ? 1 : 0};
-    pointer-events: ${props => props.visible ? "auto" : "none"};
+  overflow: visible;
+  overflow-y: auto;
+  overflow-x: hidden;
+  border-bottom-left-radius: 5px;
+  border-bottom-right-radius: 5px;
+  border-top-left-radius: ${props => props.squareTop ? "0" : "5px"};
+  border-top-right-radius: ${props => props.squareTop ? "0" : "5px"};
+  display: ${props => props.hover ? "none" : "block"};
+  position: absolute;
+  background-color: ${p => p.backgroundColor!};
+  color: var(--${p => p.color ?? "black"}, #f00);
+  width: ${props => props.width ?? "auto"};
+  min-width: ${props => props.minWidth ?? "138px"};
+  max-height: ${props => props.maxHeight ? props.maxHeight : "auto"};
+  padding: 12px 16px;
+  z-index: 47;
+  text-align: left;
+  cursor: ${props => props.cursor ?? "auto"};
+  visibility: ${props => props.visible ? "visible" : "hidden"};
+  opacity: ${props => props.visible ? 1 : 0};
+  pointer-events: ${props => props.visible ? "auto" : "none"};
+  box-shadow: ${theme.shadows[1]};
 
-    ${props => props.colorOnHover ? `
-        & > *:hover:not(${Button}) {
-            background-color: var(--lightBlue);
-        }` : null};
-
-    & > div {
-        margin-left: -17px;
-        margin-right: -17px;
-        padding-left: 17px;
-    }
-
-    ${top} ${left} ${right} ${bottom} ${height};
+  & > div {
+    margin-left: -17px;
+    margin-right: -17px;
+    padding-left: 17px;
+  }
 `;
 
 DropdownContent.defaultProps = {
     squareTop: false,
     hover: true,
     width: "138px",
-    backgroundColor: "--white",
+    backgroundColor: "var(--white)",
     color: "black",
-    colorOnHover: true,
     disabled: false,
     cursor: "pointer",
     minWidth: "138px",
-    boxShadow: "md",
     visible: false
 };
 
 Dropdown.displayName = "Dropdown";
 
-interface DropdownContentProps extends RightProps, LeftProps, TopProps, BottomProps, BoxShadowProps, HeightProps {
+interface DropdownContentProps {
     hover?: boolean;
     width?: string | number;
     disabled?: boolean;
-    overflow?: string;
     minWidth?: string;
     maxHeight?: number | string;
     cursor?: Cursor;
     backgroundColor?: CSSVarThemeColor;
-    colorOnHover?: boolean;
     squareTop?: boolean;
     visible?: boolean;
 }

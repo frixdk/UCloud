@@ -1,7 +1,7 @@
 import * as UCloud from "UCloud";
 import * as React from "react";
 import {BulkRequest, provider} from "UCloud";
-import ResourceDoc = provider.ResourceDoc;
+type ResourceDoc = provider.ResourceDoc;
 import {IconName} from "ui-components/Icon";
 import {Box} from "ui-components/index";
 import Flex from "ui-components/Flex";
@@ -46,7 +46,7 @@ export function ResourcePage<T extends ResourceDoc>(props: ResourcePageProps<T>)
     const filteredUpdates = props.entity.updates.filter((update) => !(update["state"] === null && !update.status));
     return <>
         {props.beforeStats}
-        <Grid width={"500px"} margin={"0 auto"} gridGap={"32px"}>
+        <Grid width={"500px"} m={"0 auto"} gridGap={"32px"}>
             <Section>
                 {!(props.showId ?? true) ? null :
                     <Flex>

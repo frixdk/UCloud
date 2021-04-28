@@ -1,15 +1,15 @@
 import * as React from "react";
-import {SpaceProps} from "styled-system";
 import Icon, {IconName} from "ui-components/Icon";
-import {colors, ThemeColor} from "ui-components/theme";
+import {themeColor, ThemeColor} from "ui-components/theme";
 import {JobState} from "Applications/Jobs/index";
+import {StyledSystemProperties} from "styled-system";
 
 export const JobStateIcon: React.FunctionComponent<{
     state?: JobState;
     isExpired: boolean;
     size?: number | string;
     color?: ThemeColor;
-} & SpaceProps> = ({isExpired, ...props}) => {
+} & StyledSystemProperties> = ({isExpired, ...props}) => {
     if (!props.state) return null;
     let iconName: IconName;
     // let defaultColor: ThemeColor = "iconColor";
@@ -17,9 +17,10 @@ export const JobStateIcon: React.FunctionComponent<{
 
     if (isExpired) {
         return (
+            // @ts-ignore
             <Icon
                 name="chrono"
-                color="orange"
+                color={themeColor("orange")}
                 size={props.size}
                 {...props}
             />
@@ -59,9 +60,10 @@ export const JobStateIcon: React.FunctionComponent<{
     const color = props.color !== undefined ? props.color : defaultColor;
 
     return (
+        // @ts-ignore
         <Icon
             name={iconName}
-            color={color ? colors[color] : undefined}
+            color={color ? themeColor(color) : undefined}
             size={props.size}
             {...props}
         />

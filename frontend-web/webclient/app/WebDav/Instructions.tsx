@@ -1,12 +1,12 @@
 import {useCallback, useState} from "react";
 import * as React from "react";
-import styled from "styled-components";
 import Box from "ui-components/Box";
 import Button from "ui-components/Button";
 import * as Heading from "ui-components/Heading";
 import Icon from "ui-components/Icon";
 import {Spacer} from "ui-components/Spacer";
 import {inDevEnvironment} from "UtilityFunctions";
+import {styled} from "@linaria/react";
 const CONF = require("../../site.config.json");
 
 const win1 = require("Assets/Images/webdav/win_dav_1.png");

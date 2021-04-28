@@ -10,7 +10,6 @@ import {SidebarPages, useSidebarPage} from "ui-components/Sidebar";
 import {useTitle} from "Navigation/Redux/StatusActions";
 import {joinToString, shortUUID, timestampUnixMs, useEffectSkipMount} from "UtilityFunctions";
 import {AppToolLogo} from "Applications/AppToolLogo";
-import styled, {keyframes} from "styled-components";
 import {Box, Button, Flex, Icon, Link} from "ui-components";
 import {DashboardCard} from "Dashboard/Dashboard";
 import {IconName} from "ui-components/Icon";
@@ -21,22 +20,26 @@ import {appendToXterm, useXTerm} from "Applications/Jobs/xterm";
 import {arrayToPage} from "Types";
 import {Client, WSFactory} from "Authentication/HttpClientInstance";
 import {compute} from "UCloud";
-import Job = compute.Job;
+type Job = compute.Job;
 import {dateToString, dateToTimeOfDayString} from "Utilities/DateUtilities";
-import AppParameterValueNS = compute.AppParameterValueNS;
-import JobUpdate = compute.JobUpdate;
+type JobUpdate = compute.JobUpdate;
 import {creditFormatter} from "Project/ProjectUsage";
-import JobStatus = compute.JobStatus;
-import {margin, MarginProps} from "styled-system";
+type JobStatus = compute.JobStatus;
 import {useProjectStatus} from "Project/cache";
 import {ProjectName} from "Project";
 import {getProjectNames} from "Utilities/ProjectUtilities";
 import {ConfirmationButton} from "ui-components/ConfirmationAction";
-import JobSpecification = compute.JobSpecification;
+type JobSpecification = compute.JobSpecification;
 import {bulkRequestOf} from "DefaultObjects";
 import {retrieveBalance, RetrieveBalanceResponse} from "Accounting";
 import {addStandardDialog} from "UtilityComponents";
+import {styled} from "@linaria/react";
+import {themeColor} from "ui-components/theme";
+import * as UCloud from "UCloud";
+import {withStyledSystemCompatibility} from "ui-components/Compatibility";
+import {css} from "@linaria/core";
 
+/*
 const enterAnimation = keyframes`
   from {
     transform: scale3d(1, 1, 1);
@@ -67,6 +70,7 @@ const zoomInAnim = keyframes`
     opacity: 1;
   }
 `;
+*/
 
 const Container = styled.div`
   --logoScale: 1;
@@ -91,7 +95,7 @@ const Container = styled.div`
     position: absolute;
     left: 0;
     top: 0;
-    animation: 800ms ${zoomInAnim};
+    // animation: 800ms {zoomInAnim};
   }
 
   .logo-wrapper.active {
@@ -165,7 +169,7 @@ const Container = styled.div`
   }
 
   &.IN_QUEUE .logo {
-    animation: 2s ${enterAnimation} infinite;
+    // animation: 2s {enterAnimation} infinite;
   }
 
   &.RUNNING {
@@ -322,8 +326,8 @@ export const View: React.FunctionComponent = () => {
     }, [status]);
 
     useEffect(() => {
-        let t1: number | undefined;
-        let t2: number | undefined;
+        let t1: any | undefined;
+        let t2: any | undefined;
         if (job) {
             t1 = setTimeout(() => {
                 setDataAnimationAllowed(true);
@@ -426,7 +430,7 @@ export const View: React.FunctionComponent = () => {
                             </Flex>
 
                             <Content>
-                                <Box width={"100%"} maxWidth={"1572px"} margin={"32px auto"}>
+                                <Box width={"100%"} maxWidth={"1572px"} m={"32px auto"}>
                                     <DashboardCard color={"purple"}>
                                         <Box py={"16px"}>
                                             <ProviderUpdates job={job} updateListeners={jobUpdateCallbackHandlers}/>
@@ -529,7 +533,7 @@ const BusyWrapper = styled(Box)`
   display: none;
 
   &.active {
-    animation: 1s ${busyAnim};
+    // animation: 1s {busyAnim};
     display: block;
   }
 `;
@@ -736,34 +740,35 @@ const RunningInfoWrapper = styled.div`
   justify-content: center;
 `;
 
-const AltButtonGroup = styled.div<{ minButtonWidth: string } & MarginProps>`
+const AltButtonGroupStyle = css`
   display: grid;
   width: 100%;
-  grid-template-columns: repeat(auto-fit, minmax(${props => props.minButtonWidth}, max-content));
   grid-gap: 8px;
-  ${margin}
 `;
+const AltButtonGroup = withStyledSystemCompatibility(["minButtonWidth"], styled.div<{ minButtonWidth: string }>`
+  grid-template-columns: repeat(auto-fit, minmax(${props => props.minButtonWidth}, max-content));
+`, AltButtonGroupStyle);
 
 AltButtonGroup.defaultProps = {
-    marginTop: "8px",
-    marginBottom: "8px"
+    mt: "8px",
+    mb: "8px"
 };
 
-function jobFiles(parameters: JobSpecification): Record<string, AppParameterValueNS.File> {
-    const result: Record<string, AppParameterValueNS.File> = {};
+function jobFiles(parameters: JobSpecification): Record<string, UCloud.compute.AppParameterValueNS.File> {
+    const result: Record<string, UCloud.compute.AppParameterValueNS.File> = {};
     const userParams = parameters.parameters ?? {};
 
     for (const paramName of Object.keys(parameters.parameters ?? {})) {
         const value = userParams[paramName];
         if (value.type !== "file") continue;
-        result[paramName] = value as AppParameterValueNS.File;
+        result[paramName] = value as UCloud.compute.AppParameterValueNS.File;
     }
 
     let i = 0;
     const randomString = Math.random().toString();
     for (const resource of parameters.resources ?? []) {
         if (resource.type !== "file") continue;
-        result[`${randomString}_resourceParam${i++}`] = resource as AppParameterValueNS.File;
+        result[`${randomString}_resourceParam${i++}`] = resource as UCloud.compute.AppParameterValueNS.File;
     }
 
     return result;
@@ -883,7 +888,7 @@ const RunningContent: React.FunctionComponent<{
                         {!expiresAt || !supportsExtension ? null :
                             <Box>
                                 Extend allocation (hours):
-                                <AltButtonGroup minButtonWidth={"50px"} marginBottom={0}>
+                                <AltButtonGroup minButtonWidth={"50px"} mb={0}>
                                     <Button data-duration={"1"} onClick={extendJob}>+1</Button>
                                     <Button data-duration={"6"} onClick={extendJob}>+6</Button>
                                     <Button data-duration={"12"} onClick={extendJob}>+12</Button>
@@ -949,7 +954,7 @@ const RunningJobRankWrapper = styled.div`
     flex-direction: column;
   }
 
-  .buttons ${Button} {
+  .buttons button {
     margin-top: 8px;
     width: 100%;
   }
@@ -1050,7 +1055,7 @@ const RunningJobRank: React.FunctionComponent<{
 
 const CompletedTextWrapper = styled.div`
   ${deviceBreakpoint({maxWidth: "1000px"})} {
-    ${AltButtonGroup} {
+    ${AltButtonGroupStyle} {
       justify-content: center;
     }
   }
@@ -1191,7 +1196,7 @@ const CancelButton: React.FunctionComponent<{
     }, [loading]);
 
     return <ConfirmationButton
-        color={"red"} icon={"trash"} onAction={onCancel} fullWidth={fullWidth}
+        color={themeColor("red")} icon={"trash"} onAction={onCancel} fullWidth={fullWidth}
         actionText={state !== "IN_QUEUE" ? "Stop application" : "Cancel reservation"}
     />;
 };

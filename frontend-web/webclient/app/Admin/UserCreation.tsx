@@ -11,6 +11,7 @@ import * as Heading from "ui-components/Heading";
 import {SidebarPages, useSidebarPage} from "ui-components/Sidebar";
 import {defaultErrorHandler} from "UtilityFunctions";
 import {UserCreationState} from ".";
+import {themeColor} from "ui-components/theme";
 
 const initialState: UserCreationState = {
     username: "",
@@ -116,7 +117,7 @@ function UserCreation(props: SetStatusLoading): JSX.Element | null {
                         </Label>
                         <Button
                             type="submit"
-                            color="green"
+                            color={themeColor("green")}
                             disabled={submitted}
                         >
                             Create user

@@ -1,19 +1,19 @@
 import * as React from "react";
-import styled from "styled-components";
 import Icon, {IconName} from "./Icon";
-import {Flex,Box} from "ui-components";
-import {FontSizeProps, fontSize} from "styled-system";
+import {styled} from "@linaria/react";
+import {withStyledSystemCompatibility} from "ui-components/Compatibility";
+import {StyledSystemProperties} from "styled-system";
 
-const RadioTilesContainer = styled(Box)`
+const RadioTilesContainer: React.FunctionComponent<StyledSystemProperties> = withStyledSystemCompatibility([], styled.div`
   align-items: center;
   display: inline-grid;
   grid-auto-flow: column;
   grid-template-columns: repeat(auto);
   column-gap: 5px;
-`;
+`);
 
 const RadioTile = (props: RadioTileProps): JSX.Element => {
-    const {height, label, icon, checked, disabled, fontSize, onChange, name} = props;
+    const {height, label, icon, checked, disabled, onChange, name} = props;
 
     return (
         <RadioTileWrap height={height} checked={checked} disabled={disabled}>
@@ -23,7 +23,7 @@ const RadioTile = (props: RadioTileProps): JSX.Element => {
                 onChange={onChange} />
             <RadioTileIcon>
                 <Icon name={icon} size={props.labeled ? "65%" : "85%"} />
-                <RadioTileLabel htmlFor={label} fontSize={fontSize}>
+                <RadioTileLabel htmlFor={label}>
                     {props.labeled ? label : undefined}
                 </RadioTileLabel>
             </RadioTileIcon>
@@ -31,7 +31,7 @@ const RadioTile = (props: RadioTileProps): JSX.Element => {
     );
 };
 
-interface RadioTileProps extends RadioTileWrapProps, FontSizeProps {
+interface RadioTileProps extends RadioTileWrapProps {
     label: string;
     icon: IconName;
     name: string;
@@ -70,19 +70,17 @@ const RadioTileWrap = styled.div<RadioTileWrapProps>`
   transition: transform 300ms ease;
 
   &:hover {
-    ${props => props.checked || props.disabled ? null :
-        `
-        transform: translateY(-2px);
-      `
-    }
+    transform: translateY(-2px);
+  }
 
   &:hover > ${RadioTileIcon} {
-    ${props => props.checked || props.disabled ? null :
-        `
-        color: var(--blue, #f00); 
-        border: 1px solid var(--blue, #f00);
-      `
-    };
+    color: var(--blue);
+    border: 1px solid var(--blue);
+  }
+  &:hover > ${RadioTileIcon}:disabled, &:hover > ${RadioTileIcon}:checked {
+    color: inherit;
+    border: inherit;
+    transform: inherit;
   }
 `;
 
@@ -103,14 +101,14 @@ const RadioTileInput = styled.input`
   }
 `;
 
-const RadioTileLabel = styled.label<FontSizeProps>`
-    text-align: center;
-    ${fontSize};
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    line-height: 1;
-    padding-top: 0.1rem;
+const RadioTileLabel = styled.label`
+  text-align: center;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  line-height: 1;
+  padding-top: 0.1rem;
+  font-size: 0.8em;
 `;
 
 export {RadioTilesContainer, RadioTile};

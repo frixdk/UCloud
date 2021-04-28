@@ -1,11 +1,10 @@
 import * as React from "react";
 import * as UCloud from "UCloud";
-import templateApi = UCloud.file.orchestrator.metadata_template;
 import {useHistory} from "react-router";
 import {getQueryParam} from "Utilities/URIUtilities";
 import {useCloudAPI, useCloudCommand} from "Authentication/DataHook";
 import {file} from "UCloud";
-import FileMetadataTemplate = file.orchestrator.FileMetadataTemplate;
+type FileMetadataTemplate = file.orchestrator.FileMetadataTemplate;
 import {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from "react";
 import {useLoading, useTitle} from "Navigation/Redux/StatusActions";
 import {entityName} from "Files/Metadata/Templates/Browse";
@@ -46,7 +45,7 @@ const Create: React.FunctionComponent = props => {
     const inheritRef = useRef<HTMLSelectElement>(null);
 
     const reload = useCallback(() => {
-        if (id) fetchTemplate(templateApi.retrieve({id}));
+        if (id) fetchTemplate(UCloud.file.orchestrator.metadata_template.retrieve({id}));
     }, [id]);
 
     const saveVersion = useCallback(async () => {
@@ -90,7 +89,7 @@ const Create: React.FunctionComponent = props => {
         }
 
         const success = await invokeCommand(
-            templateApi.create(bulkRequestOf({
+            UCloud.file.orchestrator.metadata_template.create(bulkRequestOf({
                 id,
                 title,
                 version,
@@ -162,7 +161,7 @@ const Create: React.FunctionComponent = props => {
         main={
             <Box minHeight={"calc(100vh - 76px - 47px)"} mt={"16px"}>
                 <Box style={{display: stage !== Stage.INFO ? "none" : "block"}}>
-                    <Grid maxWidth={"800px"} margin={"0 auto"} gridGap={"32px"}>
+                    <Grid maxWidth={"800px"} m={"0 auto"} gridGap={"32px"}>
                         <Section gap={"16px"}>
                             <Heading.h3>Information</Heading.h3>
                             <Label>
@@ -272,7 +271,7 @@ const Create: React.FunctionComponent = props => {
                     />
                 }
                 {stage !== Stage.PREVIEW ? null :
-                    <Grid gridGap={"32px"} width={"800px"} margin={"0 auto"}>
+                    <Grid gridGap={"32px"} width={"800px"} m={"0 auto"}>
                         <Section>
                             <Heading.h3>Information</Heading.h3>
                             <ul>

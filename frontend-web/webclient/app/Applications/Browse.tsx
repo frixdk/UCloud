@@ -17,7 +17,7 @@ import {useCallback} from "react";
 import {useCloudAPI, useCloudCommand} from "Authentication/DataHook";
 import {emptyPage} from "DefaultObjects";
 import {compute} from "UCloud";
-import ApplicationSummaryWithFavorite = compute.ApplicationSummaryWithFavorite;
+type ApplicationSummaryWithFavorite = compute.ApplicationSummaryWithFavorite;
 import {ApplicationCard} from "Applications/Card";
 import {GridCardGroup} from "ui-components/Grid";
 

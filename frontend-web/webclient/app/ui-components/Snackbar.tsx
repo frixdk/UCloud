@@ -1,23 +1,8 @@
-import styled, {css, keyframes} from "styled-components";
-import Box from "./Box";
+import {styled} from "@linaria/react";
 
 // https://www.w3schools.com/howto/howto_js_snackbar.asp
 
-const visibility = ({visible}: {visible: boolean}) => visible ? css`
-    visibility: visible;
-    animation: ${fadeIn} 0.5s;
-` : css`visibility: hidden;`;
-
-const fadeIn = keyframes`
-    from {
-        bottom: 0; opacity: 0;
-    }
-    to {
-        bottom: 30px; opacity: 1;
-    }
-`;
-
-export const /* Admiral */ Snackbar = styled(Box) <{visible: boolean}>`
+export const /* Admiral */ Snackbar = styled.div<{visible: boolean}>`
     min-width: 250px;
     width: auto;
     background-color: var(--black, #f00);
@@ -32,7 +17,7 @@ export const /* Admiral */ Snackbar = styled(Box) <{visible: boolean}>`
     bottom: 30px;
     user-select: none;
 
-    ${visibility}
+    visibility: ${p => p.visible ? "visible" : "hidden"};
 `;
 
 Snackbar.displayName = "Snackbar";

@@ -1,6 +1,6 @@
 import {buildQueryString} from "Utilities/URIUtilities";
 import {compute} from "UCloud";
-import NameAndVersion = compute.NameAndVersion;
+type NameAndVersion = compute.NameAndVersion;
 
 export const view = (name: string, version: string): string =>
     `/applications/details/${encodeURIComponent(name)}/${encodeURIComponent(version)}/`;

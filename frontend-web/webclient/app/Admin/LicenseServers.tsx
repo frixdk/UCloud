@@ -4,18 +4,15 @@ import {Client} from "Authentication/HttpClientInstance";
 import {MainContainer} from "MainContainer/MainContainer";
 import * as React from "react";
 import {snackbarStore} from "Snackbar/SnackbarStore";
-import styled from "styled-components";
 import {Box, Button, Flex, Icon, Input, Label, Text, Tooltip, Card, Grid, TextArea, Select, Checkbox} from "ui-components";
 import * as Heading from "ui-components/Heading";
 import Table, {TableCell, TableHeader, TableHeaderCell, TableRow} from "ui-components/Table";
 import {TextSpan} from "ui-components/Text";
-import {addStandardDialog} from "UtilityComponents";
 import {useTitle} from "Navigation/Redux/StatusActions";
 import {useSidebarPage, SidebarPages} from "ui-components/Sidebar";
 import {MutableRefObject, useCallback, useEffect, useRef, useState} from "react";
 import {accounting, compute, PageV2} from "UCloud";
-import KubernetesLicense = compute.ucloud.KubernetesLicense;
-import licenseApi = compute.ucloud.licenses.maintenance;
+type KubernetesLicense = compute.ucloud.KubernetesLicense;
 import {bulkRequestOf, emptyPageV2} from "DefaultObjects";
 import {useRefreshFunction} from "Navigation/Redux/HeaderActions";
 import * as Pagination from "Pagination";
@@ -24,11 +21,13 @@ import {defaultModalStyle} from "Utilities/ModalUtilities";
 import {useProjectStatus} from "Project/cache";
 import {useProjectId} from "Project";
 import {UCLOUD_PROVIDER} from "Accounting";
-import Wallet = accounting.Wallet;
+type Wallet = accounting.Wallet;
 import {PaymentModel} from "Accounting";
 import {errorMessageOrDefault, prettierString, stopPropagation} from "UtilityFunctions";
 import {InputLabel} from "ui-components/Input";
 import {creditFormatter} from "Project/ProjectUsage";
+import {styled} from "@linaria/react";
+import {themeColor} from "ui-components/theme";
 
 const PaymentModelOptions: PaymentModel[] = ["PER_ACTIVATION", "FREE_BUT_REQUIRE_BALANCE"];
 
@@ -111,7 +110,7 @@ const LicenseServerTagsPrompt: React.FunctionComponent<{
                             const newTagList = [...tagList, tagValue]
                             setTagList(newTagList);
                             newTagField.current!.value = "";
-                            await invokeCommand(licenseApi.update(bulkRequestOf({...licenseServer, tags: newTagList})));
+                            await invokeCommand(UCloud.compute.ucloud.licenses.maintenance.update(bulkRequestOf({...licenseServer, tags: newTagList})));
                             if (onUpdate) onUpdate();
                         }}
                     >
@@ -147,15 +146,15 @@ const LicenseServerTagsPrompt: React.FunctionComponent<{
                                         <TableCell>{tagEntry}</TableCell>
                                         <TableCell textAlign="right">
                                             <Button
-                                                color={"red"}
+                                                color={themeColor("red")}
                                                 type={"button"}
-                                                paddingLeft={10}
-                                                paddingRight={10}
+                                                pl={10}
+                                                pr={10}
                                                 onClick={async () => {
                                                     const newTagList = tagList.filter(it => it !== tagEntry);
                                                     setTagList(newTagList);
                                                     await invokeCommand(
-                                                        licenseApi.update(
+                                                        UCloud.compute.ucloud.licenses.maintenance.update(
                                                             bulkRequestOf({...licenseServer, tags: newTagList})
                                                         )
                                                     );
@@ -203,13 +202,13 @@ const LicenseServers: React.FunctionComponent = () => {
     const projectId = useProjectId();
 
     const reload = useCallback(() => {
-        fetchLicenses(licenseApi.browse({}));
+        fetchLicenses(UCloud.compute.ucloud.licenses.maintenance.browse({}));
         setInfScroll(s => s + 1);
     }, []);
     useEffect(reload, [reload]);
 
     const loadMore = useCallback(() => {
-        fetchLicenses(licenseApi.browse({next: licenses.data.next}));
+        fetchLicenses(UCloud.compute.ucloud.licenses.maintenance.browse({next: licenses.data.next}));
     }, [licenses.data]);
 
     const nameInput = useInput();
@@ -291,7 +290,10 @@ const LicenseServers: React.FunctionComponent = () => {
                 priority
             };
             try {
-                await invokeCommand(licenseApi.create(bulkRequestOf(request)), {defaultErrorHandler: false});
+                await invokeCommand(
+                    UCloud.compute.ucloud.licenses.maintenance.create(bulkRequestOf(request)),
+                    {defaultErrorHandler: false}
+                );
                 snackbarStore.addSuccess(`License server '${name}' successfully added`, true);
                 reload();
             } catch (e) {
@@ -312,7 +314,7 @@ const LicenseServers: React.FunctionComponent = () => {
             headerSize={64}
             main={(
                 <>
-                    <Box maxWidth={800} mt={30} marginLeft="auto" marginRight="auto">
+                    <Box maxWidth={800} mt={30} ml="auto" mr="auto">
                         <form onSubmit={e => submit(e)}>
                             <Label mb="1em">
                                 Name
@@ -322,7 +324,7 @@ const LicenseServers: React.FunctionComponent = () => {
                                     placeholder={"Identifiable name for the license server"}
                                 />
                             </Label>
-                            <Box marginBottom={30}>
+                            <Box mb={30}>
                                 <Flex height={45}>
                                     <Label mb="1em">
                                         Address
@@ -410,7 +412,7 @@ const LicenseServers: React.FunctionComponent = () => {
                                 Hide License Server from grant applicants
                             </Label>
 
-                            <Button type="submit" color="green" disabled={loading}>Add License Server</Button>
+                            <Button type="submit" color={themeColor("green")} disabled={loading}>Add License Server</Button>
                         </form>
 
                         {projectId == null ?
@@ -508,7 +510,7 @@ function LicenseServerCard({openLicenses, licenseServer, reload, setOpenLicenses
     /* NOTE(Jonas): Lots of overlap in both branches, but the whole 'isEditing' for each field is cumbersome to  */
     if (isEditing) {
         return (
-            <ExpandingCard height={isAvailable ? "650px" : "720px"} key={licenseServer.id} mb={2} padding={20} borderRadius={5}>
+            <ExpandingCard height={isAvailable ? "650px" : "720px"} key={licenseServer.id} mb={2} p={20} borderRadius={5}>
                 <Heading.h4 mb="1em">{licenseServer.id}</Heading.h4>
                 <Flex mb="1em">
                     <Input width="75%" ref={addressInput} defaultValue={licenseServer.address} />
@@ -580,13 +582,13 @@ function LicenseServerCard({openLicenses, licenseServer, reload, setOpenLicenses
                     </Box>
                 </Flex>
                 <Flex mb="1em">
-                    <Button ml="6px" disabled={loading} color="red" width="50%" onClick={() => setIsEditing(false)}>Cancel</Button>
+                    <Button ml="6px" disabled={loading} color={themeColor("red")} width="50%" onClick={() => setIsEditing(false)}>Cancel</Button>
                     <Button mr="6px" onClick={UpdateLicenseServer} disabled={loading} width="50%">Update</Button>
                 </Flex>
             </ExpandingCard >
         );
     } else {
-        return <ExpandingCard height={isSelected ? (licenseServer.availability.type === "available" ? "466px" : "506px") : "96px"} key={licenseServer.id} mb={2} padding={20} borderRadius={5}>
+        return <ExpandingCard height={isSelected ? (licenseServer.availability.type === "available" ? "466px" : "506px") : "96px"} key={licenseServer.id} mb={2} p={20} borderRadius={5}>
             <Flex justifyContent="space-between">
                 <Box>
                     <Flex>
@@ -707,7 +709,7 @@ function LicenseServerCard({openLicenses, licenseServer, reload, setOpenLicenses
         if (isNaN(pricePerUnit)) return;
 
         try {
-            await invokeCommand(licenseApi.update(bulkRequestOf({
+            await invokeCommand(UCloud.compute.ucloud.licenses.maintenance.update(bulkRequestOf({
                 id: licenseServer.id,
                 address,
                 port,

@@ -6,13 +6,13 @@ import {Operation, Operations} from "ui-components/Operation";
 import {useCallback, useEffect, useMemo, useState} from "react";
 import {useToggleSet} from "Utilities/ToggleSet";
 import {ListRow, ListRowStat, ListStatContainer} from "ui-components/List";
-import FileMetadataHistory = file.orchestrator.FileMetadataHistory;
+type FileMetadataHistory = file.orchestrator.FileMetadataHistory;
 import {AppLogo, hashF} from "Applications/Card";
 import {History as MetadataHistory} from "./History";
 import ReactModal from "react-modal";
 import {defaultModalStyle, largeModalStyle} from "Utilities/ModalUtilities";
 import {default as TemplateBrowse} from "../Templates/Browse";
-import FileMetadataTemplate = file.orchestrator.FileMetadataTemplate;
+type FileMetadataTemplate = file.orchestrator.FileMetadataTemplate;
 
 export const entityName = "Metadata";
 

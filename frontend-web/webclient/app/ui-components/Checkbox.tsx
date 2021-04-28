@@ -1,7 +1,6 @@
 import * as React from "react";
-import styled from "styled-components";
-import {Box, Icon} from ".";
-import {BoxProps} from "./Box";
+import {styled} from "@linaria/react";
+import Icon from "ui-components/Icon";
 
 interface CheckboxProps extends React.InputHTMLAttributes<HTMLInputElement> {
     disabled?: boolean;
@@ -18,11 +17,11 @@ function Checkbox(props: CheckboxProps): JSX.Element {
     );
 }
 
-interface CheckBoxWrapper extends BoxProps {
+interface CheckBoxWrapper {
     disabled: boolean;
 }
 
-const CheckBoxWrapper = styled(Box) <CheckBoxWrapper>`
+const CheckBoxWrapper = styled.div<CheckBoxWrapper>`
   display: inline-block;
   position: relative;
   vertical-align: middle;

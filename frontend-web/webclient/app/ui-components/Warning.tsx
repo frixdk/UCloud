@@ -1,10 +1,10 @@
 import * as React from "react";
-import styled from "styled-components";
 import Box from "ui-components/Box";
 import Flex from "ui-components/Flex";
 import Icon from "ui-components/Icon";
 import Text from "ui-components/Text";
 import {ErrorWrapper} from "./Error";
+import {styled} from "@linaria/react";
 
 interface WarningProps {clearWarning?: () => void; warning?: string; width?: string | number}
 const Warning: React.FunctionComponent<WarningProps> = props => {
@@ -17,7 +17,7 @@ const Warning: React.FunctionComponent<WarningProps> = props => {
 
     return (
         <ErrorWrapper
-            bg="lightYellow"
+            bg={"yellow"}
             borderColor="yellow"
             width={props.width}
         >
