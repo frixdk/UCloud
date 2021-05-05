@@ -18,12 +18,11 @@ import {
     Flex,
     Input,
     Label,
-    Link,
-    SelectableText,
-    SelectableTextWrapper,
     Text,
     TextArea,
-    Checkbox
+    Checkbox,
+    Icon,
+    Grid
 } from "ui-components";
 import * as Heading from "ui-components/Heading";
 import styled from "styled-components";
@@ -51,6 +50,8 @@ import {
     ToggleSubProjectsRenamingRequest
 } from "Project/Grant";
 import {buildQueryString} from "Utilities/URIUtilities";
+import {DashboardCard} from "Dashboard/Dashboard";
+import {SettingsBox} from "UserSettings/UserSettings";
 
 const ActionContainer = styled.div`
     & > * {
@@ -78,33 +79,29 @@ const ActionBox = styled.div`
 `;
 
 enum SettingsPage {
-    AVAILABILITY = "availability",
-    INFO = "info",
-    DMP = "dmp",
-    GRANT_SETTINGS = "grant",
-    SUBPROJECTS = "subprojects"
+    GENERAL = "General",
+    DMP = "DMP",
+    GRANT_SETTINGS = "Grant",
+    CARD_VIEW = "cards"
 }
 
-const PageTab: React.FunctionComponent<{
-    page: SettingsPage,
-    title: string,
-    activePage: SettingsPage
-}> = ({page, title, activePage}) => {
-    return <SelectableText mr={"1em"} fontSize={3} selected={activePage === page}>
-        <Link to={`/project/settings/${page}`}>
-            {title}
-        </Link>
-    </SelectableText>;
-};
+const HoverBox = styled(Box)`
+    &:hover {
+        transform: translateY(-2px);
+    }
+`;
 
 export const ProjectSettings: React.FunctionComponent = () => {
     const {projectId, projectRole, projectDetails, projectDetailsParams, fetchProjectDetails, reloadProjectStatus} =
         useProjectManagementStatus({isRootComponent: true});
-    const params = useParams<{ page?: SettingsPage }>();
-    const page = params.page ?? SettingsPage.AVAILABILITY;
+    const params = useParams<{page?: SettingsPage}>();
+    const page = params.page ?? SettingsPage.CARD_VIEW;
 
     useTitle("Project Settings");
     useSidebarPage(SidebarPages.Projects);
+
+    const history = useHistory();
+
     const [enabled, fetchEnabled] = useCloudAPI<ExternalApplicationsEnabledResponse>(
         {noop: true},
         {enabled: false}
@@ -114,68 +111,135 @@ export const ProjectSettings: React.FunctionComponent = () => {
         fetchEnabled((externalApplicationsEnabled({projectId})));
     }, [projectId]);
 
-    const history = useHistory();
+    const crumbs: {title: string; link?: string}[] = [{title: "Settings", link: page !== SettingsPage.CARD_VIEW ? "/project/settings/" : undefined}]
+
+    if (page !== SettingsPage.CARD_VIEW) {
+        crumbs.push({title: page});
+    }
+
     return (
         <MainContainer
-            header={<ProjectBreadcrumbs crumbs={[{title: "Settings"}]}/>}
+            header={<ProjectBreadcrumbs crumbs={crumbs} />}
             main={
                 <ActionContainer>
-                    <SelectableTextWrapper>
-                        <PageTab activePage={page} page={SettingsPage.AVAILABILITY} title={"Project Availability"}/>
-                        <PageTab activePage={page} page={SettingsPage.INFO} title={"Project Information"}/>
-                        <PageTab activePage={page} page={SettingsPage.DMP} title={"Data Management Plan"}/>
-                        <PageTab activePage={page} page={SettingsPage.SUBPROJECTS} title={"Subprojects"}/>
-                        {!enabled.data.enabled ? null :
-                            <PageTab activePage={page} page={SettingsPage.GRANT_SETTINGS} title={"Grant Settings"}/>
-                        }
-                    </SelectableTextWrapper>
-
-                    {page !== SettingsPage.AVAILABILITY ? null : (
-                        <>
-                            <ArchiveSingleProject
-                                isArchived={projectDetails.data.archived}
-                                projectId={projectId}
-                                projectRole={projectRole}
-                                title={projectDetails.data.title}
-                                onSuccess={() => history.push("/projects")}
-                            />
-                            <Divider/>
-                            <LeaveProject
-                                onSuccess={() => history.push(fileTablePage(Client.homeFolder))}
-                                projectDetails={projectDetails.data}
-                                projectId={projectId}
-                                projectRole={projectRole}
-                            />
-                        </>
+                    {page !== SettingsPage.CARD_VIEW ? null : (
+                        <Grid
+                            pt="20px"
+                            gridGap="15px"
+                            gridTemplateColumns="repeat(auto-fill, 400px)"
+                            style={{gridAutoFlow: "row"}}
+                        >
+                            <HoverBox cursor="pointer">
+                                <DashboardCard onClick={() => history.push(`/project/settings/${SettingsPage.GENERAL}`)} height="200px" width="400px" color="orange">
+                                    <Flex>
+                                        <Box height="100%" ml="-10px" mt="7px" width="30px">
+                                            <Icon name="chrono" />
+                                        </Box>
+                                        <div>
+                                            <Heading.h4 mt="7px">General</Heading.h4>
+                                            <Text>
+                                                - Project Title
+                                            </Text>
+                                            <Text>
+                                                - Project Description
+                                            </Text>
+                                            <Text>
+                                                - Rename Subprojects
+                                            </Text>
+                                            <Text>
+                                                - Project Archival
+                                            </Text>
+                                            <Text>
+                                                - Leave Project
+                                            </Text>
+                                        </div>
+                                    </Flex>
+                                </DashboardCard>
+                            </HoverBox>
+                            <HoverBox cursor="pointer">
+                                <DashboardCard height="200px" width="400px" color="blue" onClick={() => history.push(`/project/settings/${SettingsPage.DMP}`)}>
+                                    <Flex>
+                                        <Box height="100%" ml="-10px" mt="7px" width="30px">
+                                            <Icon name="chrono" />
+                                        </Box>
+                                        <div>
+                                            <Heading.h4 mt="7px">Data Management Plan</Heading.h4>
+                                            <Text>
+                                                - Attach a Data Management Plan
+                                            </Text>
+                                        </div>
+                                    </Flex>
+                                </DashboardCard>
+                            </HoverBox>
+                            {!enabled.data.enabled ? null :
+                                <HoverBox cursor="pointer">
+                                    <DashboardCard height="200px" width="400px" color="green" onClick={() => history.push(`/project/settings/${SettingsPage.GRANT_SETTINGS}`)}>
+                                        <Flex>
+                                            <Box height="100%" ml="-10px" mt="7px" width="30px">
+                                                <Icon name="mail" />
+                                            </Box>
+                                            <div>
+                                                <Heading.h4 mt="7px">Grant Settings</Heading.h4>
+                                                <Text>
+                                                    - Access Control
+                                                </Text>
+                                                <Text>
+                                                    - Automatic Approval
+                                                </Text>
+                                                <Text>
+                                                    - Default Templates
+                                                </Text>
+                                            </div>
+                                        </Flex>
+                                    </DashboardCard>
+                                </HoverBox>
+                            }
+                        </Grid>
                     )}
-                    {page !== SettingsPage.INFO ? null : (
+                    {page !== SettingsPage.GENERAL ? null : (
                         <>
-                            <ChangeProjectTitle
-                                projectId={projectId}
-                                projectDetails={projectDetails.data}
-                                onSuccess={() => {
-                                    fetchProjectDetails(projectDetailsParams);
-                                    reloadProjectStatus();
-                                }}
-                            />
-                            {enabled.data.enabled ? <Divider/> : null}
-                            <LogoAndDescriptionSettings/>
+                            <SettingsBox>
+                                <ChangeProjectTitle
+                                    projectId={projectId}
+                                    projectDetails={projectDetails.data}
+                                    onSuccess={() => {
+                                        fetchProjectDetails(projectDetailsParams);
+                                        reloadProjectStatus();
+                                    }}
+                                />
+                                <SubprojectSettings
+                                    projectId={projectId}
+                                    projectRole={projectRole}
+                                    setLoading={() => false}
+                                />
+                            </SettingsBox>
+                            <SettingsBox>
+                                <ArchiveSingleProject
+                                    isArchived={projectDetails.data.archived}
+                                    projectId={projectId}
+                                    projectRole={projectRole}
+                                    title={projectDetails.data.title}
+                                    onSuccess={() => history.push("/projects")}
+                                />
+                            </SettingsBox>
+                            <SettingsBox outline="red">
+                                <LeaveProject
+                                    onSuccess={() => history.push(fileTablePage(Client.homeFolder))}
+                                    projectDetails={projectDetails.data}
+                                    projectId={projectId}
+                                    projectRole={projectRole}
+                                />
+                            </SettingsBox>
+                            <LogoAndDescriptionSettings />
                         </>
                     )}
                     {page !== SettingsPage.DMP ? null : (
-                        <DataManagementPlan/>
+                        <SettingsBox>
+                            <DataManagementPlan />
+                        </SettingsBox>
                     )}
                     {page !== SettingsPage.GRANT_SETTINGS ? null : (
-                        <GrantProjectSettings/>
-                    )}
-                    {page !== SettingsPage.SUBPROJECTS ? null : (
-                        <>
-                            <SubprojectSettings
-                                projectId={projectId}
-                                projectRole={projectRole}
-                                setLoading={() => false}
-                            />
-                        </>
+                        <GrantProjectSettings />
                     )}
                 </ActionContainer>
             }
@@ -255,13 +319,13 @@ const DataManagementPlan: React.FunctionComponent = () => {
         <TextSpan bold>
             You still need to follow your organization&apos;s policies regarding data management plans.
         </TextSpan>
-        <br/>
+        <br />
 
         <Label>
             Store a copy of this project&apos;s data management plan in UCloud?{" "}
             <Toggle onChange={() => {
                 setHasDmp(!hasDmp);
-            }} checked={hasDmp} scale={1.5}/>
+            }} checked={hasDmp} scale={1.5} />
         </Label>
 
         {!hasDmp ? null : (
@@ -295,61 +359,62 @@ export const ChangeProjectTitle: React.FC<ChangeProjectTitleProps> = props => {
         setAllowRenaming(getRenamingStatus({projectId: props.projectId}))
     }, [props.projectId]);
     return (
-            <Box flexGrow={1}>
-                <form onSubmit={async e => {
-                    e.preventDefault();
+        <Box flexGrow={1}>
+            <form onSubmit={async e => {
+                e.preventDefault();
 
-                    const titleField = newProjectTitle.current;
-                    if (titleField === null) return;
+                const titleField = newProjectTitle.current;
+                if (titleField === null) return;
 
-                    const titleValue = titleField.value;
+                const titleValue = titleField.value;
 
-                    if (titleValue === "") return;
+                if (titleValue === "") return;
 
-                    const success = await invokeCommand(renameProject(
-                        {
-                            id: props.projectId,
-                            newTitle: titleValue
-                        }
-                    )) !== null;
-
-                    if(success) {
-                        props.onSuccess();
-                        snackbarStore.addSuccess("Project renamed successfully", true);
-                    } else {
-                        snackbarStore.addFailure("Renaming of project failed", true);
+                const success = await invokeCommand(renameProject(
+                    {
+                        id: props.projectId,
+                        newTitle: titleValue
                     }
-                }}>
-                    <Heading.h4>Project Title</Heading.h4>
-                    <Flex flexGrow={1}>
-                        <Box minWidth={500}>
-                            <Input
-                                rightLabel
-                                required
-                                type="text"
-                                ref={newProjectTitle}
-                                placeholder="New project title"
-                                autoComplete="off"
-                                onChange={() => {
-                                    if(newProjectTitle.current?.value !== props.projectDetails.title) {
-                                        setSaveDisabled(false);
-                                    } else {
-                                        setSaveDisabled(true);
-                                    }
-                                }}
-                                defaultValue={props.projectDetails.title}
-                                disabled={!allowRenaming.data.allowed}
-                            />
-                        </Box>
-                        <Button
-                            attached
-                            disabled={saveDisabled}
-                        >
-                            Save
+                )) !== null;
+
+                if (success) {
+                    props.onSuccess();
+                    snackbarStore.addSuccess("Project renamed successfully", true);
+                } else {
+                    snackbarStore.addFailure("Renaming of project failed", true);
+                }
+            }}>
+                <Heading.h4>Project Title</Heading.h4>
+                <Flex flexGrow={1}>
+                    <Box minWidth={500}>
+                        <Input
+                            rightLabel
+                            required
+                            mt="4px"
+                            type="text"
+                            ref={newProjectTitle}
+                            placeholder="New project title"
+                            autoComplete="off"
+                            onChange={() => {
+                                if (newProjectTitle.current?.value !== props.projectDetails.title) {
+                                    setSaveDisabled(false);
+                                } else {
+                                    setSaveDisabled(true);
+                                }
+                            }}
+                            defaultValue={props.projectDetails.title}
+                            disabled={!allowRenaming.data.allowed}
+                        />
+                    </Box>
+                    <Button
+                        attached
+                        disabled={saveDisabled}
+                    >
+                        Save
                         </Button>
-                    </Flex>
-                </form>
-            </Box>
+                </Flex>
+            </form>
+        </Box>
     );
 };
 
@@ -416,24 +481,22 @@ const SubprojectSettings: React.FC<AllowRenamingProps> = props => {
 
     return <>
         {props.projectRole === ProjectRole.USER ? null : (
-            <ActionBox>
-                <Box flexGrow={1}>
-                    <Label
-                        fontWeight={"normal"}
-                        fontSize={"2"}
-                    >
-                        <Checkbox
-                            size={24}
-                            checked={allowRenaming.data.allowed}
-                            onClick={() => toggleAndSet()}
-                            onChange={() => undefined}
-                        />
-                        Allow subprojects to rename
-                    </Label>
-                </Box>
-            </ActionBox>
+            <Box flexGrow={1} mt="8px">
+                <Label
+                    fontWeight={"normal"}
+                    fontSize={"2"}
+                >
+                    <Checkbox
+                        size={24}
+                        checked={allowRenaming.data.allowed}
+                        onClick={() => toggleAndSet()}
+                        onChange={() => undefined}
+                    />
+                    Allow subprojects to rename
+                </Label>
+            </Box>
         )}
-        </>
+    </>
 }
 
 
@@ -448,7 +511,7 @@ interface ArchiveSingleProjectProps {
 export const ArchiveSingleProject: React.FC<ArchiveSingleProjectProps> = props => {
     return <>
         {props.projectRole === ProjectRole.USER ? null : (
-            <ActionBox>
+            <div>
                 <Box flexGrow={1}>
                     <Heading.h4>Project Archival</Heading.h4>
                     <Text>
@@ -482,7 +545,7 @@ export const ArchiveSingleProject: React.FC<ArchiveSingleProjectProps> = props =
                 </Box>
                 <Flex>
                     <Button
-                        color={"orange"}
+                        color="orange"
                         onClick={() => {
                             addStandardDialog({
                                 title: "Are you sure?",
@@ -507,7 +570,7 @@ export const ArchiveSingleProject: React.FC<ArchiveSingleProjectProps> = props =
                         {props.isArchived ? "Unarchive" : "Archive"}
                     </Button>
                 </Flex>
-            </ActionBox>
+            </div>
         )}
     </>;
 };
@@ -605,60 +668,57 @@ interface LeaveProjectProps {
 
 export const LeaveProject: React.FC<LeaveProjectProps> = props => {
     return (
-        <ActionBox>
-            <Box flexGrow={1}>
-                <Heading.h4>Leave Project</Heading.h4>
-                <Text>
-                    If you leave the project the following will happen:
+        <Box flexGrow={1}>
+            <Heading.h4>Leave Project</Heading.h4>
+            <Text>
+                If you leave the project the following will happen:
 
                     <ul>
-                        <li>
-                            All files and compute resources owned by the project become
-                            inaccessible to you
+                    <li>
+                        All files and compute resources owned by the project become
+                        inaccessible to you
                         </li>
 
-                        <li>
-                            None of your files in the project will be deleted
+                    <li>
+                        None of your files in the project will be deleted
                         </li>
 
-                        <li>
-                            Project administrators can recover files from your personal directory in
-                            the project
+                    <li>
+                        Project administrators can recover files from your personal directory in
+                        the project
                         </li>
-                    </ul>
-                </Text>
+                </ul>
+            </Text>
 
-                {props.projectRole !== ProjectRole.PI ? null : (
-                    <Text>
-                        <b>You must transfer the principal investigator role to another member before
+            {props.projectRole !== ProjectRole.PI ? null : (
+                <Text>
+                    <b>You must transfer the principal investigator role to another member before
                             leaving the project!</b>
-                    </Text>
-                )}
-            </Box>
-            <Flex>
-                <Button
-                    color="red"
-                    disabled={props.projectRole === ProjectRole.PI}
-                    onClick={() => {
-                        addStandardDialog({
-                            title: "Are you sure?",
-                            message: `Are you sure you wish to leave ${props.projectDetails.title}?`,
-                            onConfirm: async () => {
-                                const success = await callAPIWithErrorHandler(leaveProject({}, props.projectId));
-                                if (success) {
-                                    props.onSuccess();
-                                    dialogStore.success();
-                                }
-                            },
-                            confirmText: "Leave project",
-                            addToFront: true
-                        });
-                    }}
-                >
-                    Leave
-                </Button>
-            </Flex>
-        </ActionBox>
+                </Text>
+            )}
+            <Button
+                mt="4px"
+                color="red"
+                disabled={props.projectRole === ProjectRole.PI}
+                onClick={() => {
+                    addStandardDialog({
+                        title: "Are you sure?",
+                        message: `Are you sure you wish to leave ${props.projectDetails.title}?`,
+                        onConfirm: async () => {
+                            const success = await callAPIWithErrorHandler(leaveProject({}, props.projectId));
+                            if (success) {
+                                props.onSuccess();
+                                dialogStore.success();
+                            }
+                        },
+                        confirmText: "Leave project",
+                        addToFront: true
+                    });
+                }}
+            >
+                Leave
+            </Button>
+        </Box>
     );
 };
 

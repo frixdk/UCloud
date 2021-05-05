@@ -59,8 +59,8 @@ TableRow.defaultProps = {
 
 TableRow.displayName = "TableRow";
 
-export const TableHeader = styled.thead`
-    background-color: var(--white, #f00);
+export const TableHeader = styled.thead<{customColor?: true}>`
+    ${props => props.customColor ? null : "background-color: var(--white, #f00);"}
     padding-top: 11px;
     padding-bottom: 11px;
 `;

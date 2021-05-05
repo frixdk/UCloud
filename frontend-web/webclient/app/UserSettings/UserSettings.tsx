@@ -13,6 +13,7 @@ import {TwoFactorSetup} from "./TwoFactorSetup";
 import {ChangeUserDetails} from "UserSettings/ChangeUserDetails";
 import {ChangeEmailSettings} from "UserSettings/ChangeEmailSettings";
 import {getCssVar} from "Utilities/StyledComponentsUtilities";
+import {ThemeColor} from "ui-components/theme";
 
 interface UserSettingsState {
     headerLoading: boolean;
@@ -74,9 +75,9 @@ const UserSettings: React.FunctionComponent<UserSettingsOperations & UserSetting
     );
 };
 
-export function SettingsBox(props: React.PropsWithChildren<{}>): JSX.Element {
+export function SettingsBox(props: React.PropsWithChildren<{outline?: ThemeColor}>): JSX.Element {
     return (
-        <Box pl="8px" pt="5px" pb="4px" mb="24px" borderRadius="12px" backgroundColor={getCssVar("settingsBox")} width="100%">
+        <Box px="12px" pt="5px" pb="8px" mb="24px" borderRadius="12px" style={props.outline ? {border: `${getCssVar(props.outline)} 2px solid`} : undefined} backgroundColor={getCssVar("settingsBox")} width="100%">
             {props.children}
         </Box>
     )
