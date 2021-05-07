@@ -12,6 +12,7 @@ import {compute} from "UCloud";
 import ApplicationParameter = compute.ApplicationParameter;
 import * as Heading from "ui-components/Heading";
 import BaseLink from "ui-components/BaseLink";
+import {SettingsBox} from "UserSettings/UserSettings";
 
 export const IngressResource: React.FunctionComponent<{
     application: UCloud.compute.Application;
@@ -23,13 +24,13 @@ export const IngressResource: React.FunctionComponent<{
 }> = ({application, params, errors, onAdd, onRemove, provider}) => {
     if (application.invocation.applicationType !== "WEB") return null;
 
-    return <Box>
+    return <SettingsBox>
         <Flex alignItems="center">
             <Box flexGrow={1}>
                 <Heading.h4>Configure custom links to your application</Heading.h4>
             </Box>
 
-            <Button type={"button"} ml={"5px"} lineHeight={"16px"} onClick={onAdd}>Add public link</Button>
+            <Button mt="4px" type={"button"} ml={"5px"} lineHeight={"16px"} onClick={onAdd}>Add public link</Button>
         </Flex>
 
         <Box my={8}>
@@ -68,7 +69,7 @@ export const IngressResource: React.FunctionComponent<{
                 />
             </Box>
         ))}
-    </Box>;
+    </SettingsBox>;
 }
 
 export function getProviderField(): string | undefined {

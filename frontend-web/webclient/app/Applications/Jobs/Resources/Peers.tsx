@@ -6,6 +6,7 @@ import BaseLink from "ui-components/BaseLink";
 import {Widget} from "Applications/Jobs/Widgets";
 import {compute} from "UCloud";
 import ApplicationParameter = compute.ApplicationParameter;
+import {SettingsBox} from "UserSettings/UserSettings";
 
 export const PeerResource: React.FunctionComponent<{
     application: UCloud.compute.Application;
@@ -16,7 +17,7 @@ export const PeerResource: React.FunctionComponent<{
 }> = ({application, params, errors, onAdd, onRemove}) => {
     return application.invocation.allowAdditionalPeers === false ||
         application.invocation.tool.tool!.description.backend === "VIRTUAL_MACHINE" ? null : (
-        <Box>
+        <SettingsBox>
             <Flex alignItems={"center"}>
                 <Box flexGrow={1}>
                     <Heading.h4>Connect to other jobs</Heading.h4>
@@ -24,6 +25,7 @@ export const PeerResource: React.FunctionComponent<{
                 <Button
                     type="button"
                     lineHeight="16px"
+                    mt="4px"
                     onClick={onAdd}
                 >
                     Connect to job
@@ -52,19 +54,17 @@ export const PeerResource: React.FunctionComponent<{
                 )}
             </Box>
 
-            {
-                params.map(entry => (
-                    <Box key={entry.name} mb={"7px"}>
-                        <Widget
-                            parameter={entry}
-                            errors={errors}
-                            onRemove={() => {
-                                onRemove(entry.name);
-                            }}
-                        />
-                    </Box>
-                ))
-            }
-        </Box>
+            {params.map(entry => (
+                <Box key={entry.name} mb={"7px"}>
+                    <Widget
+                        parameter={entry}
+                        errors={errors}
+                        onRemove={() => {
+                            onRemove(entry.name);
+                        }}
+                    />
+                </Box>
+            ))}
+        </SettingsBox>
     );
 };

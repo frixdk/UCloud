@@ -23,7 +23,8 @@ import {compute} from "UCloud";
 import JobSpecification = compute.JobSpecification;
 import AppParameterValue = compute.AppParameterValue;
 import styled from "styled-components";
-import {TextP} from "ui-components/Text";
+import Text, {TextP} from "ui-components/Text";
+import {format} from "date-fns";
 
 export const ImportParameters: React.FunctionComponent<{
     application: UCloud.compute.Application;
@@ -94,36 +95,43 @@ export const ImportParameters: React.FunctionComponent<{
         if (response.ok) importParameters(new File([await response.blob()], "params"));
     }, []);
 
-    return <Box>
-        <Label>Load parameters from a previous run:</Label>
-        <Flex flexDirection="row" flexWrap="wrap">
-            {
-                previousRuns.data.items.slice(0, 5).map((file, idx) => (
-                    <Box mr="0.8em" key={idx}>
-                        <BaseLink
-                            href="#"
-                            onClick={async e => {
-                                e.preventDefault();
+    return <div>
+        <div>
+            <Label>Load parameters from a previous run:</Label>
+            <div>
+                <Flex>
+                    <Text bold fontSize="14px" textAlign="center" width="130px" style={{border: "1px solid var(--midGray)"}}>Date</Text>
+                    {previousRuns.data.items.slice(0, 5).map(({createdAt}) => <Text fontSize="14px" textAlign="center" style={{border: "1px solid var(--midGray)"}} width="130px" key={createdAt}>{format(createdAt ?? 0, "HH:mm dd/MM/yy")}</Text>)}
+                </Flex>
+                <Flex>
+                    <Text bold width="130px" fontSize="14px" textAlign="center" style={{border: "1px solid var(--midGray)"}}>Parameters</Text>
+                    {previousRuns.data.items.slice(0, 5).map((file, idx) => (
+                        <Text key={idx} width="130px" fontSize="14px" textAlign="center"style={{border: "1px solid var(--midGray)"}}>
+                            <BaseLink
+                                href="#"
+                                onClick={async e => {
+                                    e.preventDefault();
 
-                                try {
-                                    await fetchAndImportParameters(
-                                        {path: `${file.path}/JobParameters.json`}
-                                    );
-                                } catch (ex) {
-                                    snackbarStore.addFailure(
-                                        "Could not find a parameters file for this " +
-                                        "run. Try a different run.",
-                                        false
-                                    );
-                                }
-                            }}
-                        >
-                            {getFilenameFromPath(file.path!, [])}
-                        </BaseLink>
-                    </Box>
-                ))
-            }
-        </Flex>
+                                    try {
+                                        await fetchAndImportParameters(
+                                            {path: `${file.path}/JobParameters.json`}
+                                        );
+                                    } catch (ex) {
+                                        snackbarStore.addFailure(
+                                            "Could not find a parameters file for this " +
+                                            "run. Try a different run.",
+                                            false
+                                        );
+                                    }
+                                }}
+                            >
+                                {getFilenameFromPath(file.path!, [])}
+                            </BaseLink>
+                        </Text>
+                    ))}
+                </Flex>
+            </div>
+        </div>
 
         {messages.length === 0 ? null : (
             <Box>
@@ -188,7 +196,7 @@ export const ImportParameters: React.FunctionComponent<{
                 </Flex>
             </div>
         </ReactModal>
-    </Box>;
+    </div>;
 };
 
 type ImportMessage =

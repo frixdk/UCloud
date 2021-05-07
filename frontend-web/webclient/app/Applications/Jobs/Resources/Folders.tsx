@@ -9,6 +9,7 @@ import BaseLink from "ui-components/BaseLink";
 import {Widget} from "Applications/Jobs/Widgets";
 import {compute} from "UCloud";
 import ApplicationParameter = compute.ApplicationParameter;
+import {SettingsBox} from "UserSettings/UserSettings";
 
 export const FolderResource: React.FunctionComponent<{
     application: UCloud.compute.Application;
@@ -18,13 +19,13 @@ export const FolderResource: React.FunctionComponent<{
     onRemove: (id: string) => void;
 }> = ({application, params, errors, onAdd, onRemove}) => {
     return application.invocation.allowAdditionalMounts === false || application.invocation.tool.tool!.description.backend === "VIRTUAL_MACHINE" ? null : (
-        <Box>
+        <SettingsBox>
             <Flex alignItems="center">
                 <Box flexGrow={1}>
                     <Heading.h4>Select additional folders to use</Heading.h4>
                 </Box>
 
-                <Button type={"button"} ml={"5px"} lineHeight={"16px"} onClick={onAdd}>Add folder</Button>
+                <Button mt="4px" type={"button"} ml={"5px"} lineHeight={"16px"} onClick={onAdd}>Add folder</Button>
             </Flex>
 
             <Box mb={8} mt={8}>
@@ -70,6 +71,6 @@ export const FolderResource: React.FunctionComponent<{
                     />
                 </Box>
             ))}
-        </Box>
+        </SettingsBox>
     );
 };

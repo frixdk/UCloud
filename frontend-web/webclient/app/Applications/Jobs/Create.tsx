@@ -233,9 +233,7 @@ export const Create: React.FunctionComponent = () => {
 
     return <MainContainer
         headerSize={92}
-        header={
-            <AppHeader slim application={application} />
-        }
+        header={<AppHeader slim application={application} />}
         sidebar={
             <VerticalButtonGroup>
                 <Link
@@ -244,15 +242,6 @@ export const Create: React.FunctionComponent = () => {
                         App details
                     </OutlineButton>
                 </Link>
-                <OutlineButton
-                    fullWidth
-                    color={"darkGreen"}
-                    as={"label"}
-                    onClick={() => setImportDialogOpen(true)}
-                >
-                    Import parameters
-                </OutlineButton>
-
                 <FavoriteToggle application={application} />
 
                 <Button
@@ -290,9 +279,19 @@ export const Create: React.FunctionComponent = () => {
             <ContainerForText>
                 <Grid gridTemplateColumns={"1fr"} gridGap={"48px"} width={"100%"} mb={"48px"} mt={"16px"}>
                     {insufficientFunds ? <WalletWarning errorCode={insufficientFunds.errorCode} /> : null}
-                    <ImportParameters application={application} onImport={onLoadParameters}
-                        importDialogOpen={importDialogOpen}
-                        onImportDialogClose={() => setImportDialogOpen(false)} />
+                    <Flex>
+                        <ImportParameters application={application} onImport={onLoadParameters}
+                            importDialogOpen={importDialogOpen}
+                            onImportDialogClose={() => setImportDialogOpen(false)} />
+                        <Button
+                            height="40px"
+                            ml="24px"
+                            mt="25px"
+                            onClick={() => setImportDialogOpen(true)}
+                        >
+                            Import parameters
+                        </Button>
+                    </Flex>
                     <ReservationParameter
                         application={application}
                         errors={reservationErrors}
