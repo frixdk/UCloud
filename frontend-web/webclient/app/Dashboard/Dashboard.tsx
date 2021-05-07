@@ -57,6 +57,11 @@ import {JobStateIcon} from "Applications/Jobs/JobStateIcon";
 import {isRunExpired} from "Utilities/ApplicationUtilities";
 import formatDistanceToNow from "date-fns/formatDistanceToNow";
 import {jobAppTitle, jobTitle} from "Applications/Jobs";
+import styled from "styled-components";
+
+const TopBorderBox = styled(Box) <{color: ThemeColor}>`
+    border-top: 5px solid var(--${props => props.color}, #f00);
+`;
 
 export const DashboardCard: React.FunctionComponent<{
     title?: React.ReactNode;
@@ -81,7 +86,7 @@ export const DashboardCard: React.FunctionComponent<{
         borderRadius={6}
         minHeight={minHeight}
     >
-        <Box style={{borderTop: `5px solid var(--${color}, #f00)`}} />
+        <TopBorderBox color={color} />
         <Box px={3} py={1} height={"calc(100% - 5px)"} >
             <Flex alignItems="center">
                 {icon !== undefined ? (

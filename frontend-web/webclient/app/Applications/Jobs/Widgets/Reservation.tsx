@@ -114,7 +114,7 @@ export const ReservationParameter: React.FunctionComponent<{
 
         {toolBackend === "DOCKER" ?
             <Flex>
-                <Label style={{maxWidth: "399px"}}>
+                <Label maxWidth="399px">
                     Hours <MandatoryField />
                     <Input
 
@@ -124,7 +124,7 @@ export const ReservationParameter: React.FunctionComponent<{
                     />
                 </Label>
                 <Box mr="2px" />
-                <Label style={{maxWidth: "399px"}}>
+                <Label maxWidth="399px">
                     Minutes <MandatoryField />
                     <Input
                         id={reservationMinutes}

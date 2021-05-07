@@ -2,6 +2,8 @@ import styled from "styled-components";
 import {
   color, ColorProps, fontSize, FontSizeProps,
   FontStyleProps, fontWeight, FontWeightProps,
+  maxWidth,
+  MaxWidthProps,
   space, SpaceProps, width, WidthProps
 } from "styled-system";
 
@@ -25,7 +27,7 @@ const accessiblyHide = (props: {hidden?: boolean}): accessiblyHide =>
   } : null;
 
 export type LabelProps =
-  SpaceProps & FontSizeProps & FontStyleProps & ColorProps & FontWeightProps & WidthProps
+  SpaceProps & FontSizeProps & FontStyleProps & ColorProps & FontWeightProps & WidthProps & MaxWidthProps
   & {nowrap?: boolean; hidden?: boolean};
 
 const Label = styled.label <LabelProps>`
@@ -37,6 +39,7 @@ const Label = styled.label <LabelProps>`
   ${space} ${fontSize} ${color} ${fontWeight};
   ${nowrap} ${width}
   ${accessiblyHide}
+  ${maxWidth}
 `;
 
 Label.defaultProps = {

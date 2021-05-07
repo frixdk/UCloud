@@ -123,8 +123,7 @@ const JobSelector: React.FunctionComponent<JobSelectorProps> = props => {
             trigger={
                 <Input
                     id={widgetId(props.parameter) + "job"}
-                    /* height is not recognized as a prop for some reason */
-                    style={{height: "39px"}}
+                    height="39px"
                     value={selectedPeer}
                     placeholder="No selected job"
                     readOnly

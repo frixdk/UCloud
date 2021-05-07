@@ -1,7 +1,7 @@
 import styled, {css} from "styled-components";
 import {
     BorderProps, borderRadius, BorderRadiusProps,
-    fontSize, FontSizeProps, space, SpaceProps,
+    fontSize, FontSizeProps, height, space, SpaceProps,
     width, WidthProps
 } from "styled-system";
 import Text from "./Text";
@@ -66,7 +66,7 @@ const Input = styled.input<InputProps>`
     }
 
     ${space} ${borderRadius}
-    ${left} ${width} ${right}
+    ${left} ${width} ${right} ${height}
 `;
 
 Input.displayName = "Input";

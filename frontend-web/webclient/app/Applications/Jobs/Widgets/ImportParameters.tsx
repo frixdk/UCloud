@@ -100,13 +100,13 @@ export const ImportParameters: React.FunctionComponent<{
             <Label>Load parameters from a previous run:</Label>
             <div>
                 <Flex>
-                    <Text bold fontSize="14px" textAlign="center" width="130px" style={{border: "1px solid var(--midGray)"}}>Date</Text>
-                    {previousRuns.data.items.slice(0, 5).map(({createdAt}) => <Text fontSize="14px" textAlign="center" style={{border: "1px solid var(--midGray)"}} width="130px" key={createdAt}>{format(createdAt ?? 0, "HH:mm dd/MM/yy")}</Text>)}
+                    <BorderedText bold>Date</BorderedText>
+                    {previousRuns.data.items.slice(0, 5).map(({createdAt}) => <BorderedText key={createdAt}>{format(createdAt ?? 0, "HH:mm dd/MM/yy")}</BorderedText>)}
                 </Flex>
                 <Flex>
-                    <Text bold width="130px" fontSize="14px" textAlign="center" style={{border: "1px solid var(--midGray)"}}>Parameters</Text>
+                    <BorderedText bold>Parameters</BorderedText>
                     {previousRuns.data.items.slice(0, 5).map((file, idx) => (
-                        <Text key={idx} width="130px" fontSize="14px" textAlign="center"style={{border: "1px solid var(--midGray)"}}>
+                        <BorderedText key={idx}>
                             <BaseLink
                                 href="#"
                                 onClick={async e => {
@@ -127,7 +127,7 @@ export const ImportParameters: React.FunctionComponent<{
                             >
                                 {getFilenameFromPath(file.path!, [])}
                             </BaseLink>
-                        </Text>
+                        </BorderedText>
                     ))}
                 </Flex>
             </div>
@@ -198,6 +198,13 @@ export const ImportParameters: React.FunctionComponent<{
         </ReactModal>
     </div>;
 };
+
+const BorderedText = styled(Text)`
+    border: 1px solid var(--midGray);
+    font-size: 14px;
+    text-align: center;
+    width: 130px;
+`;
 
 type ImportMessage =
     {type: "info", message: string} |
