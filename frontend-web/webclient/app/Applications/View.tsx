@@ -9,7 +9,8 @@ import {
     Link,
     Markdown,
     OutlineButton,
-    VerticalButtonGroup
+    VerticalButtonGroup,
+    Icon
 } from "ui-components";
 import ContainerForText from "ui-components/ContainerForText";
 import * as Heading from "ui-components/Heading";
@@ -23,11 +24,12 @@ import {SidebarPages, useSidebarPage} from "ui-components/Sidebar";
 import * as UCloud from "UCloud";
 import {FavoriteToggle} from "Applications/FavoriteToggle";
 import {useEffect} from "react";
-import {useCloudAPI} from "Authentication/DataHook";
+import {useCloudAPI, useCloudCommand} from "Authentication/DataHook";
 import HexSpin from "LoadingIcon/LoadingIcon";
 import {compute} from "UCloud";
 import Application = compute.Application;
 import {useTitle} from "Navigation/Redux/StatusActions";
+import ClickableDropdown from "ui-components/ClickableDropdown";
 
 const View: React.FunctionComponent = () => {
     const {appName, appVersion} = useRouteMatch<{appName: string, appVersion: string}>().params;
@@ -57,30 +59,48 @@ const View: React.FunctionComponent = () => {
 
     if (application === null || previous === null) return <MainContainer main={<HexSpin size={36} />} />;
 
+    const previousVersions = previous.items.filter(it => it.metadata.version !== application.metadata.version);
+
     return (
         <MainContainer
-            header={<AppHeader application={application!} />}
+            header={<AppHeader application={application!} previousVersions={[]} />}
             headerSize={160}
             main={(
                 <ContainerForText left>
                     <Content
                         application={application!}
-                        previous={previous.items.filter(it => it.metadata.version !== application.metadata.version)}
+                        previous={previousVersions}
                     />
                 </ContainerForText>
             )}
 
             sidebar={(
-                <Sidebar
-                    application={application!}
-                />
+                <Sidebar application={application!} />
             )}
         />
     );
 }
 
-export const AppHeader: React.FunctionComponent<{application: UCloud.compute.ApplicationWithFavoriteAndTags} & {slim?: boolean}> = props => {
+export const AppHeader: React.FunctionComponent<{
+    application: compute.ApplicationWithFavoriteAndTags;
+    previousVersions: compute.ApplicationSummaryWithFavorite[];
+    slim?: true;
+    onSelectVersion?: (app: string, version: string) => void;
+}> = props => {
     const isSlim = props.slim === true;
+
+    const [favorite, setFavorite] = React.useState(props.application.favorite);
+    const [loading, invokeCommand] = useCloudCommand();
+    const toggle = React.useCallback(async () => {
+        if (!loading) {
+            setFavorite(!favorite);
+            invokeCommand(UCloud.compute.apps.toggleFavorite({
+                appName: props.application.metadata.name,
+                appVersion: props.application.metadata.version
+            }));
+        }
+    }, [loading, favorite]);
+
     const size = isSlim ? "64px" : "128px";
     return (
         <Flex flexDirection={"row"} ml={["0px", "0px", "0px", "0px", "0px", "50px"]}  >
@@ -90,18 +110,25 @@ export const AppHeader: React.FunctionComponent<{application: UCloud.compute.App
             {/* minWidth=0 is required for the ellipsed text children to work */}
             <Flex flexDirection={"column"} minWidth={0}>
                 {isSlim ? (
-                        <>
+                    <>
+                        <Flex>
                             <Heading.h3>{props.application.metadata.title}</Heading.h3>
-                            <TextSpan>v{props.application.metadata.version}</TextSpan>
-                        </>
-                    ) : (
-                        <>
-                            <Heading.h2>{props.application.metadata.title}</Heading.h2>
-                            <Heading.h3>v{props.application.metadata.version}</Heading.h3>
-                            <EllipsedText>by {props.application.metadata.authors.join(", ")}</EllipsedText>
-                            <Tags tags={props.application.tags} />
-                        </>
-                    )}
+                            <Icon cursor="pointer" ml="5px" mt="5px" onClick={toggle} color="blue" name={favorite ? "starFilled" : "starEmpty"} />
+                        </Flex>
+                        {props.previousVersions.length === 0 ? <TextSpan>v{props.application.metadata.version}</TextSpan> :
+                            <ClickableDropdown trigger={<>v{props.application.metadata.version}</>} chevron>
+                                {props.previousVersions.map(({metadata}) => <div key={metadata.version} onClick={() => props.onSelectVersion?.(metadata.name, metadata.version)}>{metadata.version}</div>)}
+                            </ClickableDropdown>
+                        }
+                    </>
+                ) : (
+                    <>
+                        <Heading.h2>{props.application.metadata.title}</Heading.h2>
+                        <Heading.h3>v{props.application.metadata.version}</Heading.h3>
+                        <EllipsedText>by {props.application.metadata.authors.join(", ")}</EllipsedText>
+                        <Tags tags={props.application.tags} />
+                    </>
+                )}
             </Flex>
         </Flex>
     );
@@ -146,7 +173,7 @@ const Content: React.FunctionComponent<{
         <AppSection>
             <Information application={props.application} />
         </AppSection>
-        
+
         <AppSection>
             {!props.previous ? null :
                 (!props.previous.length ? null : (

@@ -25,7 +25,6 @@ import {addStandardDialog, WalletWarning} from "UtilityComponents";
 import {creditFormatter} from "Project/ProjectUsage";
 import {ImportParameters} from "Applications/Jobs/Widgets/ImportParameters";
 import LoadingIcon from "LoadingIcon/LoadingIcon";
-import {FavoriteToggle} from "Applications/FavoriteToggle";
 import {SidebarPages, useSidebarPage} from "ui-components/Sidebar";
 import {useTitle} from "Navigation/Redux/StatusActions";
 import {snackbarStore} from "Snackbar/SnackbarStore";
@@ -68,8 +67,14 @@ export const Create: React.FunctionComponent = () => {
     const [importDialogOpen, setImportDialogOpen] = useState(false);
     const jobBeingLoaded = useRef<Partial<JobSpecification> | null>(null);
 
+    const [previousVersion, fetchPrevious] = useCloudAPI<UCloud.Page<UCloud.compute.ApplicationSummaryWithFavorite> | null>(
+        {noop: true},
+        null
+    );
+
     useEffect(() => {
         fetchApplication(UCloud.compute.apps.findByNameAndVersion({appName, appVersion}))
+        fetchPrevious(UCloud.compute.apps.findByName({appName}))
     }, [appName, appVersion]);
 
     const application = applicationResp.data;
@@ -233,7 +238,14 @@ export const Create: React.FunctionComponent = () => {
 
     return <MainContainer
         headerSize={92}
-        header={<AppHeader slim application={application} />}
+        header={
+            <AppHeader
+                slim
+                application={application}
+                 previousVersions={previousVersion.data?.items.filter(it => it.metadata.version !== appVersion) ?? []}
+                 onSelectVersion={(app, version) => history.push(`/applications/${app}/${version}/`)}
+            />
+        }
         sidebar={
             <VerticalButtonGroup>
                 <Link
@@ -242,7 +254,6 @@ export const Create: React.FunctionComponent = () => {
                         App details
                     </OutlineButton>
                 </Link>
-                <FavoriteToggle application={application} />
 
                 <Button
                     type={"button"}
