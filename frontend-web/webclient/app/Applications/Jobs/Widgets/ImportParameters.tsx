@@ -95,42 +95,46 @@ export const ImportParameters: React.FunctionComponent<{
         if (response.ok) importParameters(new File([await response.blob()], "params"));
     }, []);
 
+    const fivePreviousRuns = previousRuns.data.items.slice(0, 5);
+
     return <div>
         <div>
-            <Label>Load parameters from a previous run:</Label>
-            <div>
-                <Flex>
-                    <BorderedText bold>Date</BorderedText>
-                    {previousRuns.data.items.slice(0, 5).map(({createdAt}) => <BorderedText key={createdAt}>{format(createdAt ?? 0, "HH:mm dd/MM/yy")}</BorderedText>)}
-                </Flex>
-                <Flex>
-                    <BorderedText bold>Parameters</BorderedText>
-                    {previousRuns.data.items.slice(0, 5).map((file, idx) => (
-                        <BorderedText key={idx}>
-                            <BaseLink
-                                href="#"
-                                onClick={async e => {
-                                    e.preventDefault();
+            {fivePreviousRuns.length === 0 ? null : <>
+                <Label>Load parameters from a previous run:</Label>
+                <div>
+                    <Flex>
+                        <BorderedText bold>Date</BorderedText>
+                        {fivePreviousRuns.map(({createdAt}) => <BorderedText key={createdAt}>{format(createdAt ?? 0, "HH:mm dd/MM/yy")}</BorderedText>)}
+                    </Flex>
+                    <Flex>
+                        <BorderedText bold>Parameters</BorderedText>
+                        {fivePreviousRuns.map((file, idx) => (
+                            <BorderedText key={idx}>
+                                <BaseLink
+                                    href="#"
+                                    onClick={async e => {
+                                        e.preventDefault();
 
-                                    try {
-                                        await fetchAndImportParameters(
-                                            {path: `${file.path}/JobParameters.json`}
-                                        );
-                                    } catch (ex) {
-                                        snackbarStore.addFailure(
-                                            "Could not find a parameters file for this " +
-                                            "run. Try a different run.",
-                                            false
-                                        );
-                                    }
-                                }}
-                            >
-                                {getFilenameFromPath(file.path!, [])}
-                            </BaseLink>
-                        </BorderedText>
-                    ))}
-                </Flex>
-            </div>
+                                        try {
+                                            await fetchAndImportParameters(
+                                                {path: `${file.path}/JobParameters.json`}
+                                            );
+                                        } catch (ex) {
+                                            snackbarStore.addFailure(
+                                                "Could not find a parameters file for this " +
+                                                "run. Try a different run.",
+                                                false
+                                            );
+                                        }
+                                    }}
+                                >
+                                    {getFilenameFromPath(file.path!, [])}
+                                </BaseLink>
+                            </BorderedText>
+                        ))}
+                    </Flex>
+                </div>
+            </>}
         </div>
 
         {messages.length === 0 ? null : (
