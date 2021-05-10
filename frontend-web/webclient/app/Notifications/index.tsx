@@ -143,7 +143,7 @@ function Notifications(props: Notifications): JSX.Element {
 
 }
 
-const ContentWrapper = styled(Box)`
+const ContentWrapper = styled.div`
     height: 600px;
     overflow-y: auto;
     padding: 5px;

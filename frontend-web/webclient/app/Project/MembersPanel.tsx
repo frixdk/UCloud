@@ -194,7 +194,7 @@ const MembersPanel: React.FunctionComponent = () => {
     </>;
 };
 
-const Circle = styled(Box)`
+const Circle = styled.div`
     border-radius: 500px;
     width: 20px;
     height: 20px;

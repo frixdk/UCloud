@@ -123,7 +123,7 @@ const Sidebar: React.FunctionComponent<{application: UCloud.compute.ApplicationW
     </VerticalButtonGroup>
 );
 
-const AppSection = styled(Box)`
+const AppSection = styled.div`
     margin-bottom: 16px;
 `;
 

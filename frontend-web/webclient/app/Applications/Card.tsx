@@ -334,7 +334,7 @@ export const ApplicationCard: React.FunctionComponent<ApplicationCardProps> = ({
     }
 };
 
-export const CardToolContainer = styled(Box)`
+export const CardToolContainer = styled.div`
     display: grid;
     flex-direction: column;
     align-items: flex-start;

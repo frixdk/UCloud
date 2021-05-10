@@ -156,7 +156,7 @@ const MachineBox: React.FunctionComponent<{ machine: UCloud.accounting.ProductNS
     </MachineBoxWrapper>
 );
 
-const MachineDropdown = styled(Box)`
+const MachineDropdown = styled.div`
   cursor: pointer;
   border-radius: 5px;
   border: ${theme.borderWidth} solid var(--midGray, #f00);

@@ -5,15 +5,15 @@ import {setLoading, SetStatusLoading, useTitle} from "Navigation/Redux/StatusAct
 import * as React from "react";
 import {connect} from "react-redux";
 import {Dispatch} from "redux";
-import {Box, Flex} from "ui-components";
+import {Flex} from "ui-components";
 import * as Heading from "ui-components/Heading";
 import {ChangePassword} from "UserSettings/ChangePassword";
 import {Sessions} from "UserSettings/Sessions";
 import {TwoFactorSetup} from "./TwoFactorSetup";
 import {ChangeUserDetails} from "UserSettings/ChangeUserDetails";
 import {ChangeEmailSettings} from "UserSettings/ChangeEmailSettings";
-import {getCssVar} from "Utilities/StyledComponentsUtilities";
 import {ThemeColor} from "ui-components/theme";
+import styled from "styled-components";
 
 interface UserSettingsState {
     headerLoading: boolean;
@@ -77,11 +77,25 @@ const UserSettings: React.FunctionComponent<UserSettingsOperations & UserSetting
 
 export function SettingsBox(props: React.PropsWithChildren<{outline?: ThemeColor}>): JSX.Element {
     return (
-        <Box px="12px" pt="5px" pb="8px" mb="24px" borderRadius="12px" style={props.outline ? {border: `${getCssVar(props.outline)} 2px solid`} : undefined} backgroundColor={getCssVar("settingsBox")} width="100%">
+        <SettingsBoxWrapper>
             {props.children}
-        </Box>
+        </SettingsBoxWrapper>
     )
 }
+
+const SettingsBoxWrapper = styled.div<{outline?: ThemeColor}>`
+    padding-left: 12px;
+    padding-right: 12px;
+    padding-top: 5px;
+    padding-bottom: 8px;
+    
+    margin-bottom: 24px;
+    border-radius: 12px;
+    ${props => props.outline ? `border: var(--${props.outline}) 2px solid;` : null}
+    
+    background-color: var(--settingsBox);
+    width: 100%;
+`;
 
 interface UserSettingsOperations extends SetStatusLoading {
     setRefresh: (fn?: () => void) => void;
