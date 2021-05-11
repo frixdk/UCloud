@@ -242,8 +242,8 @@ export const Create: React.FunctionComponent = () => {
             <AppHeader
                 slim
                 application={application}
-                 previousVersions={previousVersion.data?.items.filter(it => it.metadata.version !== appVersion) ?? []}
-                 onSelectVersion={(app, version) => history.push(`/applications/${app}/${version}/`)}
+                previousVersions={previousVersion.data?.items.filter(it => it.metadata.version !== appVersion) ?? []}
+                onSelectVersion={(app, version) => history.push(`/applications/${app}/${version}`)}
             />
         }
         sidebar={
@@ -290,19 +290,19 @@ export const Create: React.FunctionComponent = () => {
             <ContainerForText>
                 <Grid gridTemplateColumns={"1fr"} gridGap={"48px"} width={"100%"} mb={"48px"} mt={"16px"}>
                     {insufficientFunds ? <WalletWarning errorCode={insufficientFunds.errorCode} /> : null}
-                    <Flex>
-                        <ImportParameters application={application} onImport={onLoadParameters}
-                            importDialogOpen={importDialogOpen}
-                            onImportDialogClose={() => setImportDialogOpen(false)} />
+                    <ImportParameters application={application} onImport={onLoadParameters}
+                        importDialogOpen={importDialogOpen}
+                        onImportDialogClose={() => setImportDialogOpen(false)}
+
+                    >
                         <Button
-                            height="40px"
-                            ml="24px"
-                            mt="25px"
+                            height="46px"
+                            width="130px"
                             onClick={() => setImportDialogOpen(true)}
                         >
                             Import parameters
                         </Button>
-                    </Flex>
+                    </ImportParameters>
                     <ReservationParameter
                         application={application}
                         errors={reservationErrors}

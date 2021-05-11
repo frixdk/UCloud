@@ -2,7 +2,7 @@ import * as React from "react";
 import * as UCloud from "UCloud";
 import * as ReactModal from "react-modal";
 import {defaultModalStyle} from "Utilities/ModalUtilities";
-import {Box, Button, Flex, Icon, Label} from "ui-components";
+import {Box, Button, Flex, Grid, Icon, Label} from "ui-components";
 import {HiddenInputField} from "ui-components/Input";
 import {snackbarStore} from "Snackbar/SnackbarStore";
 import CONF from "../../../../site.config.json";
@@ -31,7 +31,7 @@ export const ImportParameters: React.FunctionComponent<{
     onImport: (parameters: Partial<UCloud.compute.JobSpecification>) => void;
     importDialogOpen: boolean;
     onImportDialogClose: () => void;
-}> = ({application, onImport, importDialogOpen, onImportDialogClose}) => {
+}> = ({application, onImport, importDialogOpen, onImportDialogClose, children}) => {
     const [fsShown, setFsShown] = useState<boolean>(false);
 
     const title = application.metadata.title;
@@ -101,15 +101,16 @@ export const ImportParameters: React.FunctionComponent<{
         <div>
             {fivePreviousRuns.length === 0 ? null : <>
                 <Label>Load parameters from a previous run:</Label>
-                <div>
-                    <Flex>
+                <Grid width="auto" gridTemplateColumns={`repeat(auto-fill, minmax(130px, 1fr))`} gridGap={0}>
+
+                    <div>
                         <BorderedText bold>Date</BorderedText>
-                        {fivePreviousRuns.map(({createdAt}) => <BorderedText key={createdAt}>{format(createdAt ?? 0, "HH:mm dd/MM/yy")}</BorderedText>)}
-                    </Flex>
-                    <Flex>
                         <BorderedText bold>Parameters</BorderedText>
-                        {fivePreviousRuns.map((file, idx) => (
-                            <BorderedText key={idx}>
+                    </div>
+                    {fivePreviousRuns.map(f =>
+                        <div key={f.createdAt}>
+                            <BorderedText key={f.createdAt}>{format(f.createdAt ?? 0, "HH:mm dd/MM/yy")}</BorderedText>
+                            <BorderedText>
                                 <BaseLink
                                     href="#"
                                     onClick={async e => {
@@ -117,7 +118,7 @@ export const ImportParameters: React.FunctionComponent<{
 
                                         try {
                                             await fetchAndImportParameters(
-                                                {path: `${file.path}/JobParameters.json`}
+                                                {path: `${f.path}/JobParameters.json`}
                                             );
                                         } catch (ex) {
                                             snackbarStore.addFailure(
@@ -128,30 +129,33 @@ export const ImportParameters: React.FunctionComponent<{
                                         }
                                     }}
                                 >
-                                    {getFilenameFromPath(file.path!, [])}
+                                    {getFilenameFromPath(f.path!, [])}
                                 </BaseLink>
                             </BorderedText>
-                        ))}
-                    </Flex>
-                </div>
+                        </div>
+                    )}
+                    {children}
+                </Grid>
             </>}
         </div>
 
-        {messages.length === 0 ? null : (
-            <Box>
-                <TextP bold>We have attempted to your import your previous job</TextP>
-                <MessageBox>
-                    {messages.map((it, i) =>
-                        <li key={i}>
-                            {it.type === "error" ? <Icon name={"warning"} color={"red"} /> : null}
-                            {it.type === "warning" ? <Icon name={"warning"} color={"yellow"} /> : null}
-                            {it.type === "info" ? <Icon name={"info"} /> : null}
-                            {it.message}
-                        </li>
-                    )}
-                </MessageBox>
-            </Box>
-        )}
+        {
+            messages.length === 0 ? null : (
+                <Box>
+                    <TextP bold>We have attempted to your import your previous job</TextP>
+                    <MessageBox>
+                        {messages.map((it, i) =>
+                            <li key={i}>
+                                {it.type === "error" ? <Icon name={"warning"} color={"red"} /> : null}
+                                {it.type === "warning" ? <Icon name={"warning"} color={"yellow"} /> : null}
+                                {it.type === "info" ? <Icon name={"info"} /> : null}
+                                {it.message}
+                            </li>
+                        )}
+                    </MessageBox>
+                </Box>
+            )
+        }
 
         <FileSelector
             onFileSelect={(f) => {
@@ -200,7 +204,7 @@ export const ImportParameters: React.FunctionComponent<{
                 </Flex>
             </div>
         </ReactModal>
-    </div>;
+    </div >;
 };
 
 const BorderedText = styled(Text)`
