@@ -431,7 +431,7 @@ const AllocationForm = styled.form`
 `;
 
 const LoadingBox = (props: React.PropsWithChildren<{height: string; isLoading: boolean}>): JSX.Element => {
-    if (props.isLoading) return <Flex alignItems="center" style={{minHeight: props.height}}><HexSpin /></Flex>;
+    if (props.isLoading) return <Flex alignItems="center" minHeight={props.height}><HexSpin /></Flex>;
     else return <>{props.children}</>;
 };
 

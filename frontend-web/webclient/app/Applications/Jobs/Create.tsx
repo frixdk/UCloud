@@ -25,7 +25,6 @@ import {addStandardDialog, WalletWarning} from "UtilityComponents";
 import {creditFormatter} from "Project/ProjectUsage";
 import {ImportParameters} from "Applications/Jobs/Widgets/ImportParameters";
 import LoadingIcon from "LoadingIcon/LoadingIcon";
-import {FavoriteToggle} from "Applications/FavoriteToggle";
 import {SidebarPages, useSidebarPage} from "ui-components/Sidebar";
 import {useTitle} from "Navigation/Redux/StatusActions";
 import {snackbarStore} from "Snackbar/SnackbarStore";
@@ -68,8 +67,14 @@ export const Create: React.FunctionComponent = () => {
     const [importDialogOpen, setImportDialogOpen] = useState(false);
     const jobBeingLoaded = useRef<Partial<JobSpecification> | null>(null);
 
+    const [previousVersion, fetchPrevious] = useCloudAPI<UCloud.Page<UCloud.compute.ApplicationSummaryWithFavorite> | null>(
+        {noop: true},
+        null
+    );
+
     useEffect(() => {
         fetchApplication(UCloud.compute.apps.findByNameAndVersion({appName, appVersion}))
+        fetchPrevious(UCloud.compute.apps.findByName({appName}))
     }, [appName, appVersion]);
 
     const application = applicationResp.data;
@@ -234,7 +239,12 @@ export const Create: React.FunctionComponent = () => {
     return <MainContainer
         headerSize={92}
         header={
-            <AppHeader slim application={application} />
+            <AppHeader
+                slim
+                application={application}
+                previousVersions={previousVersion.data?.items.filter(it => it.metadata.version !== appVersion) ?? []}
+                onSelectVersion={(app, version) => history.push(`/applications/${app}/${version}`)}
+            />
         }
         sidebar={
             <VerticalButtonGroup>
@@ -244,16 +254,6 @@ export const Create: React.FunctionComponent = () => {
                         App details
                     </OutlineButton>
                 </Link>
-                <OutlineButton
-                    fullWidth
-                    color={"darkGreen"}
-                    as={"label"}
-                    onClick={() => setImportDialogOpen(true)}
-                >
-                    Import parameters
-                </OutlineButton>
-
-                <FavoriteToggle application={application} />
 
                 <Button
                     type={"button"}
@@ -292,7 +292,17 @@ export const Create: React.FunctionComponent = () => {
                     {insufficientFunds ? <WalletWarning errorCode={insufficientFunds.errorCode} /> : null}
                     <ImportParameters application={application} onImport={onLoadParameters}
                         importDialogOpen={importDialogOpen}
-                        onImportDialogClose={() => setImportDialogOpen(false)} />
+                        onImportDialogClose={() => setImportDialogOpen(false)}
+
+                    >
+                        <Button
+                            height="46px"
+                            width="130px"
+                            onClick={() => setImportDialogOpen(true)}
+                        >
+                            Import parameters
+                        </Button>
+                    </ImportParameters>
                     <ReservationParameter
                         application={application}
                         errors={reservationErrors}

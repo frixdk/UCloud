@@ -13,7 +13,7 @@ import {
 import {useCallback, useEffect, useRef, useState} from "react";
 import {useProjectManagementStatus} from "Project";
 import * as Heading from "ui-components/Heading";
-import {Box, Button, DataList, Flex, Grid, Icon, Input, Label, Text, TextArea} from "ui-components";
+import {Box, Button, DataList, Flex, Grid, Icon, Input, Label, SelectableText, SelectableTextWrapper, Text, TextArea} from "ui-components";
 import ClickableDropdown from "ui-components/ClickableDropdown";
 import WAYF from "./wayf-idps.json";
 import {snackbarStore} from "Snackbar/SnackbarStore";
@@ -28,6 +28,8 @@ import {b64EncodeUnicode} from "Utilities/XHRUtils";
 import {inSuccessRange} from "UtilityFunctions";
 import {Logo} from "Project/Grant/ProjectBrowser";
 import Divider from "ui-components/Divider";
+import {SettingsBox} from "UserSettings/UserSettings";
+import {RequestTarget} from "./GrantApplicationEditor";
 
 export interface UploadLogoProps {
     file: File;
@@ -46,7 +48,7 @@ export async function uploadProjectLogo(props: UploadLogoProps): Promise<boolean
         request.onreadystatechange = () => {
             if (request.status !== 0) {
                 if (!inSuccessRange(request.status)) {
-                    let message: string = "Logo upload failed";
+                    let message = "Logo upload failed";
                     try {
                         message = JSON.parse(request.responseText).why;
                     } catch (e) {
@@ -106,35 +108,38 @@ export const LogoAndDescriptionSettings: React.FunctionComponent = () => {
     const [, setLogoCacheBust] = useState("" + Date.now());
 
     if (!enabled.data.enabled) return null;
-    return <Box>
-        <Heading.h4>Logo for Project</Heading.h4>
-        Current Logo: <Logo projectId={projectId} size={"40px"}/> <br/>
-        <Button width={"350px"} as="label">
-            Upload Logo
-            <HiddenInputField
-                type="file"
-                onChange={async e => {
-                    const target = e.target;
-                    if (target.files) {
-                        const file = target.files[0];
-                        target.value = "";
-                        if (file.size > 1024 * 512) {
-                            snackbarStore.addFailure("File exceeds 512KB. Not allowed.", false);
-                        } else {
-                            if (await uploadProjectLogo({file, projectId: projectId})) {
-                                setLogoCacheBust("" + Date.now());
-                                snackbarStore.addSuccess("Logo changed, refresh to see changes", false);
+    return <div>
+        <SettingsBox>
+            <Heading.h4>Logo for Project</Heading.h4>
+            Current Logo: <Logo projectId={projectId} size={"40px"} /> <br />
+            <Button my="8px" width="350px" as="label">
+                Upload Logo
+                <HiddenInputField
+                    type="file"
+                    onChange={async e => {
+                        const target = e.target;
+                        if (target.files) {
+                            const file = target.files[0];
+                            target.value = "";
+                            if (file.size > 1024 * 512) {
+                                snackbarStore.addFailure("File exceeds 512KB. Not allowed.", false);
+                            } else {
+                                if (await uploadProjectLogo({file, projectId: projectId})) {
+                                    setLogoCacheBust("" + Date.now());
+                                    snackbarStore.addSuccess("Logo changed, refresh to see changes", false);
+                                }
                             }
+                            dialogStore.success();
                         }
-                        dialogStore.success();
-                    }
-                }}
-            />
-        </Button>
-        <Divider/>
-        <Heading.h4>Description for Project</Heading.h4>
-        <DescriptionEditor templateDescription={descriptionField} onUploadDescription={onUploadDescription}/>
-    </Box>
+                    }}
+                />
+            </Button>
+        </SettingsBox>
+        <SettingsBox>
+            <Heading.h4>Description for Project</Heading.h4>
+            <DescriptionEditor templateDescription={descriptionField} onUploadDescription={onUploadDescription} />
+        </SettingsBox>
+    </div>
 }
 
 export const GrantProjectSettings: React.FunctionComponent = () => {
@@ -149,7 +154,7 @@ export const GrantProjectSettings: React.FunctionComponent = () => {
         {allowRequestsFrom: [], automaticApproval: {from: [], maxResources: []}, excludeRequestsFrom: []}
     );
 
-    const [products, fetchProducts] = useCloudAPI<RetrieveFromProviderResponse>(
+    const [products] = useCloudAPI<RetrieveFromProviderResponse>(
         retrieveFromProvider({provider: UCLOUD_PROVIDER}),
         []
     );
@@ -233,48 +238,66 @@ export const GrantProjectSettings: React.FunctionComponent = () => {
         fetchSettings(readGrantRequestSettings({projectId}));
     }, [settings]);
 
+    const [target, setTarget] = useState<Omit<RequestTarget, RequestTarget.VIEW_APPLICATION>>(RequestTarget.PERSONAL_PROJECT);
     if (!enabled.data.enabled) return null;
     return <Box>
-        <Heading.h4>Allow Grant Applications From</Heading.h4>
-        <UserCriteriaEditor
-            criteria={settings.data.allowRequestsFrom}
-            onSubmit={addAllowFrom}
-            onRemove={removeAllowFrom}
-            showSubprojects={true}
-        />
+        <SettingsBox>
+            <Heading.h4>Default Template for Grant Applications</Heading.h4>
 
-        <Heading.h4>Exclude Grant Applications From</Heading.h4>
-        <ExcludeListEditor
-            criteria={settings.data.excludeRequestsFrom}
-            onSubmit={addExcludeFrom}
-            onRemove={removeExcludeFrom}
-            showSubprojects={true}
-        />
+            <SelectableTextWrapper mb="6px" mr="6px">
+                <SelectableText mx="4px" onClick={() => setTarget(RequestTarget.PERSONAL_PROJECT)} selected={target === RequestTarget.PERSONAL_PROJECT}>Personal</SelectableText>
+                <SelectableText mx="4px" onClick={() => setTarget(RequestTarget.EXISTING_PROJECT)} selected={target === RequestTarget.EXISTING_PROJECT}>Existing project</SelectableText>
+                <SelectableText mx="4px" onClick={() => setTarget(RequestTarget.NEW_PROJECT)} selected={target === RequestTarget.NEW_PROJECT}>New project</SelectableText>
+            </SelectableTextWrapper>
+            <TemplateEditor
+                target={target}
+                templatePersonal={templatePersonal}
+                templateExisting={templateExisting}
+                templateNew={templateNew}
+                onUploadTemplate={onUploadTemplate}
+            />
+        </SettingsBox>
+        <SettingsBox>
+            <Grid
+                mt="2px"
+                gridTemplateColumns="repeat(auto-fill, minmax(650px, auto))"
+            >
+                <div>
+                    <Heading.h4>Allow Grant Applications From</Heading.h4>
+                    <UserCriteriaEditor
+                        criteria={settings.data.allowRequestsFrom}
+                        onSubmit={addAllowFrom}
+                        onRemove={removeAllowFrom}
+                        showSubprojects
+                    />
+                </div>
+                <div>
+                    <Heading.h4>Exclude Grant Applications From</Heading.h4>
+                    <ExcludeListEditor
+                        criteria={settings.data.excludeRequestsFrom}
+                        onSubmit={addExcludeFrom}
+                        onRemove={removeExcludeFrom}
+                        showSubprojects
+                    />
+                </div>
+            </Grid>
+        </SettingsBox>
+        <SettingsBox>
+            <Heading.h4>Automatic Approval of Grant Applications</Heading.h4>
+            <AutomaticApprovalLimits
+                products={products}
+                settings={settings}
+                reload={() => fetchSettings(readGrantRequestSettings({projectId}))}
+            />
 
-        <Divider/>
-        <Heading.h4>Automatic Approval of Grant Applications</Heading.h4>
-        <AutomaticApprovalLimits
-            products={products}
-            settings={settings}
-            reload={() => fetchSettings(readGrantRequestSettings({projectId}))}
-        />
-
-        <UserCriteriaEditor
-            criteria={settings.data.automaticApproval.from}
-            showSubprojects={false}
-            onSubmit={addAutomaticApproval}
-            onRemove={removeAutomaticApproval}
-        />
-
-        <Divider/>
-        <Heading.h4>Default Template for Grant Applications</Heading.h4>
-        <TemplateEditor
-            templatePersonal={templatePersonal}
-            templateExisting={templateExisting}
-            templateNew={templateNew}
-            onUploadTemplate={onUploadTemplate}
-        />
-    </Box>;
+            <UserCriteriaEditor
+                criteria={settings.data.automaticApproval.from}
+                showSubprojects={false}
+                onSubmit={addAutomaticApproval}
+                onRemove={removeAutomaticApproval}
+            />
+        </SettingsBox>
+    </Box >;
 };
 
 const AutomaticApprovalLimits: React.FunctionComponent<{
@@ -338,7 +361,7 @@ const AutomaticApprovalLimits: React.FunctionComponent<{
                 )
                 ?.creditsRequested ?? 0;
             return <React.Fragment key={key}>
-                <form onSubmit={(e) => updateApprovalLimit(it, e)}>
+                <form onSubmit={e => updateApprovalLimit(it, e)}>
                     <Label htmlFor={key}>
                         {it.id} / {it.provider}
                     </Label>
@@ -349,8 +372,12 @@ const AutomaticApprovalLimits: React.FunctionComponent<{
                             </Text> : null}
                         {editingLimit !== key ?
                             <Button
-                                type={"button"}
+                                type="button"
                                 ml={8}
+                                width="12px"
+                                height="14px"
+                                py="11px"
+                                px="12px"
                                 disabled={editingLimit !== null}
                                 onClick={() => {
                                     setEditingLimit(key);
@@ -358,7 +385,7 @@ const AutomaticApprovalLimits: React.FunctionComponent<{
                                     inputField.value = (credits / 1000000).toString();
                                 }}
                             >
-                                Edit
+                                <Icon name="edit" size="16px" />
                             </Button> : null}
 
                         <Input type={editingLimit !== key ? "hidden" : "text"} id={key} width={328} />
@@ -391,41 +418,41 @@ const ExcludeListEditor: React.FunctionComponent<{
 }> = props => {
     const [showRequestFromEditor, setShowRequestFromEditor] = useState<boolean>(false);
     return <>
-        <Table mb={16}>
+        <Table backgroundColor="inherit" mb={16}>
             <thead>
-            <TableRow>
-                <TableHeaderCell textAlign={"left"}>Email Domain</TableHeaderCell>
-                <TableHeaderCell />
-            </TableRow>
+                <TableRow>
+                    <TableHeaderCell textAlign={"left"}>Email Domain</TableHeaderCell>
+                    <TableHeaderCell />
+                </TableRow>
             </thead>
             <tbody>
-            {props.criteria.length === 0 && !showRequestFromEditor ? <>
-                <TableRow>
-                    <TableCell>No exclusions yet</TableCell>
-                    <TableCell />
-                </TableRow>
-            </> : null}
+                {props.criteria.length === 0 && !showRequestFromEditor ? <>
+                    <TableRow>
+                        <TableCell>No exclusions yet</TableCell>
+                        <TableCell />
+                    </TableRow>
+                </> : null}
 
-            {props.criteria.map((it, idx) => <>
-                <TableRow>
-                    <TableCell textAlign={"left"}>
-                        {it.type === "email" ? it.domain : null}
-                    </TableCell>
-                    <TableCell textAlign={"right"}>
-                        <Icon color={"red"} name={"trash"} cursor={"pointer"} onClick={() => props.onRemove(idx)} />
-                    </TableCell>
-                </TableRow>
-            </>)}
-            {showRequestFromEditor ?
-                <UserExclusionRowEditor
-                    onSubmit={(c) => {
-                        props.onSubmit(c);
-                        setShowRequestFromEditor(false);
-                    }}
-                    onCancel={() => setShowRequestFromEditor(false)}
-                /> :
-                null
-            }
+                {props.criteria.map((it, idx) => <>
+                    <TableRow>
+                        <TableCell textAlign={"left"}>
+                            {it.type === "email" ? it.domain : null}
+                        </TableCell>
+                        <TableCell textAlign={"right"}>
+                            <Icon color={"red"} name={"trash"} cursor={"pointer"} onClick={() => props.onRemove(idx)} />
+                        </TableCell>
+                    </TableRow>
+                </>)}
+                {showRequestFromEditor ?
+                    <UserExclusionRowEditor
+                        onSubmit={(c) => {
+                            props.onSubmit(c);
+                            setShowRequestFromEditor(false);
+                        }}
+                        onCancel={() => setShowRequestFromEditor(false)}
+                    /> :
+                    null
+                }
             </tbody>
         </Table>
         <Flex justifyContent={"center"} mb={32}>
@@ -445,11 +472,11 @@ const UserCriteriaEditor: React.FunctionComponent<{
 }> = props => {
     const [showRequestFromEditor, setShowRequestFromEditor] = useState<boolean>(false);
     return <>
-        <Table mb={16}>
+        <Table backgroundColor="inherit" mb={16}>
             <thead>
-                <TableRow>
-                    <TableHeaderCell textAlign={"left"}>Type</TableHeaderCell>
-                    <TableHeaderCell textAlign={"left"}>Constraint</TableHeaderCell>
+                <TableRow backgroundColor="inherit">
+                    <TableHeaderCell width="20%" textAlign="left">Type</TableHeaderCell>
+                    <TableHeaderCell textAlign="left">Constraint</TableHeaderCell>
                     <TableHeaderCell />
                 </TableRow>
             </thead>
@@ -562,7 +589,7 @@ const UserCriteriaRowEditor: React.FunctionComponent<{
     const onClick = useCallback((e) => {
         e.preventDefault();
         switch (type.type) {
-            case "email":
+            case "email": {
                 if (inputRef.current!.value.indexOf(".") === -1 || inputRef.current!.value.indexOf(" ") !== -1) {
                     snackbarStore.addFailure("This does not look like a valid email domain. Try again.", false);
                     return;
@@ -575,6 +602,7 @@ const UserCriteriaRowEditor: React.FunctionComponent<{
                 const domain = inputRef.current!.value;
                 props.onSubmit({type: "email", domain});
                 break;
+            }
             case "anyone":
                 props.onSubmit({type: "anyone"});
                 break;
@@ -637,25 +665,24 @@ const TemplateEditor: React.FunctionComponent<{
     templatePersonal: React.Ref<HTMLTextAreaElement>,
     templateExisting: React.Ref<HTMLTextAreaElement>,
     templateNew: React.Ref<HTMLTextAreaElement>,
+    target: Omit<RequestTarget, RequestTarget.VIEW_APPLICATION>,
     onUploadTemplate: () => Promise<void>
-}> = ({templatePersonal, templateExisting, templateNew, onUploadTemplate}) => {
+}> = ({templatePersonal, templateExisting, templateNew, onUploadTemplate, target}) => {
     return <>
-        <Grid gridGap={32} gridTemplateColumns={"repeat(auto-fit, minmax(500px, 1fr))"}>
-            <Box>
-                <Heading.h5>Personal</Heading.h5>
-                <TextArea width={"100%"} rows={15} ref={templatePersonal} />
+        <Grid mb="32px" gridGap={32} gridTemplateColumns={"repeat(auto-fit, minmax(500px, 1fr))"}>
+            <Box hidden={target !== RequestTarget.PERSONAL_PROJECT}>
+                <TextArea width="100%" rows={15} ref={templatePersonal} />
             </Box>
-            <Box>
-                <Heading.h5>Existing Project</Heading.h5>
-                <TextArea width={"100%"} rows={15} ref={templateExisting} />
+            <Box hidden={target !== RequestTarget.EXISTING_PROJECT}>
+                <TextArea width="100%" rows={15} ref={templateExisting} />
             </Box>
-            <Box>
-                <Heading.h5>New Project</Heading.h5>
-                <TextArea width={"100%"} rows={15} ref={templateNew} />
+            <Box hidden={target !== RequestTarget.NEW_PROJECT}>
+                <TextArea width="100%" rows={15} ref={templateNew} />
             </Box>
         </Grid>
-        <Flex justifyContent={"center"} mt={32}>
-            <Button width={"350px"} onClick={onUploadTemplate}>Update Templates</Button>
+        <Divider />
+        <Flex justifyContent="right" my={16} mr={16}>
+            <Button width="350px" onClick={onUploadTemplate}>Update all Templates</Button>
         </Flex>
     </>;
 };
@@ -663,15 +690,15 @@ const TemplateEditor: React.FunctionComponent<{
 const DescriptionEditor: React.FunctionComponent<{
     templateDescription: React.Ref<HTMLTextAreaElement>,
     onUploadDescription: () => Promise<void>
-}> = ({templateDescription, onUploadDescription}) =>
-        <>
-            <Grid gridGap={32} gridTemplateColumns={"repeat(auto-fit, minmax(500px, 1fr))"}>
-                <Box>
-                    <Heading.h5>Description</Heading.h5>
-                    <TextArea width={"100%"} rows={15} ref={templateDescription} />
-                </Box>
-            </Grid>
-            <Flex justifyContent={"center"} mt={32}>
-                <Button width={"350px"} onClick={onUploadDescription}>Update Description</Button>
-            </Flex>
-        </>;
+}> = ({templateDescription, onUploadDescription}) => <>
+    <Grid gridGap={32} gridTemplateColumns={"repeat(auto-fit, minmax(500px, 1fr))"}>
+        <Box>
+            <Heading.h5>Description</Heading.h5>
+            <TextArea width={"100%"} rows={15} ref={templateDescription} />
+        </Box>
+    </Grid>
+    <Divider />
+    <Flex justifyContent="right" my={16} mr={16}>
+        <Button width="auto" onClick={onUploadDescription}>Update Description</Button>
+    </Flex>
+</>;

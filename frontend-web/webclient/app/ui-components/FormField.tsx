@@ -8,7 +8,7 @@ import Label from "./Label";
 import Select from "./Select";
 import theme from "./theme";
 
-const Root = styled(Box)`
+const Root = styled.div`
   & ${Box} {
     pointer-events: none;
   }

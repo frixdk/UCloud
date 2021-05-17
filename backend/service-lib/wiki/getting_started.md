@@ -24,6 +24,8 @@ system:
  - Kubernetes
    - Minikube: https://kubernetes.io/docs/tasks/tools/install-minikube/
      - macOS: `minikube start -p hyperkit --kubernetes-version v1.15.5`
+     - __Note: If you are not running macOS you probably shouldn't specify `-p hyperkit`, you should also remove
+       `--context hyperkit` from all commands on this page__
    
 ## Configuring Minikube to Run Applications
 
@@ -70,16 +72,29 @@ kubectl --context hyperkit create ns app-kubernetes
 kubectl --context hyperkit create -f /tmp/pvcs.yml
 ```
 
-From `sducloud/backend/launcher` run the following command:
+From `ucloud/backend/launcher` run the following command:
 
 ```
 mkdir -p fs/{home,projects}
 minikube -p hyperkit mount fs/:/hosthome --uid=11042 --gid=11042
 ```
+
+## Installing Volcano
+
+You will also need to install Volcano for `app-kubernetes-service` to function correctly. This is typically done by the
+deployment scripts in a production environment, but for development purposes you can do the following:
+
+1. Download [this file](./volcano.yml)
+2. Run the following command:
+
+```
+kubectl --context hyperkit create ns volcano-system
+kubectl --context hyperkit create -f volcano.yml
+```
    
 ## Preparing Configuration
 
-Create the file `~/sducloud/tokenvalidation.yml` with the following content:
+Create the file `~/ucloud/config.yml` with the following content:
 
 ```yaml
 ---
@@ -87,27 +102,27 @@ refreshToken: theverysecretadmintoken
 tokenValidation:
   jwt:
     sharedSecret: notverysecret
-```
 
-Create the file `~/sducloud/db.yml` with the following content (note: replace credentials to match your postgres):
-
-```yaml
----
-hibernate:
-  database:
-    profile: PERSISTENT_POSTGRES
-    credentials:
-      username: postgres
+database:
+   profile: PERSISTENT_POSTGRES
+   credentials: # Note Replace with your own postgres credentials
+      username: postgres 
       password: postgrespassword
-    logSql: true
+
+rpc:
+   client:
+      host:
+         host: localhost
+         port: 8080
 ```
 
 ## Generating Service Descriptions
 
-Every time a new service is added you will to generate service descriptions. You can do this by running:
+Every time a new service is added you will to generate service descriptions. You can do this by running
+(from `backend/`):
 
 ```
-gradle generateBuildConfig
+./gradlew generateBuildConfig
 ```
 
 ## Running Database Migrations
@@ -118,7 +133,7 @@ Note: Database migrations on development versions sometimes fail due to checksum
 find issues in the database migrations and correct the version directly, as opposed to creating a new one. One way
 around this is to recreate the affected schema/the entire database. That is, if you don't want to fix it by hand.
 
-From `sducloud/backend` run the following:
+From `ucloud/backend` run the following:
 
 ```
 ./gradlew :launcher:run --args='--dev --run-script migrate-db'
@@ -134,7 +149,7 @@ Then make sure you are currently running Java 11 (`java -version`).
 
 ## Running Elasticsearch Migrations
 
-We still don't have a good solution for this. At the moment the following is required to be run from `sducloud/backend`:
+We still don't have a good solution for this. At the moment the following is required to be run from `ucloud/backend`:
 
 ```
 ./gradlew :contact-book-service:run --args='--dev --createIndex'
@@ -165,15 +180,16 @@ values
 ## Starting UCloud
 
 
-From `sducloud/backend` run the following:
+From `ucloud/backend` run the following:
 
 ```
 ./gradlew :launcher:run --args='--dev'
 ```
 
-From `sducloud/frontend-web/webclient/`
+From `ucloud/frontend-web/webclient/`
 
 ```
+npm i
 npm run start_use_local_backend
 ```
 
@@ -187,10 +203,8 @@ Run the following bash script in your terminal, feel free to change the username
 #!/usr/bin/env bash
 ADMINTOK=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ1c2VyMSIsInVpZCI6MTAsImxhc3ROYW1lIjoiVXNlciIsImF1ZCI6ImFsbDp3cml0ZSIsInJvbGUiOiJBRE1JTiIsImlzcyI6ImNsb3VkLnNkdS5kayIsImZpcnN0TmFtZXMiOiJVc2VyIiwiZXhwIjozNTUxNDQyMjIzLCJleHRlbmRlZEJ5Q2hhaW4iOltdLCJpYXQiOjE1NTE0NDE2MjMsInByaW5jaXBhbFR5cGUiOiJwYXNzd29yZCIsInB1YmxpY1Nlc3Npb25SZWZlcmVuY2UiOiJyZWYifQ.BNVLnnWoxfE1YG-9u3oqZVUypbbnF4BX3BNb6T1KYquGaCkMgN_fpo63y7Tmh6NYjf3do2j4lf4d6L94f-3d-g
 
-
 USERNAME=user
 PASSWORD=mypassword
-
 
 if ! command -v jq &> /dev/null
 then
@@ -201,6 +215,10 @@ fi
 USERTOK=`curl -XPOST -H 'Content-Type: application/json' 'http://localhost:8080/auth/users/register' \
     -H "Authorization: Bearer ${ADMINTOK}" \
     -d '[{"username": "'"${USERNAME}"'", "password": "'"${PASSWORD}"'", "role": "ADMIN", "email": "user@example.com"}]' | jq .[0].accessToken -r`
+
+ADMINTOK=`curl -XPOST -H 'Content-Type: application/json' 'http://localhost:8080/auth/users/register' \
+    -H "Authorization: Bearer ${ADMINTOK}" \
+    -d '[{ "username":  "user1",  "password": "temppass", "role": "ADMIN", "email": "user1@example.com" }]' | jq .[0].accessToken -r`
 
 FIGLET_TOOL='
 ---
@@ -273,6 +291,90 @@ projectId=`curl -XPOST -H 'Content-Type: application/json' 'http://localhost:808
     -H "Authorization: Bearer ${ADMINTOK}" \
     -d '{ "title": "UCloud" , "principalInvestigator": "'"${USERNAME}"'" }' | jq .id -r`
 
+curl -XPOST -H 'Content-Type: application/json' 'http://localhost:8080/api/projects/invites' \
+    -H "Authorization: Bearer ${USERTOK}" \
+    -H "Project: ${projectId}" \
+    -d '{ "projectId": "'"${projectId}"'", "usernames": ["user1"] }'
+
+curl -XPOST -H 'Content-Type: application/json' 'http://localhost:8080/api/projects/invites/accept' \
+    -H "Authorization: Bearer ${ADMINTOK}" \
+    -d '{ "projectId": "'"${projectId}"'" }'
+
+curl -XPOST -H 'Content-Type: application/json' 'http://localhost:8080/api/projects/members/change-role' \
+    -H "Authorization: Bearer ${USERTOK}" \
+    -H "Project: ${projectId}" \
+    -d '{ "projectId": "'"${projectId}"'", "member": "user1", "newRole": "ADMIN"}'
+
+
+providerId=`curl -XPOST -H 'Content-Type: application/json' 'http://localhost:8080/api/providers' \
+    -H "Authorization: Bearer ${ADMINTOK}" \
+    -H "Project: ${projectId}" \
+    -d '{ "items": [{ "id": "ucloud", "domain": "localhost", "https": false, "port": 8080 }], "type": "bulk"}' | jq .responses[0].id -r`
+
+provider=`curl -H 'Content-Type: application/json' "http://localhost:8080/api/providers/retrieve?id=${providerId}" \
+    -H "Authorization: Bearer ${ADMINTOK}" \
+    -H "Project: ${projectId}"`
+
+refreshToken=`echo "${provider}" | jq .refreshToken -r`
+publicKey=`echo "${provider}" | jq .publicKey -r`
+
+providerConfig="---
+app:
+  kubernetes:
+    providerRefreshToken: ${refreshToken}
+    ucloudCertificate: ${publicKey}"
+
+mkdir -p $HOME/ucloud
+echo "$providerConfig" > $HOME/ucloud/$providerId-compute-config.yml
+
+curl -XDELETE -H 'Content-Type: application/json' 'http://localhost:8080/api/projects/members' \
+    -H "Authorization: Bearer ${USERTOK}" \
+    -H "Project: ${projectId}" \
+    -d '{ "projectId": "'"${projectId}"'", "member": "user1"}'
+
+aauProjectId=`curl -XPOST -H 'Content-Type: application/json' 'http://localhost:8080/api/projects' \
+    -H "Authorization: Bearer ${ADMINTOK}" \
+    -d '{ "title": "Aau" , "principalInvestigator": "'"${USERNAME}"'" }' | jq .id -r`
+
+curl -XPOST -H 'Content-Type: application/json' 'http://localhost:8080/api/projects/invites' \
+    -H "Authorization: Bearer ${USERTOK}" \
+    -H "Project: ${aauProjectId}" \
+    -d '{ "projectId": "'"${aauProjectId}"'", "usernames": ["user1"] }'
+
+curl -XPOST -H 'Content-Type: application/json' 'http://localhost:8080/api/projects/invites/accept' \
+    -H "Authorization: Bearer ${ADMINTOK}" \
+    -d '{ "projectId": "'"${aauProjectId}"'" }'
+
+curl -XPOST -H 'Content-Type: application/json' 'http://localhost:8080/api/projects/members/change-role' \
+    -H "Authorization: Bearer ${USERTOK}" \
+    -H "Project: ${aauProjectId}" \
+    -d '{ "projectId": "'"${aauProjectId}"'", "member": "user1", "newRole": "ADMIN"}'
+
+aauProviderId=`curl -XPOST -H 'Content-Type: application/json' 'http://localhost:8080/api/providers' \
+    -H "Authorization: Bearer ${ADMINTOK}" \
+    -H "Project: ${aauProjectId}" \
+    -d '{ "items": [{ "id": "aau", "domain": "localhost", "https": false, "port": 8080 }], "type": "bulk"}' | jq ".responses[0].id" -r`
+
+aauProvider=`curl -H 'Content-Type: application/json' "http://localhost:8080/api/providers/retrieve?id=${aauProviderId}" \
+    -H "Authorization: Bearer ${ADMINTOK}" \
+    -H "Project: ${aauProjectId}"`
+
+aauRefreshToken=`echo "${aauProvider}" | jq .refreshToken -r`
+aauPublicKey=`echo "${aauProvider}" | jq .publicKey -r`
+
+aauProviderConfig="---
+app:
+  aau:
+    providerRefreshToken: ${aauRefreshToken}
+    ucloudCertificate: ${aauPublicKey}"
+
+echo "$aauProviderConfig" > $HOME/ucloud/ucloud-$aauProviderId-compute-config.yml
+
+curl -XDELETE -H 'Content-Type: application/json' 'http://localhost:8080/api/projects/members' \
+    -H "Authorization: Bearer ${USERTOK}" \
+    -H "Project: ${aauProjectId}" \
+    -d '{ "projectId": "'"${aauProjectId}"'", "member": "user1"}'
+
 curl -XPOST -H 'Content-Type: application/json' 'http://localhost:8080/api/accounting/wallets/set-balance' \
     -H "Authorization: Bearer ${ADMINTOK}" \
     -d '{ "wallet": { "id": "'"${projectId}"'", "type": "PROJECT", "paysFor": { "id": "u1-cephfs", "provider": "ucloud" } }, "lastKnownBalance": 0, "newBalance": 1000000000000000 }'
@@ -288,7 +390,7 @@ curl -XPOST -H 'Content-Type: application/json' 'http://localhost:8080/api/grant
 curl -XPOST -H 'Content-Type: application/json' 'http://localhost:8080/api/grant/request-settings' \
     -H "Authorization: Bearer ${USERTOK}" \
     -H "Project: ${projectId}" \
-    -d '{ "allowRequestsFrom": [{"type": "anyone"}], "automaticApproval": { "from": [], "maxResources": [] } }'
+    -d '{ "allowRequestsFrom": [{"type": "anyone"}], "automaticApproval": { "from": [], "maxResources": [] }, "excludeRequestsFrom": [] }'
 
 curl -XPOST -H 'Content-Type: application/json' 'http://localhost:8080/api/files/quota' \
     -H "Authorization: Bearer ${ADMINTOK}" \
@@ -300,9 +402,21 @@ curl 'http://localhost:8080/api/hpc/apps/createTag' \
     -d '{"applicationName":"figlet","tags":["Featured"]}'
 ```
 
-This will create the user:
+Then restart the UCloud backend service by closing the process and starting it again from `ucloud/backend`:
+
+```
+./gradlew :launcher:run --args='--dev'
+```
+
+The script will create the user:
 
 - Username: user
 - Password: mypassword
 
 Which you should be able to use immediately on your local version of UCloud.
+
+## Next Steps
+
+- Install some applications into the UCloud system, you can find examples [here](../../app-store-service/examples)
+- [Create a new provider](../../provider-service/README.md)
+- [Learn more about UCloud development](./first_service.md)

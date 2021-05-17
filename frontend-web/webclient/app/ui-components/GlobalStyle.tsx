@@ -9,39 +9,39 @@ const monoFont = require("Assets/JetBrainsMono-Regular.woff2");
 const inter = require("Assets/Inter.ttf");
 
 export function injectFonts(): void {
-    const styleTag = document.createElement("style");
-    styleTag.innerHTML = `
-        /* Custom font */
-        @font-face {
-            font-family: 'IBM Plex Sans';
-            src: url('${fontLight}');
-            font-display: swap;
-        }
-
-        ${useInter ?
-            `@font-face {
+    const standardFont = document.createElement("style");
+    standardFont.innerHTML = useInter ? `
+            @font-face {
                 font-family: 'Inter';
                 src: url('${inter}');
                 font-display: swap;
-                -webkit-font-smoothing: antialiased;
-                -moz-osx-font-smoothing: grayscale;
-            }`
-            :
-            `@font-face {
+                font-feature-settings: "cv05" on, "cv09" on, "cv02" on, "calt" on, "ss03" on;
+            }
+        ` : `
+            @font-face {
+                font-family: 'IBM Plex Sans';
+                src: url('${fontLight}');
+                font-display: swap;
+            }
+            
+            @font-face {
                 font-family: 'IBM Plex Sans';
                 src: url('${fontRegular}');
                 font-weight: 400;
                 font-display: swap;
-            }`
-        }
-        
+            }
+    `;
+    document.head.appendChild(standardFont);
+
+    const mono = document.createElement("style");
+    mono.innerHTML = `
         @font-face {
             font-family: "Jetbrains Mono";
             src: url("${monoFont}");
             font-display: swap;
         }
     `;
-    document.head.appendChild(styleTag);
+    document.head.appendChild(mono);
 }
 
 const UIGlobalStyle = `
@@ -92,6 +92,7 @@ html {
     --invertedThemeColor: #fff;
     --fixedBlack: #000;
     --usageGray: #d5d8d8;
+    --settingsBox: #f5f7f9;
     
     /* TODO This is not currently enforced in the header */
     --headerHeight: 48px;
@@ -113,7 +114,8 @@ html.light {
     --borderGray: var(--midGray, #f00);
     --invertedThemeColor: #000;
     --projectHighlight: #dfffee;
-    --appStoreFavBg: #e8f1fc
+    --appStoreFavBg: #e8f1fc;
+    --settingsBox: #f5f7f9;
 }
 
 html.dark {
@@ -130,7 +132,8 @@ html.dark {
     --borderGray: #111;
     --invertedThemeColor: #fff;
     --projectHighlight: #00c05a;
-    --appStoreFavBg: #00204d
+    --appStoreFavBg: #00204d;
+    --settingsBox: #33455d;
 }
 
 ${device("xxl")} {

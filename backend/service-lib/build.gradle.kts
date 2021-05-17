@@ -10,7 +10,7 @@ repositories {
 }
 
 kotlin {
-    val jacksonVersion = "2.10.0.pr3"
+    val jacksonVersion = "2.10.4"
     val ktorVersion = "1.5.2"
     val jasyncVersion = "1.1.3"
 
@@ -98,7 +98,7 @@ kotlin {
     }
 }
 
-version = "2021.1.0"
+version = "2021.1.2"
 extensions.configure<PublishingExtension>("publishing") {
     repositories {
         maven {

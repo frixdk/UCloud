@@ -1,8 +1,7 @@
 package dk.sdu.cloud.app.kubernetes
 
 import dk.sdu.cloud.accounting.api.UCLOUD_PROVIDER
-import dk.sdu.cloud.app.kubernetes.api.integrationTestingIsKubernetesReady
-import dk.sdu.cloud.app.kubernetes.api.integrationTestingKubernetesFilePath
+import dk.sdu.cloud.app.kubernetes.api.AppK8IntegrationTesting
 import dk.sdu.cloud.app.kubernetes.rpc.*
 import dk.sdu.cloud.app.kubernetes.services.*
 import dk.sdu.cloud.app.kubernetes.services.proxy.ApplicationProxyService
@@ -46,7 +45,7 @@ class Server(
     override fun start() {
         val (refreshToken, validation) =
             if (configuration.providerRefreshToken == null || configuration.ucloudCertificate == null) {
-                if (!micro.developmentModeEnabled && integrationTestingIsKubernetesReady) {
+                if (!micro.developmentModeEnabled && AppK8IntegrationTesting.isProviderReady) {
                     throw IllegalStateException("Missing configuration at app.kubernetes.providerRefreshToken")
                 }
                 requireTokenInit = true
@@ -68,7 +67,7 @@ class Server(
         val db = AsyncDBSessionFactory(micro.databaseConfig)
 
         k8Dependencies = K8Dependencies(
-            if (integrationTestingIsKubernetesReady) KubernetesClient()
+            if (AppK8IntegrationTesting.isKubernetesReady) KubernetesClient()
             else KubernetesClient(KubernetesConfigurationSource.Placeholder),
 
             micro.backgroundScope,
@@ -78,16 +77,47 @@ class Server(
         )
 
         val jobCache = VerifiedJobCache(k8Dependencies)
-        if (!integrationTestingIsKubernetesReady) {
+        if (!AppK8IntegrationTesting.isKubernetesReady) {
             GlobalScope.launch {
-                while (isActive && !integrationTestingIsKubernetesReady) {
+                while (isActive && !AppK8IntegrationTesting.isKubernetesReady) {
                     delay(100)
                 }
 
-                if (integrationTestingIsKubernetesReady) {
+                if (AppK8IntegrationTesting.isKubernetesReady) {
                     k8Dependencies.client = KubernetesClient(
-                        KubernetesConfigurationSource.KubeConfigFile(integrationTestingKubernetesFilePath, null)
+                        KubernetesConfigurationSource.KubeConfigFile(
+                            AppK8IntegrationTesting.kubernetesConfigFilePath,
+                            null
+                        )
                     )
+                }
+            }
+        }
+
+        if (!AppK8IntegrationTesting.isProviderReady) {
+            log.debug("Provider is not ready (Integration testing is active)")
+            GlobalScope.launch {
+                while (isActive) {
+                    while (isActive && !AppK8IntegrationTesting.isProviderReady) {
+                        delay(100)
+                    }
+                    log.debug("Provider is ready")
+
+                    if (AppK8IntegrationTesting.isProviderReady) {
+                        @Suppress("UNCHECKED_CAST")
+                        micro.providerTokenValidation = InternalTokenValidationJWT
+                            .withPublicCertificate(AppK8IntegrationTesting.providerCertificate!!) as TokenValidation<Any>
+
+                        k8Dependencies.serviceClient = RefreshingJWTAuthenticator(
+                            micro.client,
+                            JwtRefresher.Provider(AppK8IntegrationTesting.providerRefreshToken!!)
+                        ).authenticateClient(OutgoingHttpCall)
+                    }
+
+                    // TODO Technically has a race-condition
+                    while (isActive && AppK8IntegrationTesting.isProviderReady) {
+                        delay(1)
+                    }
                 }
             }
         }
@@ -201,8 +231,8 @@ class Server(
                 MaintenanceController(maintenance, micro.tokenValidation),
                 ShellController(k8Dependencies, db, sessions),
                 IngressController(ingressService),
-                LicenseController(licenseService),
-                NetworkIPController(networkIpService),
+                LicenseController(licenseService, micro.tokenValidation),
+                NetworkIPController(networkIpService, micro.tokenValidation),
             )
         }
 
@@ -220,61 +250,6 @@ class Server(
         ktorEngine.application.routing {
             vncService.install(this)
             webService.install(this)
-        }
-
-        if (requireTokenInit) {
-            log.warn("Initializing a provider for UCloud in development mode")
-            runBlocking {
-                val serviceClient = micro.authenticator.authenticateClient(OutgoingHttpCall)
-                val project = Projects.create.call(
-                    CreateProjectRequest("UCloudProviderForDev"),
-                    serviceClient
-                ).orThrow()
-
-                Providers.create.call(
-                    bulkRequestOf(
-                        ProviderSpecification(
-                            UCLOUD_PROVIDER,
-                            "localhost",
-                            false,
-                            8080
-                        )
-                    ),
-                    serviceClient.withProject(project.id)
-                ).orRethrowAs {
-                    throw IllegalStateException("Could not register a provider for development mode!")
-                }
-
-                val retrievedResponse = Providers.retrieve.call(
-                    ProvidersRetrieveRequest(UCLOUD_PROVIDER),
-                    serviceClient.withProject(project.id)
-                ).orThrow()
-
-                if (micro.developmentModeEnabled) {
-                    val defaultConfigDir = File(System.getProperty("user.home"), "sducloud")
-                    val configFile = File(defaultConfigDir, "ucloud-compute-config.yml")
-                    log.warn("Provider configuration is stored at: ${configFile.absolutePath}")
-                    configFile.writeText(
-                        //language=yaml
-                        """
-                          ---
-                          app:
-                            kubernetes:
-                              providerRefreshToken: ${retrievedResponse.refreshToken}
-                              ucloudCertificate: ${retrievedResponse.publicKey}
-                        """.trimIndent()
-                    )
-                }
-
-                @Suppress("UNCHECKED_CAST")
-                micro.providerTokenValidation = InternalTokenValidationJWT
-                    .withPublicCertificate(retrievedResponse.publicKey) as TokenValidation<Any>
-
-                k8Dependencies.serviceClient = RefreshingJWTAuthenticator(
-                    micro.client,
-                    JwtRefresher.Provider(retrievedResponse.refreshToken)
-                ).authenticateClient(OutgoingHttpCall)
-            }
         }
     }
 

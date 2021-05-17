@@ -5,13 +5,15 @@ import {setLoading, SetStatusLoading, useTitle} from "Navigation/Redux/StatusAct
 import * as React from "react";
 import {connect} from "react-redux";
 import {Dispatch} from "redux";
-import {Box, Flex} from "ui-components";
+import {Flex} from "ui-components";
 import * as Heading from "ui-components/Heading";
 import {ChangePassword} from "UserSettings/ChangePassword";
 import {Sessions} from "UserSettings/Sessions";
 import {TwoFactorSetup} from "./TwoFactorSetup";
 import {ChangeUserDetails} from "UserSettings/ChangeUserDetails";
 import {ChangeEmailSettings} from "UserSettings/ChangeEmailSettings";
+import {ThemeColor} from "ui-components/theme";
+import styled from "styled-components";
 
 interface UserSettingsState {
     headerLoading: boolean;
@@ -26,44 +28,74 @@ const UserSettings: React.FunctionComponent<UserSettingsOperations & UserSetting
         Client.userInfo?.principalType === "password";
 
     return (
-        <Flex alignItems="center" flexDirection="column">
-            <Box width={0.7}>
-                <MainContainer
-                    header={<Heading.h1>User Settings</Heading.h1>}
-                    main={(
-                        <>
+        <Flex>
+            <MainContainer
+                header={<Heading.h1>User Settings</Heading.h1>}
+                main={(
+                    <>
+                        <SettingsBox>
                             <TwoFactorSetup
                                 mustActivate2fa={mustActivate2fa}
                                 loading={props.headerLoading}
                                 setLoading={props.setLoading}
                             />
+                        </SettingsBox>
 
-                            {mustActivate2fa ? null : (
-                                <>
+                        {mustActivate2fa ? null : (
+                            <>
+                                <SettingsBox>
                                     <ChangePassword
                                         setLoading={props.setLoading}
                                     />
+                                </SettingsBox>
 
+                                <SettingsBox>
                                     <ChangeUserDetails
                                         setLoading={props.setLoading}
                                     />
+                                </SettingsBox>
+                                <SettingsBox>
                                     <ChangeEmailSettings
                                         setLoading={props.setLoading}
                                     />
+                                </SettingsBox>
+                                <SettingsBox>
                                     <Sessions
                                         setLoading={props.setLoading}
                                         setRefresh={props.setRefresh}
                                     />
-                                </>
-                            )}
+                                </SettingsBox>
+                            </>
+                        )}
 
-                        </>
-                    )}
-                />
-            </Box>
+                    </>
+                )}
+            />
         </Flex>
     );
 };
+
+export function SettingsBox(props: React.PropsWithChildren<{outline?: ThemeColor}>): JSX.Element {
+    return (
+        <SettingsBoxWrapper>
+            {props.children}
+        </SettingsBoxWrapper>
+    )
+}
+
+const SettingsBoxWrapper = styled.div<{outline?: ThemeColor}>`
+    padding-left: 12px;
+    padding-right: 12px;
+    padding-top: 5px;
+    padding-bottom: 8px;
+    
+    margin-bottom: 24px;
+    border-radius: 12px;
+    ${props => props.outline ? `border: var(--${props.outline}) 2px solid;` : null}
+    
+    background-color: var(--settingsBox);
+    width: 100%;
+`;
 
 interface UserSettingsOperations extends SetStatusLoading {
     setRefresh: (fn?: () => void) => void;

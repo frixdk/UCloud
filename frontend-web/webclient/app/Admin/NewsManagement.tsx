@@ -284,7 +284,7 @@ function SingleNewsPost(props: {post: NewsPost, toggleHidden?: (id: number) => v
             <Flex>
                 <Input my="6px" mx="6px" width="210px" readOnly value={format(props.post.showFrom, DATE_FORMAT)} />
                 {props.post.hideFrom == null ?
-                    <Box style={{content: ""}} width="222px" /> :
+                    <Box width="222px">{" "}</Box> :
                     <Input
                         my="6px" mx="6px" readOnly width="210px" value={format(props.post.hideFrom, DATE_FORMAT)} />}
                 {props.toggleHidden ? (

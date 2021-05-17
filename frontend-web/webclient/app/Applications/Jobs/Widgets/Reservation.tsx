@@ -105,6 +105,7 @@ export const ReservationParameter: React.FunctionComponent<{
         <Label mb={"4px"}>
             Job name
             <Input
+                style={{maxWidth: "800px"}}
                 id={reservationName}
                 placeholder={"Example: Run with parameters XYZ"}
             />
@@ -112,18 +113,19 @@ export const ReservationParameter: React.FunctionComponent<{
         </Label>
 
         {toolBackend === "DOCKER" ?
-            <Flex mb={"1em"}>
-                <Label>
-                    Hours <MandatoryField/>
+            <Flex>
+                <Label maxWidth="399px">
+                    Hours <MandatoryField />
                     <Input
+
                         id={reservationHours}
                         onBlur={recalculateCost}
                         defaultValue={application.invocation.tool.tool?.description?.defaultTimeAllocation?.hours ?? 1}
                     />
                 </Label>
-                <Box ml="4px"/>
-                <Label>
-                    Minutes <MandatoryField/>
+                <Box mr="2px" />
+                <Label maxWidth="399px">
+                    Minutes <MandatoryField />
                     <Input
                         id={reservationMinutes}
                         onBlur={recalculateCost}
@@ -134,8 +136,8 @@ export const ReservationParameter: React.FunctionComponent<{
             : null}
         {toolBackend === "VIRTUAL_MACHINE" ?
             <>
-                <input type={"hidden"} id={reservationHours} value={"1"}/>
-                <input type={"hidden"} id={reservationMinutes} value={"0"}/>
+                <input type={"hidden"} id={reservationHours} value={"1"} />
+                <input type={"hidden"} id={reservationMinutes} value={"0"} />
             </>
             : null}
         {errors["timeAllocation"] ? <TextP color={"red"}>{errors["timeAllocation"]}</TextP> : null}
@@ -145,7 +147,7 @@ export const ReservationParameter: React.FunctionComponent<{
                 <Flex mb={"1em"}>
                     <Label>
                         Number of nodes
-                        <Input id={reservationReplicas} onBlur={recalculateCost} defaultValue={"1"}/>
+                        <Input id={reservationReplicas} onBlur={recalculateCost} defaultValue={"1"} />
                     </Label>
                 </Flex>
                 {errors["replicas"] ? <TextP color={"red"}>{errors["replicas"]}</TextP> : null}
@@ -153,8 +155,8 @@ export const ReservationParameter: React.FunctionComponent<{
         )}
 
         <div>
-            <Label>Machine type <MandatoryField/></Label>
-            <Machines machines={allMachines} onMachineChange={setSelectedMachine}/>
+            <Label>Machine type <MandatoryField /></Label>
+            <Box maxWidth="800px"><Machines machines={allMachines} onMachineChange={setSelectedMachine} /></Box>
             {errors["product"] ? <TextP color={"red"}>{errors["product"]}</TextP> : null}
         </div>
     </Box>

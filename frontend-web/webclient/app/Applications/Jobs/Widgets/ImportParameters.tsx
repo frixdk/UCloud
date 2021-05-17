@@ -2,7 +2,7 @@ import * as React from "react";
 import * as UCloud from "UCloud";
 import * as ReactModal from "react-modal";
 import {defaultModalStyle} from "Utilities/ModalUtilities";
-import {Box, Button, Flex, Icon, Label} from "ui-components";
+import {Box, Button, Flex, Grid, Icon, Label} from "ui-components";
 import {HiddenInputField} from "ui-components/Input";
 import {snackbarStore} from "Snackbar/SnackbarStore";
 import CONF from "../../../../site.config.json";
@@ -23,14 +23,15 @@ import {compute} from "UCloud";
 import JobSpecification = compute.JobSpecification;
 import AppParameterValue = compute.AppParameterValue;
 import styled from "styled-components";
-import {TextP} from "ui-components/Text";
+import Text, {TextP} from "ui-components/Text";
+import {format} from "date-fns";
 
 export const ImportParameters: React.FunctionComponent<{
     application: UCloud.compute.Application;
     onImport: (parameters: Partial<UCloud.compute.JobSpecification>) => void;
     importDialogOpen: boolean;
     onImportDialogClose: () => void;
-}> = ({application, onImport, importDialogOpen, onImportDialogClose}) => {
+}> = ({application, onImport, importDialogOpen, onImportDialogClose, children}) => {
     const [fsShown, setFsShown] = useState<boolean>(false);
 
     const title = application.metadata.title;
@@ -94,52 +95,67 @@ export const ImportParameters: React.FunctionComponent<{
         if (response.ok) importParameters(new File([await response.blob()], "params"));
     }, []);
 
-    return <Box>
-        <Label>Load parameters from a previous run:</Label>
-        <Flex flexDirection="row" flexWrap="wrap">
-            {
-                previousRuns.data.items.slice(0, 5).map((file, idx) => (
-                    <Box mr="0.8em" key={idx}>
-                        <BaseLink
-                            href="#"
-                            onClick={async e => {
-                                e.preventDefault();
+    const fivePreviousRuns = previousRuns.data.items.slice(0, 5);
 
-                                try {
-                                    await fetchAndImportParameters(
-                                        {path: `${file.path}/JobParameters.json`}
-                                    );
-                                } catch (ex) {
-                                    snackbarStore.addFailure(
-                                        "Could not find a parameters file for this " +
-                                        "run. Try a different run.",
-                                        false
-                                    );
-                                }
-                            }}
-                        >
-                            {getFilenameFromPath(file.path!, [])}
-                        </BaseLink>
-                    </Box>
-                ))
-            }
-        </Flex>
+    return <div>
+        <div>
+            {fivePreviousRuns.length === 0 ? null : <>
+                <Label>Load parameters from a previous run:</Label>
+                <Grid width="auto" gridTemplateColumns={`repeat(auto-fill, minmax(130px, 1fr))`} gridGap={0}>
 
-        {messages.length === 0 ? null : (
-            <Box>
-                <TextP bold>We have attempted to your import your previous job</TextP>
-                <MessageBox>
-                    {messages.map((it, i) =>
-                        <li key={i}>
-                            {it.type === "error" ? <Icon name={"warning"} color={"red"} /> : null}
-                            {it.type === "warning" ? <Icon name={"warning"} color={"yellow"} /> : null}
-                            {it.type === "info" ? <Icon name={"info"} /> : null}
-                            {it.message}
-                        </li>
+                    <div>
+                        <BorderedText bold>Date</BorderedText>
+                        <BorderedText bold>Parameters</BorderedText>
+                    </div>
+                    {fivePreviousRuns.map(f =>
+                        <div key={f.createdAt}>
+                            <BorderedText key={f.createdAt}>{format(f.createdAt ?? 0, "HH:mm dd/MM/yy")}</BorderedText>
+                            <BorderedText>
+                                <BaseLink
+                                    href="#"
+                                    onClick={async e => {
+                                        e.preventDefault();
+
+                                        try {
+                                            await fetchAndImportParameters(
+                                                {path: `${f.path}/JobParameters.json`}
+                                            );
+                                        } catch (ex) {
+                                            snackbarStore.addFailure(
+                                                "Could not find a parameters file for this " +
+                                                "run. Try a different run.",
+                                                false
+                                            );
+                                        }
+                                    }}
+                                >
+                                    {getFilenameFromPath(f.path!, [])}
+                                </BaseLink>
+                            </BorderedText>
+                        </div>
                     )}
-                </MessageBox>
-            </Box>
-        )}
+                    {children}
+                </Grid>
+            </>}
+        </div>
+
+        {
+            messages.length === 0 ? null : (
+                <Box>
+                    <TextP bold>We have attempted to your import your previous job</TextP>
+                    <MessageBox>
+                        {messages.map((it, i) =>
+                            <li key={i}>
+                                {it.type === "error" ? <Icon name={"warning"} color={"red"} /> : null}
+                                {it.type === "warning" ? <Icon name={"warning"} color={"yellow"} /> : null}
+                                {it.type === "info" ? <Icon name={"info"} /> : null}
+                                {it.message}
+                            </li>
+                        )}
+                    </MessageBox>
+                </Box>
+            )
+        }
 
         <FileSelector
             onFileSelect={(f) => {
@@ -188,8 +204,15 @@ export const ImportParameters: React.FunctionComponent<{
                 </Flex>
             </div>
         </ReactModal>
-    </Box>;
+    </div >;
 };
+
+const BorderedText = styled(Text)`
+    border: 1px solid var(--midGray);
+    font-size: 14px;
+    text-align: center;
+    width: 130px;
+`;
 
 type ImportMessage =
     {type: "info", message: string} |
