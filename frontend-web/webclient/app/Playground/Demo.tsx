@@ -1,9 +1,10 @@
 import MainContainer from "MainContainer/MainContainer";
 import * as React from "react";
 import styled from "styled-components";
-import {Button, Card, Flex, Icon, Input} from "ui-components";
+import {Button, Card, Flex, Icon, Input, Text} from "ui-components";
 import {Spacer} from "ui-components/Spacer";
-import Table, {TableCell, TableHeader, TableHeaderCell, TableRow} from "ui-components/Table";
+import Table, {TableCell, TableHeader, TableRow} from "ui-components/Table";
+import {getCssVar} from "Utilities/StyledComponentsUtilities";
 
 enum Selection {
     ACTIVE,
@@ -25,9 +26,10 @@ const Demo: React.FunctionComponent = () => {
                     left={null}
                     right={
                         <Flex height="42px">
-                            <Input width="150px" />
-                            <Button width="350px" ml="8px">Apply for more resources</Button>
-                            <Button ml="8px" width="230px">New subproject</Button>
+                            <Icon name="search" mt="7px" mr="-34px" size={28} color={getCssVar("gray")} />
+                            <Input pl="32px" autoComplete="off" width="225px" />
+                            <Button ml="8px"><Text style={{fontWeight: 400}} fontSize="12px">Apply for resources</Text></Button>
+                            <Button ml="8px"><Text style={{fontWeight: 400}} fontSize="12px">New subproject</Text></Button>
                         </Flex>
                     }
                 />
