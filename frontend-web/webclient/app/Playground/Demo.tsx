@@ -41,37 +41,35 @@ const Demo: React.FunctionComponent = () => {
                     <Card>
 
                         <Table>
-
                             <TableHeader>
-
                                 <TableRow>
-                                    <TableHeaderCell textAlign="left">
+                                    <th style={{textAlign: "left"}}>
                                         Name
-                                    </TableHeaderCell>
-                                    <TableHeaderCell>
+                                    </th>
+                                    <th style={{textAlign: "left"}}>
                                         {/* Clickable dropdown? */}
-                                        <Icon name="cpu" color="black" /> Compute
-                                    </TableHeaderCell>
-                                    <TableHeaderCell>
+                                        <Icon ml="-48px" mr="20px" name="cpu" color="black" /> Compute
+                                    </th>
+                                    <th style={{textAlign: "left"}}>
                                         {/* Clickable dropdown? */}
-                                        <Icon name="ftFileSystem" color="black" /> Storage
-                                    </TableHeaderCell>
-                                    <TableHeaderCell />
+                                        <Icon ml="-48px" mr="20px" name="ftFileSystem" color="black" /> Storage
+                                    </th>
                                 </TableRow>
                             </TableHeader>
                             <tbody>
                                 <TableRow>
-                                    <TableCell textAlign="left">
+                                    <TableCell>
                                         Test
                                     </TableCell>
                                     <TableCell>
                                         0 DKK (0.00% used)
                                     </TableCell>
                                     <TableCell>
-                                        0 DKK (0.00% used)
-                                    </TableCell>
-                                    <TableCell>
-                                        5.24 MB
+                                        <Spacer
+                                            mr="24px"
+                                            left={<>0 DKK (0.00% used)</>}
+                                            right={<>5.24 MB</>}
+                                        />
                                     </TableCell>
                                 </TableRow>
                                 <TableRow>
@@ -82,10 +80,11 @@ const Demo: React.FunctionComponent = () => {
                                         0 DKK (0.00% used)
                                     </TableCell>
                                     <TableCell>
-                                        0 DKK (0.00% used)
-                                    </TableCell>
-                                    <TableCell>
-                                        5.24 MB
+                                        <Spacer
+                                            mr="24px"
+                                            left={<>0 DKK (0.00% used)</>}
+                                            right={<>5.24 MB</>}
+                                        />
                                     </TableCell>
                                 </TableRow>
                             </tbody>
@@ -142,7 +141,7 @@ const BladedCard = styled.div`
         border-top: 0px;
     }
 
-    & > ${Card} > table > thead > tr > th , & > ${Card} > table > tbody > tr > td {
+    & > ${Card} > table > thead > tr > th, & > ${Card} > table > tbody > tr > td {
         padding-left: 8px;
     }
 

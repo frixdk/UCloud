@@ -50,7 +50,7 @@ import {
     ToggleSubProjectsRenamingRequest
 } from "Project/Grant";
 import {buildQueryString} from "Utilities/URIUtilities";
-import {DashboardCard} from "Dashboard/Dashboard";
+import {HighlightedCard} from "Dashboard/Dashboard";
 import {SettingsBox} from "UserSettings/UserSettings";
 
 const ActionContainer = styled.div`
@@ -130,7 +130,7 @@ export const ProjectSettings: React.FunctionComponent = () => {
                             style={{gridAutoFlow: "row"}}
                         >
                             <HoverBox cursor="pointer">
-                                <DashboardCard onClick={() => history.push(`/project/settings/${SettingsPage.GENERAL}`)} height="200px" width="400px" color="orange">
+                                <HighlightedCard onClick={() => history.push(`/project/settings/${SettingsPage.GENERAL}`)} height="200px" width="400px" color="orange">
                                     <Flex>
                                         <Box height="100%" ml="-10px" mt="7px" width="30px">
                                             <Icon name="chrono" />
@@ -154,10 +154,10 @@ export const ProjectSettings: React.FunctionComponent = () => {
                                             </Text>
                                         </div>
                                     </Flex>
-                                </DashboardCard>
+                                </HighlightedCard>
                             </HoverBox>
                             <HoverBox cursor="pointer">
-                                <DashboardCard height="200px" width="400px" color="blue" onClick={() => history.push(`/project/settings/${SettingsPage.DMP}`)}>
+                                <HighlightedCard height="200px" width="400px" color="blue" onClick={() => history.push(`/project/settings/${SettingsPage.DMP}`)}>
                                     <Flex>
                                         <Box height="100%" ml="-10px" mt="7px" width="30px">
                                             <Icon name="chrono" />
@@ -169,11 +169,11 @@ export const ProjectSettings: React.FunctionComponent = () => {
                                             </Text>
                                         </div>
                                     </Flex>
-                                </DashboardCard>
+                                </HighlightedCard>
                             </HoverBox>
                             {!enabled.data.enabled ? null :
                                 <HoverBox cursor="pointer">
-                                    <DashboardCard height="200px" width="400px" color="green" onClick={() => history.push(`/project/settings/${SettingsPage.GRANT_SETTINGS}`)}>
+                                    <HighlightedCard height="200px" width="400px" color="green" onClick={() => history.push(`/project/settings/${SettingsPage.GRANT_SETTINGS}`)}>
                                         <Flex>
                                             <Box height="100%" ml="-10px" mt="7px" width="30px">
                                                 <Icon name="mail" />
@@ -191,7 +191,7 @@ export const ProjectSettings: React.FunctionComponent = () => {
                                                 </Text>
                                             </div>
                                         </Flex>
-                                    </DashboardCard>
+                                    </HighlightedCard>
                                 </HoverBox>
                             }
                         </Grid>
