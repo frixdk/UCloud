@@ -33,6 +33,10 @@ exports[`Mount ProjectDashboard 1`] = `
 }
 
 .c16 {
+  color: #006aff;
+}
+
+.c18 {
   padding-left: 16px;
   padding-right: 16px;
   padding-top: 4px;
@@ -40,15 +44,23 @@ exports[`Mount ProjectDashboard 1`] = `
   height: calc(100% - 5px);
 }
 
-.c20 {
+.c22 {
   -webkit-box-flex: 1;
   -webkit-flex-grow: 1;
   -ms-flex-positive: 1;
   flex-grow: 1;
 }
 
-.c21 {
+.c23 {
   color: #8393A7;
+}
+
+.c30 {
+  color: #70b;
+}
+
+.c32 {
+  color: #00C05A;
 }
 
 .c2 {
@@ -57,7 +69,7 @@ exports[`Mount ProjectDashboard 1`] = `
   left: 0;
 }
 
-.c18 {
+.c20 {
   -webkit-flex: none;
   -ms-flex: none;
   flex: none;
@@ -68,7 +80,7 @@ exports[`Mount ProjectDashboard 1`] = `
   color: #53657d;
 }
 
-.c22 {
+.c24 {
   -webkit-flex: none;
   -ms-flex: none;
   flex: none;
@@ -102,7 +114,7 @@ exports[`Mount ProjectDashboard 1`] = `
   margin-bottom: 12px;
 }
 
-.c17 {
+.c19 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -121,14 +133,14 @@ exports[`Mount ProjectDashboard 1`] = `
   grid-template-columns: repeat(auto-fill,minmax(300px,1fr) );
 }
 
-.c19 {
+.c21 {
   cursor: inherit;
   font-size: 24px;
   margin: 0;
   font-weight: 400;
 }
 
-.c28 {
+.c34 {
   cursor: inherit;
   font-size: 14px;
   color: #53657d;
@@ -150,7 +162,7 @@ exports[`Mount ProjectDashboard 1`] = `
   z-index: 50;
 }
 
-.c23 {
+.c25 {
   background-color: #fff;
   border: 0px;
   border-spacing: 0;
@@ -160,22 +172,22 @@ exports[`Mount ProjectDashboard 1`] = `
   background-color: #fff;
 }
 
-.c26 {
+.c28 {
   border: 0px;
   border-spacing: 0;
 }
 
-.c27 {
+.c29 {
   border: 0px;
   border-spacing: 0;
   text-align: right;
 }
 
-.c24 {
+.c26 {
   cursor: pointer;
 }
 
-.c24 > .c25 {
+.c26 > .c27 {
   border-spacing: 0;
   border-top: 1px solid rgba(34,36,38,.1);
   padding-top: 8px;
@@ -232,6 +244,18 @@ exports[`Mount ProjectDashboard 1`] = `
 .c7 .sc-bdnxRM {
   margin: 0;
   display: inline;
+}
+
+.c17 {
+  border-top: 5px solid var(--blue,#f00);
+}
+
+.c31 {
+  border-top: 5px solid var(--purple,#f00);
+}
+
+.c33 {
+  border-top: 5px solid var(--green,#f00);
 }
 
 .c12 > .c13 {
@@ -323,22 +347,18 @@ exports[`Mount ProjectDashboard 1`] = `
         width="100%"
       >
         <div
-          className=""
-          style={
-            Object {
-              "borderTop": "5px solid var(--blue, #f00)",
-            }
-          }
+          className="c16 c17"
+          color="blue"
         />
         <div
-          className="c16"
+          className="c18"
           height="calc(100% - 5px)"
         >
           <div
-            className="c17"
+            className="c19"
           >
             <svg
-              className="c18"
+              className="c20"
               clipRule="evenodd"
               color="#53657d"
               cursor="inherit"
@@ -361,21 +381,21 @@ exports[`Mount ProjectDashboard 1`] = `
               />
             </svg>
             <h3
-              className="c19"
+              className="c21"
               cursor="inherit"
               fontSize={4}
             >
               Members
             </h3>
             <div
-              className="c20"
+              className="c22"
             />
             <div
-              className="c21"
+              className="c23"
               color="#8393A7"
             >
               <svg
-                className="c22"
+                className="c24"
                 clipRule="evenodd"
                 color="darkGray"
                 cursor="inherit"
@@ -393,36 +413,36 @@ exports[`Mount ProjectDashboard 1`] = `
             </div>
           </div>
           <table
-            className="c23"
+            className="c25"
             width="100%"
           >
             <tbody>
               <tr
-                className="c24"
+                className="c26"
                 cursor="pointer"
               >
                 <td
-                  className="c25 c26"
+                  className="c27 c28"
                 >
                   Members
                 </td>
                 <td
-                  className="c25 c27"
+                  className="c27 c29"
                 >
                   0
                 </td>
               </tr>
               <tr
-                className="c24"
+                className="c26"
                 cursor="pointer"
               >
                 <td
-                  className="c25 c26"
+                  className="c27 c28"
                 >
                   Groups
                 </td>
                 <td
-                  className="c25 c27"
+                  className="c27 c29"
                 >
                   0
                 </td>
@@ -439,22 +459,18 @@ exports[`Mount ProjectDashboard 1`] = `
         width="100%"
       >
         <div
-          className=""
-          style={
-            Object {
-              "borderTop": "5px solid var(--purple, #f00)",
-            }
-          }
+          className="c30 c31"
+          color="purple"
         />
         <div
-          className="c16"
+          className="c18"
           height="calc(100% - 5px)"
         >
           <div
-            className="c17"
+            className="c19"
           >
             <svg
-              className="c18"
+              className="c20"
               clipRule="evenodd"
               color="#53657d"
               cursor="inherit"
@@ -477,21 +493,21 @@ exports[`Mount ProjectDashboard 1`] = `
               />
             </svg>
             <h3
-              className="c19"
+              className="c21"
               cursor="inherit"
               fontSize={4}
             >
               Resource Allocation
             </h3>
             <div
-              className="c20"
+              className="c22"
             />
             <div
-              className="c21"
+              className="c23"
               color="#8393A7"
             >
               <svg
-                className="c22"
+                className="c24"
                 clipRule="evenodd"
                 color="darkGray"
                 cursor="inherit"
@@ -518,22 +534,18 @@ exports[`Mount ProjectDashboard 1`] = `
         width="100%"
       >
         <div
-          className=""
-          style={
-            Object {
-              "borderTop": "5px solid var(--green, #f00)",
-            }
-          }
+          className="c32 c33"
+          color="green"
         />
         <div
-          className="c16"
+          className="c18"
           height="calc(100% - 5px)"
         >
           <div
-            className="c17"
+            className="c19"
           >
             <svg
-              className="c18"
+              className="c20"
               clipRule="evenodd"
               color="#53657d"
               cursor="inherit"
@@ -559,21 +571,21 @@ exports[`Mount ProjectDashboard 1`] = `
               />
             </svg>
             <h3
-              className="c19"
+              className="c21"
               cursor="inherit"
               fontSize={4}
             >
               Usage
             </h3>
             <div
-              className="c20"
+              className="c22"
             />
             <div
-              className="c21"
+              className="c23"
               color="#8393A7"
             >
               <svg
-                className="c22"
+                className="c24"
                 clipRule="evenodd"
                 color="darkGray"
                 cursor="inherit"
@@ -591,7 +603,7 @@ exports[`Mount ProjectDashboard 1`] = `
             </div>
           </div>
           <div
-            className="c28"
+            className="c34"
             color="darkGray"
             cursor="inherit"
             fontSize={1}
@@ -599,36 +611,36 @@ exports[`Mount ProjectDashboard 1`] = `
             Past 30 days
           </div>
           <table
-            className="c23"
+            className="c25"
             width="100%"
           >
             <tbody>
               <tr
-                className="c24"
+                className="c26"
                 cursor="pointer"
               >
                 <td
-                  className="c25 c26"
+                  className="c27 c28"
                 >
                   Storage
                 </td>
                 <td
-                  className="c25 c27"
+                  className="c27 c29"
                 >
                   0 DKK
                 </td>
               </tr>
               <tr
-                className="c24"
+                className="c26"
                 cursor="pointer"
               >
                 <td
-                  className="c25 c26"
+                  className="c27 c28"
                 >
                   Compute
                 </td>
                 <td
-                  className="c25 c27"
+                  className="c27 c29"
                 >
                   0 DKK
                 </td>

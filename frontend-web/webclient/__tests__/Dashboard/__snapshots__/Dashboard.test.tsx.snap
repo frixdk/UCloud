@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Dashboard Dashboard mount 1`] = `
-.c7 {
+.c9 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -12,7 +12,7 @@ exports[`Dashboard Dashboard mount 1`] = `
   align-items: center;
 }
 
-.c13 {
+.c17 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -34,7 +34,7 @@ exports[`Dashboard Dashboard mount 1`] = `
   min-height: 250px;
 }
 
-.c12 {
+.c14 {
   width: 32px;
   height: 32px;
   margin: 20px auto;
@@ -42,126 +42,126 @@ exports[`Dashboard Dashboard mount 1`] = `
   animation-name: jkjquP;
 }
 
-.c12 > svg path:nth-child(1) {
+.c14 > svg path:nth-child(1) {
   -webkit-animation: jkjquP 0.72s linear infinite;
   animation: jkjquP 0.72s linear infinite;
   -webkit-animation-delay: -0.04s;
   animation-delay: -0.04s;
 }
 
-.c12 > svg path:nth-child(2) {
+.c14 > svg path:nth-child(2) {
   -webkit-animation: jkjquP 0.72s linear infinite;
   animation: jkjquP 0.72s linear infinite;
   -webkit-animation-delay: -0.08s;
   animation-delay: -0.08s;
 }
 
-.c12 > svg path:nth-child(3) {
+.c14 > svg path:nth-child(3) {
   -webkit-animation: jkjquP 0.72s linear infinite;
   animation: jkjquP 0.72s linear infinite;
   -webkit-animation-delay: -0.12s;
   animation-delay: -0.12s;
 }
 
-.c12 > svg path:nth-child(4) {
+.c14 > svg path:nth-child(4) {
   -webkit-animation: jkjquP 0.72s linear infinite;
   animation: jkjquP 0.72s linear infinite;
   -webkit-animation-delay: -0.16s;
   animation-delay: -0.16s;
 }
 
-.c12 > svg path:nth-child(5) {
+.c14 > svg path:nth-child(5) {
   -webkit-animation: jkjquP 0.72s linear infinite;
   animation: jkjquP 0.72s linear infinite;
   -webkit-animation-delay: -0.2s;
   animation-delay: -0.2s;
 }
 
-.c12 > svg path:nth-child(6) {
+.c14 > svg path:nth-child(6) {
   -webkit-animation: jkjquP 0.72s linear infinite;
   animation: jkjquP 0.72s linear infinite;
   -webkit-animation-delay: -0.24s;
   animation-delay: -0.24s;
 }
 
-.c12 > svg path:nth-child(7) {
+.c14 > svg path:nth-child(7) {
   -webkit-animation: jkjquP 0.72s linear infinite;
   animation: jkjquP 0.72s linear infinite;
   -webkit-animation-delay: -0.28s;
   animation-delay: -0.28s;
 }
 
-.c12 > svg path:nth-child(8) {
+.c14 > svg path:nth-child(8) {
   -webkit-animation: jkjquP 0.72s linear infinite;
   animation: jkjquP 0.72s linear infinite;
   -webkit-animation-delay: -0.32s;
   animation-delay: -0.32s;
 }
 
-.c12 > svg path:nth-child(9) {
+.c14 > svg path:nth-child(9) {
   -webkit-animation: jkjquP 0.72s linear infinite;
   animation: jkjquP 0.72s linear infinite;
   -webkit-animation-delay: -0.36s;
   animation-delay: -0.36s;
 }
 
-.c12 > svg path:nth-child(10) {
+.c14 > svg path:nth-child(10) {
   -webkit-animation: jkjquP 0.72s linear infinite;
   animation: jkjquP 0.72s linear infinite;
   -webkit-animation-delay: -0.4s;
   animation-delay: -0.4s;
 }
 
-.c12 > svg path:nth-child(11) {
+.c14 > svg path:nth-child(11) {
   -webkit-animation: jkjquP 0.72s linear infinite;
   animation: jkjquP 0.72s linear infinite;
   -webkit-animation-delay: -0.44s;
   animation-delay: -0.44s;
 }
 
-.c12 > svg path:nth-child(12) {
+.c14 > svg path:nth-child(12) {
   -webkit-animation: jkjquP 0.72s linear infinite;
   animation: jkjquP 0.72s linear infinite;
   -webkit-animation-delay: -0.48s;
   animation-delay: -0.48s;
 }
 
-.c12 > svg path:nth-child(13) {
+.c14 > svg path:nth-child(13) {
   -webkit-animation: jkjquP 0.72s linear infinite;
   animation: jkjquP 0.72s linear infinite;
   -webkit-animation-delay: -0.52s;
   animation-delay: -0.52s;
 }
 
-.c12 > svg path:nth-child(14) {
+.c14 > svg path:nth-child(14) {
   -webkit-animation: jkjquP 0.72s linear infinite;
   animation: jkjquP 0.72s linear infinite;
   -webkit-animation-delay: -0.56s;
   animation-delay: -0.56s;
 }
 
-.c12 > svg path:nth-child(15) {
+.c14 > svg path:nth-child(15) {
   -webkit-animation: jkjquP 0.72s linear infinite;
   animation: jkjquP 0.72s linear infinite;
   -webkit-animation-delay: -0.6s;
   animation-delay: -0.6s;
 }
 
-.c12 > svg path:nth-child(16) {
+.c14 > svg path:nth-child(16) {
   -webkit-animation: jkjquP 0.72s linear infinite;
   animation: jkjquP 0.72s linear infinite;
   -webkit-animation-delay: -0.64s;
   animation-delay: -0.64s;
 }
 
-.c12 > svg path:nth-child(17) {
+.c14 > svg path:nth-child(17) {
   -webkit-animation: jkjquP 0.72s linear infinite;
   animation: jkjquP 0.72s linear infinite;
   -webkit-animation-delay: -0.68s;
   animation-delay: -0.68s;
 }
 
-.c12 > svg path:nth-child(18) {
+.c14 > svg path:nth-child(18) {
   -webkit-animation: jkjquP 0.72s linear infinite;
   animation: jkjquP 0.72s linear infinite;
   -webkit-animation-delay: -0.72s;
@@ -190,6 +190,10 @@ exports[`Dashboard Dashboard mount 1`] = `
 }
 
 .c6 {
+  color: #ff6400;
+}
+
+.c8 {
   padding-left: 16px;
   padding-right: 16px;
   padding-top: 4px;
@@ -197,18 +201,38 @@ exports[`Dashboard Dashboard mount 1`] = `
   height: calc(100% - 5px);
 }
 
-.c11 {
+.c13 {
   -webkit-box-flex: 1;
   -webkit-flex-grow: 1;
   -ms-flex-positive: 1;
   flex-grow: 1;
 }
 
-.c19 {
+.c15 {
+  color: #006aff;
+}
+
+.c23 {
+  color: #70b;
+}
+
+.c25 {
+  color: #00823c;
+}
+
+.c27 {
   color: #8393A7;
 }
 
-.c30 {
+.c31 {
+  color: #c00;
+}
+
+.c34 {
+  color: #ffed33;
+}
+
+.c42 {
   border-radius: 6px;
   width: 100%;
   min-width: 450px;
@@ -216,7 +240,11 @@ exports[`Dashboard Dashboard mount 1`] = `
   overflow: hidden;
 }
 
-.c17 {
+.c43 {
+  color: #00C05A;
+}
+
+.c21 {
   font-smoothing: antialiased;
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -250,21 +278,21 @@ exports[`Dashboard Dashboard mount 1`] = `
   margin-top: 16px;
 }
 
-.c17:disabled {
+.c21:disabled {
   opacity: 0.25;
 }
 
-.c17:focus {
+.c21:focus {
   outline: none;
 }
 
-.c17:hover {
+.c21:hover {
   -webkit-transform: translateY(-2px);
   -ms-transform: translateY(-2px);
   transform: translateY(-2px);
 }
 
-.c22 {
+.c30 {
   font-smoothing: antialiased;
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -298,21 +326,21 @@ exports[`Dashboard Dashboard mount 1`] = `
   margin-top: 8px;
 }
 
-.c22:disabled {
+.c30:disabled {
   opacity: 0.25;
 }
 
-.c22:focus {
+.c30:focus {
   outline: none;
 }
 
-.c22:hover {
+.c30:hover {
   -webkit-transform: translateY(-2px);
   -ms-transform: translateY(-2px);
   transform: translateY(-2px);
 }
 
-.c23 {
+.c33 {
   font-smoothing: antialiased;
   display: -webkit-inline-box;
   display: -webkit-inline-flex;
@@ -346,21 +374,21 @@ exports[`Dashboard Dashboard mount 1`] = `
   margin-bottom: 4px;
 }
 
-.c23:disabled {
+.c33:disabled {
   opacity: 0.25;
 }
 
-.c23:focus {
+.c33:focus {
   outline: none;
 }
 
-.c23:hover {
+.c33:hover {
   -webkit-transform: translateY(-2px);
   -ms-transform: translateY(-2px);
   transform: translateY(-2px);
 }
 
-.c8 {
+.c10 {
   -webkit-flex: none;
   -ms-flex: none;
   flex: none;
@@ -371,7 +399,7 @@ exports[`Dashboard Dashboard mount 1`] = `
   color: #53657d;
 }
 
-.c16 {
+.c20 {
   -webkit-flex: none;
   -ms-flex: none;
   flex: none;
@@ -379,7 +407,7 @@ exports[`Dashboard Dashboard mount 1`] = `
   cursor: inherit;
 }
 
-.c20 {
+.c28 {
   -webkit-flex: none;
   -ms-flex: none;
   flex: none;
@@ -403,42 +431,42 @@ exports[`Dashboard Dashboard mount 1`] = `
   grid-template-columns: repeat(auto-fill,minmax(435px,1fr) );
 }
 
-.c10 {
+.c12 {
   cursor: inherit;
   font-size: 24px;
   margin: 0;
   font-weight: 400;
 }
 
-.c14 {
+.c18 {
   cursor: inherit;
   font-size: 20px;
   margin: 0;
   font-weight: 400;
 }
 
-.c15 {
+.c19 {
   cursor: inherit;
 }
 
-.c24 {
+.c36 {
   cursor: inherit;
   font-size: 14px;
   color: #53657d;
 }
 
-.c9 {
+.c11 {
   cursor: pointer;
   -webkit-text-decoration: none;
   text-decoration: none;
   color: #1e252e;
 }
 
-.c9:hover {
+.c11:hover {
   color: var(--textHighlight);
 }
 
-.c21 {
+.c29 {
   cursor: pointer;
   -webkit-text-decoration: none;
   text-decoration: none;
@@ -446,23 +474,23 @@ exports[`Dashboard Dashboard mount 1`] = `
   color: #1e252e;
 }
 
-.c21:hover {
+.c29:hover {
   color: var(--textHighlight);
 }
 
-.c18 {
+.c22 {
   font-size: large;
 }
 
-.c18 > * {
+.c22 > * {
   border-bottom: 1px solid lightGrey;
 }
 
-.c18 > *:last-child {
+.c22 > *:last-child {
   border-bottom: 0px;
 }
 
-.c25 {
+.c37 {
   background-color: #fff;
   border: 0px;
   border-spacing: 0;
@@ -472,26 +500,54 @@ exports[`Dashboard Dashboard mount 1`] = `
   background-color: #fff;
 }
 
-.c28 {
+.c40 {
   border: 0px;
   border-spacing: 0;
 }
 
-.c29 {
+.c41 {
   border: 0px;
   border-spacing: 0;
   text-align: right;
 }
 
-.c26 {
+.c38 {
   cursor: auto;
 }
 
-.c26 > .c27 {
+.c38 > .c39 {
   border-spacing: 0;
   border-top: 1px solid rgba(34,36,38,.1);
   padding-top: 8px;
   padding-bottom: 8px;
+}
+
+.c7 {
+  border-top: 5px solid var(--orange,#f00);
+}
+
+.c16 {
+  border-top: 5px solid var(--blue,#f00);
+}
+
+.c24 {
+  border-top: 5px solid var(--purple,#f00);
+}
+
+.c26 {
+  border-top: 5px solid var(--darkGreen,#f00);
+}
+
+.c32 {
+  border-top: 5px solid var(--red,#f00);
+}
+
+.c35 {
+  border-top: 5px solid var(--yellow,#f00);
+}
+
+.c44 {
+  border-top: 5px solid var(--green,#f00);
 }
 
 @media screen and (min-width:768px) and (max-width:1023px) {
@@ -532,22 +588,18 @@ exports[`Dashboard Dashboard mount 1`] = `
         width="100%"
       >
         <div
-          className=""
-          style={
-            Object {
-              "borderTop": "5px solid var(--orange, #f00)",
-            }
-          }
+          className="c6 c7"
+          color="orange"
         />
         <div
-          className="c6"
+          className="c8"
           height="calc(100% - 5px)"
         >
           <div
-            className="c7"
+            className="c9"
           >
             <svg
-              className="c8"
+              className="c10"
               clipRule="evenodd"
               color="#53657d"
               cursor="inherit"
@@ -600,13 +652,13 @@ exports[`Dashboard Dashboard mount 1`] = `
               />
             </svg>
             <a
-              className="c9"
+              className="c11"
               color="text"
               href="/news/list/"
               onClick={[Function]}
             >
               <h3
-                className="c10"
+                className="c12"
                 cursor="inherit"
                 fontSize={4}
               >
@@ -614,11 +666,11 @@ exports[`Dashboard Dashboard mount 1`] = `
               </h3>
             </a>
             <div
-              className="c11"
+              className="c13"
             />
           </div>
           <div
-            className="c12"
+            className="c14"
             data-tag="loading-spinner"
             height={32}
             width={32}
@@ -697,22 +749,18 @@ exports[`Dashboard Dashboard mount 1`] = `
         width="100%"
       >
         <div
-          className=""
-          style={
-            Object {
-              "borderTop": "5px solid var(--blue, #f00)",
-            }
-          }
+          className="c15 c16"
+          color="blue"
         />
         <div
-          className="c6"
+          className="c8"
           height="calc(100% - 5px)"
         >
           <div
-            className="c7"
+            className="c9"
           >
             <svg
-              className="c8"
+              className="c10"
               clipRule="evenodd"
               color="#53657d"
               cursor="inherit"
@@ -729,13 +777,13 @@ exports[`Dashboard Dashboard mount 1`] = `
               />
             </svg>
             <a
-              className="c9"
+              className="c11"
               color="text"
               href="/files?path=%2Fhome%2Ftest%40test%2Ffavorites"
               onClick={[Function]}
             >
               <h3
-                className="c10"
+                className="c12"
                 cursor="inherit"
                 fontSize={4}
               >
@@ -743,28 +791,28 @@ exports[`Dashboard Dashboard mount 1`] = `
               </h3>
             </a>
             <div
-              className="c11"
+              className="c13"
             />
           </div>
           <div
-            className="c13"
+            className="c17"
             height="calc(100% - 60px)"
             width="100%"
           >
             <h4
-              className="c14"
+              className="c18"
               cursor="inherit"
               fontSize={3}
             >
               No favorite files
             </h4>
             <div
-              className="c15"
+              className="c19"
               cursor="inherit"
             >
               Click the 
               <svg
-                className="c16"
+                className="c20"
                 clipRule="evenodd"
                 cursor="inherit"
                 fill="currentcolor"
@@ -780,13 +828,13 @@ exports[`Dashboard Dashboard mount 1`] = `
               </svg>
                next to one of your files to mark it as a favorite.
               <a
-                className="c9"
+                className="c11"
                 color="text"
                 href="/files?path=%2Fhome%2Ftest%40test"
                 onClick={[Function]}
               >
                 <button
-                  className="c17"
+                  className="c21"
                   color="blue"
                 >
                   Explore files
@@ -795,7 +843,7 @@ exports[`Dashboard Dashboard mount 1`] = `
             </div>
           </div>
           <div
-            className="c18"
+            className="c22"
             fontSize="large"
           />
         </div>
@@ -807,22 +855,18 @@ exports[`Dashboard Dashboard mount 1`] = `
         width="100%"
       >
         <div
-          className=""
-          style={
-            Object {
-              "borderTop": "5px solid var(--purple, #f00)",
-            }
-          }
+          className="c23 c24"
+          color="purple"
         />
         <div
-          className="c6"
+          className="c8"
           height="calc(100% - 5px)"
         >
           <div
-            className="c7"
+            className="c9"
           >
             <svg
-              className="c8"
+              className="c10"
               clipRule="evenodd"
               color="#53657d"
               cursor="inherit"
@@ -843,13 +887,13 @@ exports[`Dashboard Dashboard mount 1`] = `
               />
             </svg>
             <a
-              className="c9"
+              className="c11"
               color="text"
               href="/applications/results"
               onClick={[Function]}
             >
               <h3
-                className="c10"
+                className="c12"
                 cursor="inherit"
                 fontSize={4}
               >
@@ -857,11 +901,11 @@ exports[`Dashboard Dashboard mount 1`] = `
               </h3>
             </a>
             <div
-              className="c11"
+              className="c13"
             />
           </div>
           <div
-            className="c12"
+            className="c14"
             data-tag="loading-spinner"
             height={32}
             width={32}
@@ -940,22 +984,18 @@ exports[`Dashboard Dashboard mount 1`] = `
         width="100%"
       >
         <div
-          className=""
-          style={
-            Object {
-              "borderTop": "5px solid var(--darkGreen, #f00)",
-            }
-          }
+          className="c25 c26"
+          color="darkGreen"
         />
         <div
-          className="c6"
+          className="c8"
           height="calc(100% - 5px)"
         >
           <div
-            className="c7"
+            className="c9"
           >
             <svg
-              className="c8"
+              className="c10"
               clipRule="evenodd"
               color="#53657d"
               cursor="inherit"
@@ -978,21 +1018,21 @@ exports[`Dashboard Dashboard mount 1`] = `
               />
             </svg>
             <h3
-              className="c10"
+              className="c12"
               cursor="inherit"
               fontSize={4}
             >
               Recent Notifications
             </h3>
             <div
-              className="c11"
+              className="c13"
             />
             <div
-              className="c19"
+              className="c27"
               color="#8393A7"
             >
               <svg
-                className="c20"
+                className="c28"
                 clipRule="evenodd"
                 color="iconColor"
                 color2="#8393A7"
@@ -1018,31 +1058,31 @@ exports[`Dashboard Dashboard mount 1`] = `
             </div>
           </div>
           <div
-            className="c13"
+            className="c17"
             height="calc(100% - 60px)"
             width="100%"
           >
             <h4
-              className="c14"
+              className="c18"
               cursor="inherit"
               fontSize={3}
             >
               No notifications
             </h4>
             <div
-              className="c15"
+              className="c19"
               cursor="inherit"
             >
               As you as use UCloud notifications will appear here.
               <a
-                className="c21"
+                className="c29"
                 color="text"
                 href="/applications/overview"
                 mt={8}
                 onClick={[Function]}
               >
                 <button
-                  className="c22"
+                  className="c30"
                   color="blue"
                 >
                   Explore UCloud
@@ -1051,7 +1091,7 @@ exports[`Dashboard Dashboard mount 1`] = `
             </div>
           </div>
           <div
-            className="c18"
+            className="c22"
             fontSize="large"
           />
         </div>
@@ -1063,22 +1103,18 @@ exports[`Dashboard Dashboard mount 1`] = `
         width="100%"
       >
         <div
-          className=""
-          style={
-            Object {
-              "borderTop": "5px solid var(--red, #f00)",
-            }
-          }
+          className="c31 c32"
+          color="red"
         />
         <div
-          className="c6"
+          className="c8"
           height="calc(100% - 5px)"
         >
           <div
-            className="c7"
+            className="c9"
           >
             <svg
-              className="c8"
+              className="c10"
               clipRule="evenodd"
               color="#53657d"
               cursor="inherit"
@@ -1101,13 +1137,13 @@ exports[`Dashboard Dashboard mount 1`] = `
               />
             </svg>
             <a
-              className="c9"
+              className="c11"
               color="text"
               href="/project/subprojects"
               onClick={[Function]}
             >
               <h3
-                className="c10"
+                className="c12"
                 cursor="inherit"
                 fontSize={4}
               >
@@ -1115,34 +1151,34 @@ exports[`Dashboard Dashboard mount 1`] = `
               </h3>
             </a>
             <div
-              className="c11"
+              className="c13"
             />
           </div>
           <div
-            className="c13"
+            className="c17"
             height="calc(100% - 60px)"
             width="100%"
           >
             <h4
-              className="c14"
+              className="c18"
               cursor="inherit"
               fontSize={3}
             >
               No available resources
             </h4>
             <div
-              className="c15"
+              className="c19"
               cursor="inherit"
             >
               Apply for resources to use storage and compute on UCloud.
               <a
-                className="c9"
+                className="c11"
                 color="text"
                 href="/project/grants-landing"
                 onClick={[Function]}
               >
                 <button
-                  className="c23"
+                  className="c33"
                   color="blue"
                 >
                   Apply for resources
@@ -1159,22 +1195,18 @@ exports[`Dashboard Dashboard mount 1`] = `
         width="100%"
       >
         <div
-          className=""
-          style={
-            Object {
-              "borderTop": "5px solid var(--yellow, #f00)",
-            }
-          }
+          className="c34 c35"
+          color="yellow"
         />
         <div
-          className="c6"
+          className="c8"
           height="calc(100% - 5px)"
         >
           <div
-            className="c7"
+            className="c9"
           >
             <svg
-              className="c8"
+              className="c10"
               clipRule="evenodd"
               color="#53657d"
               cursor="inherit"
@@ -1200,13 +1232,13 @@ exports[`Dashboard Dashboard mount 1`] = `
               />
             </svg>
             <a
-              className="c9"
+              className="c11"
               color="text"
               href="/project/usage"
               onClick={[Function]}
             >
               <h3
-                className="c10"
+                className="c12"
                 cursor="inherit"
                 fontSize={4}
               >
@@ -1214,11 +1246,11 @@ exports[`Dashboard Dashboard mount 1`] = `
               </h3>
             </a>
             <div
-              className="c11"
+              className="c13"
             />
           </div>
           <div
-            className="c24"
+            className="c36"
             color="darkGray"
             cursor="inherit"
             fontSize={1}
@@ -1226,36 +1258,36 @@ exports[`Dashboard Dashboard mount 1`] = `
             Past 30 days
           </div>
           <table
-            className="c25"
+            className="c37"
             width="100%"
           >
             <tbody>
               <tr
-                className="c26"
+                className="c38"
                 cursor="auto"
               >
                 <td
-                  className="c27 c28"
+                  className="c39 c40"
                 >
                   Storage
                 </td>
                 <td
-                  className="c27 c29"
+                  className="c39 c41"
                 >
                   0 DKK
                 </td>
               </tr>
               <tr
-                className="c26"
+                className="c38"
                 cursor="auto"
               >
                 <td
-                  className="c27 c28"
+                  className="c39 c40"
                 >
                   Compute
                 </td>
                 <td
-                  className="c27 c29"
+                  className="c39 c41"
                 >
                   0 DKK
                 </td>
@@ -1265,28 +1297,24 @@ exports[`Dashboard Dashboard mount 1`] = `
         </div>
       </div>
       <div
-        className="c30 c5"
+        className="c42 c5"
         height="auto"
         overflow="hidden"
         width="100%"
       >
         <div
-          className=""
-          style={
-            Object {
-              "borderTop": "5px solid var(--green, #f00)",
-            }
-          }
+          className="c43 c44"
+          color="green"
         />
         <div
-          className="c6"
+          className="c8"
           height="calc(100% - 5px)"
         >
           <div
-            className="c7"
+            className="c9"
           >
             <svg
-              className="c8"
+              className="c10"
               clipRule="evenodd"
               color="#53657d"
               cursor="inherit"
@@ -1331,13 +1359,13 @@ exports[`Dashboard Dashboard mount 1`] = `
               </defs>
             </svg>
             <a
-              className="c9"
+              className="c11"
               color="text"
               href="/project/grants/outgoing"
               onClick={[Function]}
             >
               <h3
-                className="c10"
+                className="c12"
                 cursor="inherit"
                 fontSize={4}
               >
@@ -1345,33 +1373,33 @@ exports[`Dashboard Dashboard mount 1`] = `
               </h3>
             </a>
             <div
-              className="c11"
+              className="c13"
             />
           </div>
           <div
-            className="c18"
+            className="c22"
             fontSize="large"
           />
           <h3
-            className="c10"
+            className="c12"
             cursor="inherit"
             fontSize={4}
           >
             No recent outgoing grant applications
           </h3>
           <div
-            className="c15"
+            className="c19"
             cursor="inherit"
           >
             Apply for resources to use storage and compute on UCloud.
             <a
-              className="c9"
+              className="c11"
               color="text"
               href="/project/grants-landing"
               onClick={[Function]}
             >
               <button
-                className="c22"
+                className="c30"
                 color="blue"
               >
                 Apply for resources
@@ -1379,7 +1407,7 @@ exports[`Dashboard Dashboard mount 1`] = `
             </a>
           </div>
           <div
-            className="c18"
+            className="c22"
             fontSize="large"
           />
         </div>

@@ -440,7 +440,7 @@ exports[`Activity Page Mount Activity Page, without project 1`] = `
     </h2>
   </div>
   <div
-    className="c0 c6"
+    className="c6"
   >
     <div
       className="c0 c7 c8 c9"
@@ -669,7 +669,7 @@ exports[`Activity Page Mount Activity Page, without project 1`] = `
     className="c0 c21"
   >
     <div
-      className="c0 c22"
+      className="c22"
     >
       <div
         className="c0 c10"
