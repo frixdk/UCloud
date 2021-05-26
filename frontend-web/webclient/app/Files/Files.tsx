@@ -29,6 +29,7 @@ import FileMetadataAttached = file.orchestrator.FileMetadataAttached;
 import {associateBy} from "Utilities/CollectionUtilities";
 import metadataApi = file.orchestrator.metadata;
 import {buildQueryString} from "Utilities/URIUtilities";
+import { SynchronizationSettings } from "./Synchronization";
 
 function fileName(path: string): string {
     const lastSlash = path.lastIndexOf("/");
@@ -55,6 +56,7 @@ export const Files: React.FunctionComponent<CommonFileProps & {
     const [selectFileRequirement, setSelectFileRequirement] = useState<FileType | undefined>(undefined);
     const [onSelectFile, setOnSelectFile] = useState<((file: UFile | null) => void) | null>(null);
     const [sharing, setSharing] = useState<UFile | null>(null);
+    const [synchronization, setSynchronization] = useState<UFile | null>(null);
     const [favoriteCache, setFavoriteCache] = useState<Record<string, true>>({});
 
     const [uploaderVisible, setUploaderVisible] = useGlobal("uploaderVisible", false);
@@ -98,6 +100,15 @@ export const Files: React.FunctionComponent<CommonFileProps & {
         reload();
     }, [commandLoading, reload]);
 
+    const startSynchronization = useCallback((file: UFile) => {
+        setSynchronization(file);
+    }, []);
+
+    const closeSynchronization = useCallback(() => {
+        setSynchronization(null);
+    }, []);
+
+
     const selectFile = useCallback((type: FileType) => {
         return new Promise<UFile>((resolve, reject) => {
             setSelectFileRequirement(type);
@@ -114,7 +125,7 @@ export const Files: React.FunctionComponent<CommonFileProps & {
     }, [onSelectFile, setOnSelectFile]);
 
     const callbacks: FilesCallbacks = {
-        ...props, reload, startRenaming, startFolderCreation, openUploader, trash, selectFile, startShare
+        ...props, reload, startRenaming, startFolderCreation, openUploader, trash, selectFile, startShare, startSynchronization
     };
 
     const renameFile = useCallback(async () => {
@@ -367,6 +378,15 @@ export const Files: React.FunctionComponent<CommonFileProps & {
                     >
                         {!sharing ? null : <EmbeddedShareCard path={sharing.path}/>}
                     </ReactModal>
+
+                    <ReactModal
+                        isOpen={synchronization != null}
+                        style={FileSelectorModalStyle}
+                        onRequestClose={closeSynchronization}
+                        ariaHideApp={false}
+                    >
+                        {!synchronization ? null : <SynchronizationSettings path={synchronization.path}/>}
+                    </ReactModal>
                 </>
             }
         />;
@@ -381,6 +401,7 @@ interface FilesCallbacks extends CommonFileProps {
     trash: (batch: UFile[]) => void;
     selectFile: (requiredType: FileType | null) => Promise<UFile | null>;
     startShare: (batch: UFile) => void;
+    startSynchronization: (file: UFile) => void;
 }
 
 const filesOperations: Operation<UFile, FilesCallbacks>[] = [
@@ -492,6 +513,16 @@ const filesOperations: Operation<UFile, FilesCallbacks>[] = [
         onClick: (selected, cb) => cb.history.push(buildQueryString("/files/properties/", { path: selected[0].path })),
         enabled: selected => selected.length === 1,
     },
+    {
+        text: "Synchronization",
+        icon: "refresh",
+        primary: false,
+        onClick: (selected, cb) => {
+            cb.startSynchronization(selected[0])
+        },
+        enabled: selected => selected.length === 1 && selected[0].type === "DIRECTORY",
+    },
+
 ];
 
 const filesEntityName = "File";

@@ -1,6 +1,6 @@
 /* eslint-disable */
 /* AUTO GENERATED CODE - DO NOT MODIFY */
-/* Generated at: Thu May 06 14:44:39 CEST 2021 */
+/* Generated at: Wed May 26 18:33:44 CEST 2021 */
 
 import {buildQueryString} from "Utilities/URIUtilities";
 
@@ -839,6 +839,16 @@ export interface SharesDeleteRequestItem {
 export interface SharesApproveRequestItem {
     path: string,
 }
+export interface SynchronizationAddDeviceRequest {
+    id: string,
+}
+export interface SynchronizationDevice {
+    id: string,
+}
+export interface SynchronizedFolder {
+    path: string,
+    type: ("SEND_RECEIVE" | "SEND_ONLY"),
+}
 export interface ProxiedRequest<T = unknown> {
     username: string,
     project?: string,
@@ -903,6 +913,9 @@ export interface FileCollectionsProviderRenameRequestItem {
 export interface FileCollectionsProviderUpdateAclRequestItem {
     id: string,
     newAcl: provider.ResourceAclEntry<("READ" | "WRITE" | "ADMINISTRATOR")>[],
+}
+export interface SynchronizationRemoveFolderRequest {
+    id: string,
 }
 export namespace ucloud {
 /**
@@ -1002,6 +1015,52 @@ export function deprecate(
         parameters: request,
         reloadId: Math.random(),
         payload: request,
+    };
+}
+}
+export namespace synchronization {
+export function addDevice(
+    request: SynchronizationAddDeviceRequest
+): APICallParameters<SynchronizationAddDeviceRequest, any /* unknown */> {
+    return {
+        context: "",
+        method: "POST",
+        path: "/api/files/synchronization" + "/device",
+        parameters: request,
+        reloadId: Math.random(),
+        payload: request,
+    };
+}
+export function removeDevice(
+    request: SynchronizationDevice
+): APICallParameters<SynchronizationDevice, any /* unknown */> {
+    return {
+        context: "",
+        method: "DELETE",
+        path: "/api/files/synchronization/device",
+        parameters: request,
+        reloadId: Math.random(),
+        payload: request,
+    };
+}
+export function folder(
+    request: SynchronizedFolder
+): APICallParameters<SynchronizedFolder, any /* unknown */> {
+    return {
+        context: "",
+        method: "POST",
+        path: "/api/files/synchronization" + "/folder",
+        parameters: request,
+        reloadId: Math.random(),
+        payload: request,
+    };
+}
+export function devices(): APICallParameters<{}, PageV2<SynchronizationDevice>> {
+    return {
+        context: "",
+        method: "GET",
+        path: "/api/files/synchronization" + "/browse",
+        reloadId: Math.random(),
     };
 }
 }
@@ -1853,6 +1912,67 @@ export function updateAcl(
         parameters: request,
         reloadId: Math.random(),
         payload: request,
+    };
+}
+}
+export namespace synchronization {
+export function addFolder(
+    request: orchestrator.ProxiedRequest<orchestrator.SynchronizedFolder>
+): APICallParameters<orchestrator.ProxiedRequest<orchestrator.SynchronizedFolder>, any /* unknown */> {
+    return {
+        context: "",
+        method: "POST",
+        path: "/ucloud/ucloud/synchronization" + "/folder",
+        parameters: request,
+        reloadId: Math.random(),
+        payload: request,
+    };
+}
+export function removeFolder(
+    request: orchestrator.ProxiedRequest<orchestrator.SynchronizationRemoveFolderRequest>
+): APICallParameters<orchestrator.ProxiedRequest<orchestrator.SynchronizationRemoveFolderRequest>, any /* unknown */> {
+    return {
+        context: "",
+        method: "DELETE",
+        path: "/ucloud/ucloud/synchronization/folder",
+        parameters: request,
+        reloadId: Math.random(),
+        payload: request,
+    };
+}
+export function addDevice(
+    request: orchestrator.ProxiedRequest<orchestrator.SynchronizationAddDeviceRequest>
+): APICallParameters<orchestrator.ProxiedRequest<orchestrator.SynchronizationAddDeviceRequest>, any /* unknown */> {
+    return {
+        context: "",
+        method: "POST",
+        path: "/ucloud/ucloud/synchronization" + "/device",
+        parameters: request,
+        reloadId: Math.random(),
+        payload: request,
+    };
+}
+export function removeDevice(
+    request: orchestrator.SynchronizationDevice
+): APICallParameters<orchestrator.SynchronizationDevice, any /* unknown */> {
+    return {
+        context: "",
+        method: "DELETE",
+        path: "/ucloud/ucloud/synchronization/device",
+        parameters: request,
+        reloadId: Math.random(),
+        payload: request,
+    };
+}
+export function devices(
+    request: orchestrator.ProxiedRequest<any /* unknown */>
+): APICallParameters<orchestrator.ProxiedRequest<any /* unknown */>, PageV2<orchestrator.SynchronizationDevice>> {
+    return {
+        context: "",
+        method: "GET",
+        path: buildQueryString("/ucloud/ucloud/synchronization" + "/browse", {username: request.username, project: request.project, request: request.request}),
+        parameters: request,
+        reloadId: Math.random(),
     };
 }
 }
@@ -6188,7 +6308,7 @@ export interface Free {
     pricePerUnit: number /* int64 */,
 }
 }
-export namespace integration {
+export namespace im {
 export function browse(
     request: IntegrationBrowseRequest
 ): APICallParameters<IntegrationBrowseRequest, PageV2<IntegrationBrowseResponseItem>> {
