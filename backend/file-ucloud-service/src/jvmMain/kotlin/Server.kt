@@ -4,6 +4,7 @@ import dk.sdu.cloud.auth.api.JwtRefresher
 import dk.sdu.cloud.auth.api.RefreshingJWTAuthenticator
 import dk.sdu.cloud.calls.client.OutgoingHttpCall
 import dk.sdu.cloud.file.ucloud.rpc.FileCollectionsController
+import dk.sdu.cloud.file.ucloud.rpc.SynchronizationController
 import dk.sdu.cloud.file.ucloud.rpc.FilesController
 import dk.sdu.cloud.file.ucloud.services.*
 import dk.sdu.cloud.file.ucloud.services.acl.AclServiceImpl
@@ -13,7 +14,6 @@ import dk.sdu.cloud.micro.*
 import dk.sdu.cloud.service.*
 import dk.sdu.cloud.service.db.async.AsyncDBSessionFactory
 import java.io.File
-import java.util.*
 
 class Server(
     override val micro: Micro,
@@ -68,11 +68,14 @@ class Server(
             nativeFs
         )
 
+        val synchronizationService = SynchronizationService(db)
+
         taskSystem.launchScheduler(micro.backgroundScope)
 
         configureControllers(
             FilesController(fileQueries, taskSystem, chunkedUploadService, aclService),
             FileCollectionsController(fileCollectionService),
+            SynchronizationController(synchronizationService)
         )
 
         startServices()
