@@ -1,6 +1,6 @@
 /* eslint-disable */
 /* AUTO GENERATED CODE - DO NOT MODIFY */
-/* Generated at: Wed May 26 18:33:44 CEST 2021 */
+/* Generated at: Sat May 29 23:52:18 CEST 2021 */
 
 import {buildQueryString} from "Utilities/URIUtilities";
 
@@ -839,15 +839,22 @@ export interface SharesDeleteRequestItem {
 export interface SharesApproveRequestItem {
     path: string,
 }
-export interface SynchronizationAddDeviceRequest {
+export interface SynchronizedFolder {
+    id: string,
+    path: string,
+    device_id: string,
+}
+export interface SynchronizationRetrieveFolderRequest {
+    path: string,
+}
+export interface SynchronizationAddFolderRequest {
+    path: string,
+}
+export interface SynchronizationRemoveFolderRequest {
     id: string,
 }
 export interface SynchronizationDevice {
     id: string,
-}
-export interface SynchronizedFolder {
-    path: string,
-    type: ("SEND_RECEIVE" | "SEND_ONLY"),
 }
 export interface ProxiedRequest<T = unknown> {
     username: string,
@@ -913,9 +920,6 @@ export interface FileCollectionsProviderRenameRequestItem {
 export interface FileCollectionsProviderUpdateAclRequestItem {
     id: string,
     newAcl: provider.ResourceAclEntry<("READ" | "WRITE" | "ADMINISTRATOR")>[],
-}
-export interface SynchronizationRemoveFolderRequest {
-    id: string,
 }
 export namespace ucloud {
 /**
@@ -1019,9 +1023,44 @@ export function deprecate(
 }
 }
 export namespace synchronization {
+export function retrieveFolder(
+    request: SynchronizationRetrieveFolderRequest
+): APICallParameters<SynchronizationRetrieveFolderRequest, SynchronizedFolder> {
+    return {
+        context: "",
+        method: "GET",
+        path: buildQueryString("/api/files/synchronization" + "/retrieve", {path: request.path}),
+        parameters: request,
+        reloadId: Math.random(),
+    };
+}
+export function addFolder(
+    request: SynchronizationAddFolderRequest
+): APICallParameters<SynchronizationAddFolderRequest, any /* unknown */> {
+    return {
+        context: "",
+        method: "POST",
+        path: "/api/files/synchronization",
+        parameters: request,
+        reloadId: Math.random(),
+        payload: request,
+    };
+}
+export function removeFolder(
+    request: SynchronizationRemoveFolderRequest
+): APICallParameters<SynchronizationRemoveFolderRequest, any /* unknown */> {
+    return {
+        context: "",
+        method: "DELETE",
+        path: "/api/files/synchronization",
+        parameters: request,
+        reloadId: Math.random(),
+        payload: request,
+    };
+}
 export function addDevice(
-    request: SynchronizationAddDeviceRequest
-): APICallParameters<SynchronizationAddDeviceRequest, any /* unknown */> {
+    request: SynchronizationDevice
+): APICallParameters<SynchronizationDevice, any /* unknown */> {
     return {
         context: "",
         method: "POST",
@@ -1043,19 +1082,7 @@ export function removeDevice(
         payload: request,
     };
 }
-export function folder(
-    request: SynchronizedFolder
-): APICallParameters<SynchronizedFolder, any /* unknown */> {
-    return {
-        context: "",
-        method: "POST",
-        path: "/api/files/synchronization" + "/folder",
-        parameters: request,
-        reloadId: Math.random(),
-        payload: request,
-    };
-}
-export function devices(): APICallParameters<{}, PageV2<SynchronizationDevice>> {
+export function browseDevices(): APICallParameters<{}, PageV2<SynchronizationDevice>> {
     return {
         context: "",
         method: "GET",
@@ -1916,13 +1943,25 @@ export function updateAcl(
 }
 }
 export namespace synchronization {
-export function addFolder(
-    request: orchestrator.ProxiedRequest<orchestrator.SynchronizedFolder>
-): APICallParameters<orchestrator.ProxiedRequest<orchestrator.SynchronizedFolder>, any /* unknown */> {
+export function retrieveFolder(
+    request: orchestrator.ProxiedRequest<orchestrator.FindByPath>
+): APICallParameters<orchestrator.ProxiedRequest<orchestrator.FindByPath>, orchestrator.SynchronizedFolder> {
     return {
         context: "",
         method: "POST",
-        path: "/ucloud/ucloud/synchronization" + "/folder",
+        path: "/ucloud/ucloud/synchronization" + "/retrieve",
+        parameters: request,
+        reloadId: Math.random(),
+        payload: request,
+    };
+}
+export function addFolder(
+    request: orchestrator.ProxiedRequest<orchestrator.SynchronizationAddFolderRequest>
+): APICallParameters<orchestrator.ProxiedRequest<orchestrator.SynchronizationAddFolderRequest>, any /* unknown */> {
+    return {
+        context: "",
+        method: "POST",
+        path: "/ucloud/ucloud/synchronization",
         parameters: request,
         reloadId: Math.random(),
         payload: request,
@@ -1934,15 +1973,15 @@ export function removeFolder(
     return {
         context: "",
         method: "DELETE",
-        path: "/ucloud/ucloud/synchronization/folder",
+        path: "/ucloud/ucloud/synchronization",
         parameters: request,
         reloadId: Math.random(),
         payload: request,
     };
 }
 export function addDevice(
-    request: orchestrator.ProxiedRequest<orchestrator.SynchronizationAddDeviceRequest>
-): APICallParameters<orchestrator.ProxiedRequest<orchestrator.SynchronizationAddDeviceRequest>, any /* unknown */> {
+    request: orchestrator.ProxiedRequest<orchestrator.SynchronizationDevice>
+): APICallParameters<orchestrator.ProxiedRequest<orchestrator.SynchronizationDevice>, any /* unknown */> {
     return {
         context: "",
         method: "POST",
@@ -1953,8 +1992,8 @@ export function addDevice(
     };
 }
 export function removeDevice(
-    request: orchestrator.SynchronizationDevice
-): APICallParameters<orchestrator.SynchronizationDevice, any /* unknown */> {
+    request: orchestrator.ProxiedRequest<orchestrator.SynchronizationDevice>
+): APICallParameters<orchestrator.ProxiedRequest<orchestrator.SynchronizationDevice>, any /* unknown */> {
     return {
         context: "",
         method: "DELETE",

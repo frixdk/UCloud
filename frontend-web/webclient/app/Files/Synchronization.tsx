@@ -1,7 +1,7 @@
 import { useCloudAPI, useCloudCommand } from "Authentication/DataHook";
 import {snackbarStore} from "Snackbar/SnackbarStore";
 import React, { useEffect, useRef, useState } from "react";
-import { Box, Button, Checkbox, Flex, Icon, Input, SelectableText, SelectableTextWrapper } from "ui-components";
+import { Box, Button, Checkbox, Flex, Icon, Input, Label, SelectableText, SelectableTextWrapper } from "ui-components";
 import List, { ListRow } from "ui-components/List";
 import { stopPropagation } from "UtilityFunctions";
 import {file, PageV2} from "UCloud";
@@ -28,25 +28,66 @@ export const SynchronizationSettings: React.FunctionComponent<{
 }> = ({path}) => {
     const [manageDevices, setManageDevices] = useState(false);
     const [devices, fetchDevices] = useCloudAPI<PageV2<orchestrator.SynchronizationDevice>>(
-        synchronizationApi.devices(),
+        synchronizationApi.browseDevices(),
         emptyPageV2
     );
+    const [folder, fetchFolder] = useCloudAPI<orchestrator.SynchronizedFolder|undefined>(
+        synchronizationApi.retrieveFolder({ path: path }),
+        undefined
+    );
+
+
     const deviceIdRef = useRef<HTMLInputElement>(null);
     const [loading, invokeCommand] = useCloudCommand();
-    const [synchronizeFolder, setSynchronizeFolder] = useState(false);
+    const [synchronizedFolder, setSynchronizedFolder] = useState<orchestrator.SynchronizedFolder|undefined>(undefined);
+    const [ucloudDeviceId, setUcloudDeviceId] = useState<string|undefined>(undefined);
 
     const addDevice = async e => {
         e.preventDefault();
         if (deviceIdRef.current && deviceIdRef.current.value.length > 0) {
-            await invokeCommand(synchronizationApi.addDevice({ id: deviceIdRef.current.value } ));
+            await invokeCommand(synchronizationApi.addDevice({ id: deviceIdRef.current.value }));
+            fetchDevices(synchronizationApi.browseDevices(), true);
+            deviceIdRef.current.value = "";
+            snackbarStore.addSuccess("Added device", false);
         } else {
-            snackbarStore.addFailure("Device ID cannot be empty", false)
+            snackbarStore.addFailure("Device ID cannot be empty", false);
         }
     };
 
-    /*useEffect(() => {
-        fetchDevices(synchronizationApi.devices());
-    }, [path]);*/
+    const removeDevice = async (device_id: string) => {
+        await invokeCommand(synchronizationApi.removeDevice({ id: device_id }));
+        fetchDevices(synchronizationApi.browseDevices(), true);
+        snackbarStore.addSuccess("Removed device", false);
+    };
+
+
+    useEffect(() => {
+        console.log(synchronizedFolder);
+        if (synchronizedFolder) {
+            setUcloudDeviceId(synchronizedFolder.device_id);
+        }
+    }, [synchronizedFolder]);
+
+    useEffect(() => {
+        if (folder.data) {
+            setSynchronizedFolder(folder.data);
+        }
+    }, [folder]);
+
+    
+    const toggleSynchronizeFolder = async () => {
+        if (!synchronizedFolder) {
+            await invokeCommand(synchronizationApi.addFolder({ path } ));
+            fetchFolder(synchronizationApi.retrieveFolder({ path: path }), true);
+        } else {
+            if (folder.data) {
+                await invokeCommand(synchronizationApi.removeFolder({ id: folder.data.id }));
+                setUcloudDeviceId(undefined);
+                setSynchronizedFolder(undefined);
+            }
+        }
+    };
+
 
     return <>
         <SelectableTextWrapper>
@@ -61,53 +102,48 @@ export const SynchronizationSettings: React.FunctionComponent<{
                         <Button color="green" width="160px">Add device</Button>
                     </Flex>
                 </form>
-                <ListV2
-                    loading={devices.loading}
-                    onLoadMore={() => {}}
-                    page={devices.data}
-                    pageRenderer={pageRenderer}
-                />
+                <List>
+                    {devices.data.items.map(d => {
+                        return (
+                            <ListRow
+                                key={d.id}
+                                left={
+                                    <>
+                                        {d.id}
+                                    </>
+                                } 
+                                right={
+                                    <>
+                                        <Button color="red" onClick={() => removeDevice(d.id)}>
+                                            <Icon name="trash" size="16px"/>
+                                        </Button>
+                                    </>
+                                }
+                            />
+                        )
+                    })}
+                </List>
             </>
         ) : (
             <>
                 <Box mt="30px" mb="30px">
-                    <Checkbox
-                        checked={synchronizeFolder}
-                        onClick={() => setSynchronizeFolder(!synchronizeFolder)}
-                        onChange={stopPropagation}
-                    /> Add {path} to synchronization
+                    <Label>
+                        <Checkbox
+                            checked={synchronizedFolder !== undefined}
+                            onChange={() => toggleSynchronizeFolder()}
+                        /> Add {path} to synchronization
+                    </Label>
 
                 </Box>
 
-                Folder is shared from Device ID:
-                <Input readOnly={true} value="aaaaaaa-aaaaaaA-bbbbbbb-bbbbbbB-ccccccc-ccccccC-ddddddd-ddddddD" />
+                {ucloudDeviceId ? (
+                    <>
+                        Folder is shared from Device ID:
+                        <Input readOnly={true} value={ucloudDeviceId} />
+                        Add this as a remote device to Syncthing to start synchronizing.
+                    </>
+                ) : (<></>)}
             </>
         )}
     </>
 };
-
-
-
-function pageRenderer(items: orchestrator.SynchronizationDevice[]): React.ReactNode {
-    return (
-        <List>
-            {items.map(p => {
-                return (
-                    <ListRow
-                        key={p.id}
-                        left={
-                            <>
-                                {p.id}
-                            </>
-                        } 
-                        right={
-                            <>
-                                <Button color="red"><Icon name="trash" size="16px"/></Button>
-                            </>
-                        }
-                    />
-                )
-            })}
-        </List>
-    )
-}
