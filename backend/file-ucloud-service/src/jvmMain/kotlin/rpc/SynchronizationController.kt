@@ -11,12 +11,18 @@ class SynchronizationController(
     private val synchronizationService: SynchronizationService
 ) : Controller {
     override fun configure(rpcServer: RpcServer) = with(rpcServer) {
+        implement(UCloudSynchronization.retrieveFolder) {
+            ok(synchronizationService.retrieveFolder(Actor.SystemOnBehalfOfUser(request.username), request.request.path))
+        }
+
         implement(UCloudSynchronization.addFolder) {
-            ok(synchronizationService.addFolder(Actor.SystemOnBehalfOfUser(request.username), request.request))
+            synchronizationService.addFolder(Actor.SystemOnBehalfOfUser(request.username), request.request)
+            ok(Unit)
         }
 
         implement(UCloudSynchronization.removeFolder) {
-            ok(synchronizationService.removeFolder(Actor.SystemOnBehalfOfUser(request.username), request.request))
+            synchronizationService.removeFolder(Actor.SystemOnBehalfOfUser(request.username), request.request)
+            ok(Unit)
         }
 
         implement(UCloudSynchronization.addDevice) {
@@ -25,7 +31,8 @@ class SynchronizationController(
         }
 
         implement(UCloudSynchronization.removeDevice) {
-            ok(synchronizationService.removeDevice(request.id))
+            synchronizationService.removeDevice(Actor.SystemOnBehalfOfUser(request.username), request.request)
+            ok(Unit)
         }
 
         implement(UCloudSynchronization.browseDevices) {
