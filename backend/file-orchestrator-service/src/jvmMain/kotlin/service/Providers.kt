@@ -19,6 +19,7 @@ data class ProviderCommunication(
     val provider: ProviderSpecification,
     val filesApi: FilesProvider,
     val fileCollectionsApi: FileCollectionsProvider,
+    val synchronizationApi: SynchronizationProvider
 )
 
 class Providers(
@@ -45,8 +46,9 @@ class Providers(
 
             val filesApi = FilesProvider(provider)
             val fileCollectionsApi = FileCollectionsProvider(provider)
+            val synchronizationApi = SynchronizationProvider(provider)
 
-            ProviderCommunication(httpClient, wsClient, providerSpec, filesApi, fileCollectionsApi)
+            ProviderCommunication(httpClient, wsClient, providerSpec, filesApi, fileCollectionsApi, synchronizationApi)
         }
     )
 
