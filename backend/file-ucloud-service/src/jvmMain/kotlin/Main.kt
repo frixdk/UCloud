@@ -16,6 +16,12 @@ data class CephConfiguration(
     val useCephDirectoryStats: Boolean = false
 )
 
+data class SynchronizationConfiguration(
+    val hostname: String = "",
+    val apiKey: String = "",
+    val deviceId: String = ""
+)
+
 
 object FileUcloudService : Service {
     override val description = FileUcloudServiceDescription
@@ -26,7 +32,9 @@ object FileUcloudService : Service {
 
         val configuration = micro.configuration.requestChunkAtOrNull("files", "ucloud") ?: Configuration()
         val cephConfig = micro.configuration.requestChunkAtOrNull("ceph") ?: CephConfiguration()
-        return Server(micro, configuration, cephConfig)
+        val syncConfig = micro.configuration.requestChunkAtOrNull("syncthing") ?: SynchronizationConfiguration()
+
+        return Server(micro, configuration, cephConfig, syncConfig)
     }
 }
 

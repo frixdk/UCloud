@@ -1,6 +1,5 @@
 package dk.sdu.cloud.file.ucloud.services
 
-import com.github.jasync.sql.db.util.length
 import dk.sdu.cloud.Actor
 import dk.sdu.cloud.PageV2
 import dk.sdu.cloud.calls.RPCException
@@ -23,12 +22,39 @@ object UserDevicesTable : SQLTable("user_devices") {
 }
 
 class SynchronizationService(
-    private val db: DBContext,
+    private val syncthing: SyncthingClient,
+    private val db: DBContext
 ) {
     suspend fun addFolder(actor: Actor, request: SynchronizationAddFolderRequest) {
         val id = UUID.randomUUID().toString()
-        val device = "DEVICE_ID"
+        val device = syncthing.config.deviceId
         val accessType = "SEND_RECEIVE"
+
+        val userDevices = db.withSession { session ->
+            session.sendPreparedStatement(
+                {
+                    setParameter("user", actor.username)
+                },
+                """
+                    select device_id
+                    from file_ucloud.user_devices
+                    where user_id = :user 
+                """
+            )
+        }.rows.map {
+            SyncthingFolderDevice(
+                deviceID = it.getField(UserDevicesTable.device)
+            )
+        }
+
+        syncthing.addFolder(
+            SyncthingFolder(
+                id = id,
+                label = id,
+                devices = userDevices,
+                path = "/home/xirov/some_syncthing_test"
+            )
+        )
 
         db.withSession { session ->
             session.sendPreparedStatement(
@@ -59,6 +85,16 @@ class SynchronizationService(
     }
 
     suspend fun removeFolder(actor: Actor, request: SynchronizationRemoveFolderRequest) {
+        val oldConfig = syncthing.readConfig()
+
+        val newConfig = oldConfig.copy(
+            folders = oldConfig.folders.filter {
+                it.id != request.id
+            }
+        )
+
+        syncthing.writeConfig(newConfig)
+
         db.withSession { session ->
             session.sendPreparedStatement(
                 {
@@ -74,7 +110,40 @@ class SynchronizationService(
     }
 
     suspend fun addDevice(actor: Actor, request: SynchronizationAddDeviceRequest) {
-        // TODO Check if id is an internal device id on UCloud
+        if (request.id == syncthing.config.deviceId) {
+            throw RPCException.fromStatusCode(HttpStatusCode.BadRequest)
+        }
+
+        val userFolders = db.withSession { session ->
+            session.sendPreparedStatement(
+                {
+                    setParameter("user", actor.username)
+                },
+                """
+                    select id
+                    from file_ucloud.synchronized_folders
+                    where user_id = :user 
+                """
+            )
+        }.rows.map {
+            it.getField(SynchronizedFoldersTable.id)
+        }
+
+        val oldConfig = syncthing.readConfig()
+        val newConfig = oldConfig.copy(
+            devices = oldConfig.devices + listOf(SyncthingDevice(deviceID = request.id, name = request.id)),
+            folders = oldConfig.folders.map { folder ->
+                if (folder.id in userFolders) {
+                    folder.copy(
+                        devices = folder.devices + listOf(SyncthingFolderDevice(deviceID = request.id))
+                    )
+                } else {
+                    folder
+                }
+            }
+        )
+
+        syncthing.writeConfig(newConfig)
 
         db.withSession { session ->
             session.sendPreparedStatement(
@@ -108,6 +177,23 @@ class SynchronizationService(
                 """
             )
         }
+
+        val oldConfig = syncthing.readConfig()
+
+        val newConfig = oldConfig.copy(
+            devices = oldConfig.devices.filter {
+                it.deviceID != request.id
+            },
+            folders = oldConfig.folders.map { folder ->
+                folder.copy(
+                    devices = folder.devices.filter {
+                        it.deviceID != request.id
+                    }
+                )
+            }
+        )
+
+        syncthing.writeConfig(newConfig)
     }
 
     suspend fun browseDevices(actor: Actor): PageV2<SynchronizationDevice> {

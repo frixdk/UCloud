@@ -19,6 +19,7 @@ class Server(
     override val micro: Micro,
     private val configuration: Configuration,
     private val cephConfig: CephConfiguration,
+    private val syncConfig: SynchronizationConfiguration
 ) : CommonServer {
     override val log = logger()
 
@@ -68,7 +69,8 @@ class Server(
             nativeFs
         )
 
-        val synchronizationService = SynchronizationService(db)
+        val syncthingClient = SyncthingClient(syncConfig)
+        val synchronizationService = SynchronizationService(syncthingClient, db)
 
         taskSystem.launchScheduler(micro.backgroundScope)
 
