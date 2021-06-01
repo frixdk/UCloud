@@ -3,12 +3,12 @@ import {snackbarStore} from "Snackbar/SnackbarStore";
 import React, { useEffect, useRef, useState } from "react";
 import { Box, Button, Checkbox, Flex, Icon, Input, Label, SelectableText, SelectableTextWrapper } from "ui-components";
 import List, { ListRow } from "ui-components/List";
-import { stopPropagation } from "UtilityFunctions";
+import { Text } from "ui-components";
 import {file, PageV2} from "UCloud";
 import synchronizationApi = file.orchestrator.synchronization;
 import orchestrator = file.orchestrator;
-import { ListV2 } from "Pagination";
 import { emptyPageV2 } from "DefaultObjects";
+import { TextSpan } from "ui-components/Text";
 
 const Tab: React.FunctionComponent<{ selected: boolean, onClick: () => void }> = props => {
     return <SelectableText
@@ -126,21 +126,27 @@ export const SynchronizationSettings: React.FunctionComponent<{
             </>
         ) : (
             <>
+                <Text mt="30px">To use the synchronization feature you have to set up a local instance of <a href="https://syncthing.net">Syncthing</a> on your device.</Text>
                 <Box mt="30px" mb="30px">
                     <Label>
                         <Checkbox
                             checked={synchronizedFolder !== undefined}
                             onChange={() => toggleSynchronizeFolder()}
-                        /> Add {path} to synchronization
+                        />
+                        <TextSpan fontSize={2}>Add {path} to synchronization</TextSpan>
                     </Label>
 
                 </Box>
 
                 {ucloudDeviceId ? (
                     <>
-                        Folder is shared from Device ID:
+                        <Text mb="20px">
+                            The folder is being synchronized with your devices from Device ID:
+                        </Text>
                         <Input readOnly={true} value={ucloudDeviceId} />
-                        Add this as a remote device to Syncthing to start synchronizing.
+                        <Text mt="20px">
+                            Add this as a remote device to your local instance of Syncthing to begin synchronization.
+                        </Text>
                     </>
                 ) : (<></>)}
             </>
