@@ -126,7 +126,7 @@ export const SynchronizationSettings: React.FunctionComponent<{
             </>
         ) : (
             <>
-                <Text mt="30px">To use the synchronization feature you have to set up a local instance of <a href="https://syncthing.net">Syncthing</a> on your device.</Text>
+                <Text mt="30px">To use the synchronization feature you have to set up a local instance of <a href="https://syncthing.net">Syncthing</a> on your device and add your device ID in Manage devices.</Text>
                 <Box mt="30px" mb="30px">
                     <Label>
                         <Checkbox
