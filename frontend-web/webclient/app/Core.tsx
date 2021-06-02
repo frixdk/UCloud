@@ -16,6 +16,7 @@ const FileCollectionProperties = React.lazy(() => import("Files/FileCollectionPr
 const FileMetadataTemplatesBrowse = React.lazy(() => import("Files/Metadata/Templates/Browse"));
 const FileMetadataTemplatesCreate = React.lazy(() => import("Files/Metadata/Templates/Create"));
 const FileMetadataTemplatesProperties = React.lazy(() => import("Files/Metadata/Templates/Properties"));
+const FilePreview = React.lazy(() => import("Files/Preview"));
 const Shares = React.lazy(() => import("Files/Shares"));
 const IngoingApplications = React.lazy(() => import("Project/Grant/IngoingApplications"));
 const JobBrowse = React.lazy(() => import("Applications/Jobs/Browse"));
@@ -45,7 +46,7 @@ const Search = React.lazy(() => import("Search/Search"));
 const ServiceLicenseAgreement = React.lazy(() => import("ServiceLicenseAgreement"));
 const Studio = React.lazy(() => import("Applications/Studio/Page"));
 const Subprojects = React.lazy(() => import("Project/Subprojects"));
-const Tool = React.lazy(() => import ("Applications/Studio/Tool"));
+const Tool = React.lazy(() => import("Applications/Studio/Tool"));
 const UserCreation = React.lazy(() => import("Admin/UserCreation"));
 const UserSettings = React.lazy(() => import("UserSettings/UserSettings"));
 const Wayf = React.lazy(() => import("Login/Wayf"));
@@ -55,6 +56,7 @@ const Demo = React.lazy(() => import("Playground/Demo"));
 const LagTest = React.lazy(() => import("Playground/LagTest"));
 const Providers = React.lazy(() => import("Admin/Providers/Browse"));
 const CreateProvider = React.lazy(() => import("Admin/Providers/Create"));
+const RegisterProvider = React.lazy(() => import("Admin/Providers/Approve"));
 const ViewProvider = React.lazy(() => import("Admin/Providers/View"));
 const ProviderConnection = React.lazy(() => import("Providers/Connect"));
 
@@ -102,9 +104,11 @@ const Core = (): JSX.Element => (
                     <Route exact path="/files/driveProperties" component={requireAuth(FileCollectionProperties)} />
                     <Route exact path="/files/metadata/templates/" component={requireAuth(FileMetadataTemplatesBrowse)} />
                     <Route exact path="/files/metadata/templates/create/"
-                           component={requireAuth(FileMetadataTemplatesCreate)} />
+                        component={requireAuth(FileMetadataTemplatesCreate)} />
+                    <Route exact path="/files/preview/"
+                        component={requireAuth(FilePreview)} />
                     <Route exact path="/files/metadata/templates/properties/"
-                           component={requireAuth(FileMetadataTemplatesProperties)} />
+                        component={requireAuth(FileMetadataTemplatesProperties)} />
                     <Route exact path="/shares" component={requireAuth(Shares)} />
 
                     <Route exact path="/activity" component={requireAuth(Activity)} />
@@ -144,7 +148,8 @@ const Core = (): JSX.Element => (
                     <Route exact path="/admin/appaau" component={requireAuth(AppAauAdmin)} />
                     <Route exact path="/admin/providers" component={requireAuth(Providers)} />
                     <Route exact path="/admin/providers/create" component={requireAuth(CreateProvider)} />
-                    <Route exact path="/admin/providers/:id" component={requireAuth(ViewProvider)} />
+                    <Route exact path="/admin/providers/register" component={requireAuth(RegisterProvider)} />
+                    <Route exact path="/admin/providers/view/:id" component={requireAuth(ViewProvider)} />
 
                     <Route exact path="/news/detailed/:id" component={DetailedNews} />
                     <Route exact path="/news/list/:filter?" component={NewsList} />
@@ -199,7 +204,7 @@ const Core = (): JSX.Element => (
                     <Route exact path="/project/grants/outgoing" component={requireAuth(OutgoingApplications)} />
                     <Route exact path="/projects/browser/:action" component={requireAuth(ProjectBrowser)} />
 
-                    <Route exact path={"/providers/connect"} component={requireAuth(ProviderConnection)}/>
+                    <Route exact path={"/providers/connect"} component={requireAuth(ProviderConnection)} />
 
                     <Route
                         exact

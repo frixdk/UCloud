@@ -7,15 +7,12 @@ import dk.sdu.cloud.app.orchestrator.api.Job
 import dk.sdu.cloud.app.store.api.SimpleDuration
 import dk.sdu.cloud.app.store.api.ToolBackend
 import dk.sdu.cloud.auth.api.AuthDescriptions
-import dk.sdu.cloud.auth.api.TokenExtensionRequest
 import dk.sdu.cloud.calls.BulkRequest
 import dk.sdu.cloud.calls.RPCException
 import dk.sdu.cloud.calls.bulkRequestOf
 import dk.sdu.cloud.calls.client.*
 import dk.sdu.cloud.calls.server.*
-import dk.sdu.cloud.file.api.*
 import dk.sdu.cloud.provider.api.FEATURE_NOT_SUPPORTED_BY_PROVIDER
-import dk.sdu.cloud.provider.api.withProxyInfo
 import dk.sdu.cloud.service.*
 import dk.sdu.cloud.service.db.async.AsyncDBConnection
 import dk.sdu.cloud.service.db.async.AsyncDBSessionFactory
@@ -67,30 +64,6 @@ class JobOrchestrator(
         listeners.remove(listener)
     }
 
-    private suspend fun extendToken(accessToken: String, allowRefreshes: Boolean): Pair<String?, AuthenticatedClient> {
-        return AuthDescriptions.tokenExtension.call(
-            TokenExtensionRequest(
-                accessToken,
-                listOf(
-                    MultiPartUploadDescriptions.simpleUpload.requiredAuthScope.toString(),
-                    FileDescriptions.download.requiredAuthScope.toString(),
-                    FileDescriptions.createDirectory.requiredAuthScope.toString(),
-                    FileDescriptions.stat.requiredAuthScope.toString(),
-                    FileDescriptions.deleteFile.requiredAuthScope.toString()
-                ),
-                1000L * 60 * 60 * 5,
-                allowRefreshes = allowRefreshes
-            ),
-            serviceClient
-        ).orThrow().let {
-            if (!allowRefreshes) {
-                null to serviceClient.withoutAuthentication().bearerAuth(it.accessToken)
-            } else {
-                it.refreshToken!! to userClientFactory(it.refreshToken!!)
-            }
-        }
-    }
-
     suspend fun startJob(
         req: BulkRequest<JobSpecification>,
         accessToken: String,
@@ -106,7 +79,6 @@ class JobOrchestrator(
         val parameters = ArrayList<ByteArray>()
 
         try {
-            val (_, tmpUserClient) = extendToken(accessToken, allowRefreshes = false)
             // NOTE(Dan): Cannot convert due to suspension
             @Suppress("ConvertCallChainIntoSequence")
             val verifiedJobs = req.items
@@ -122,7 +94,6 @@ class JobOrchestrator(
                 .map { jobRequest ->
                     jobVerificationService.verifyOrThrow(
                         UnverifiedJob(jobRequest, principal.username, project),
-                        tmpUserClient,
                         listeners
                     )
                 }
@@ -133,12 +104,6 @@ class JobOrchestrator(
                             throw JobException.Duplicate()
                         }
                     }
-                }
-                // Extend tokens needed for jobs
-                .map { job ->
-                    val (extendedToken) = extendToken(accessToken, allowRefreshes = true)
-                    tokensToInvalidateInCaseOfFailure.add(extendedToken!!)
-                    job.copy(refreshToken = extendedToken)
                 }
                 .toMutableList()
 
@@ -157,22 +122,25 @@ class JobOrchestrator(
 
             // Prepare job folders (needs to happen before database insertion)
             for ((index, jobWithToken) in verifiedJobs.withIndex()) {
-                try {
-                    val jobFolder = jobFileService.initializeResultFolder(jobWithToken)
-                    val newJobWithToken = jobWithToken.copy(
-                        job = jobWithToken.job.copy(
-                            output = JobOutput(jobFolder.path)
+                // TODO Temporary
+                if (jobWithToken.job.specification.product.provider == "ucloud" && false) {
+                    try {
+                        val jobFolder = jobFileService.initializeResultFolder(jobWithToken)
+                        val newJobWithToken = jobWithToken.copy(
+                            job = jobWithToken.job.copy(
+                                output = JobOutput(jobFolder.path)
+                            )
                         )
-                    )
-                    verifiedJobs[index] = newJobWithToken
-                    jobFileService.exportParameterFile(jobFolder.path, newJobWithToken, parameters[index])
-                } catch (ex: RPCException) {
-                    if (ex.httpStatusCode == HttpStatusCode.PaymentRequired &&
-                        jobWithToken.job.specification.product.provider == "aau"
-                    ) {
-                        log.warn("Silently ignoring lack of credits in storage due to temporary aau integration")
-                    } else {
-                        throw ex
+                        verifiedJobs[index] = newJobWithToken
+                        jobFileService.exportParameterFile(jobFolder.path, newJobWithToken, parameters[index])
+                    } catch (ex: RPCException) {
+                        if (ex.httpStatusCode == HttpStatusCode.PaymentRequired &&
+                            jobWithToken.job.specification.product.provider == "aau"
+                        ) {
+                            log.warn("Silently ignoring lack of credits in storage due to temporary aau integration")
+                        } else {
+                            throw ex
+                        }
                     }
                 }
             }
@@ -187,12 +155,13 @@ class JobOrchestrator(
 
             // Notify compute providers
             verifiedJobs.groupBy { it.job.specification.product.provider }.forEach { (provider, jobs) ->
-                val (api, client) = providers.prepareCommunication(provider)
-
-                api.create.call(
-                    bulkRequestOf(jobs.map { it.job }),
-                    client.withProxyInfo(principal.safeUsername())
+                providers.proxyCall(
+                    provider,
+                    principal,
+                    { it.api.create },
+                    bulkRequestOf(jobs.map { it.job })
                 ).orThrow()
+
                 jobsToInvalidateInCaseOfFailure.addAll(jobs.map { JobWithProvider(it.job.id, provider) })
             }
 
@@ -206,8 +175,10 @@ class JobOrchestrator(
             }
 
             jobsToInvalidateInCaseOfFailure.groupBy { it.provider }.forEach { (provider, jobs) ->
-                val (api, client) = providers.prepareCommunication(provider)
-                api.delete.call(
+                providers.proxyCall(
+                    provider,
+                    principal,
+                    { it.api.delete },
                     bulkRequestOf(
                         jobQueryService
                             .retrievePrivileged(
@@ -216,8 +187,7 @@ class JobOrchestrator(
                                 JobDataIncludeFlags(includeParameters = true)
                             )
                             .map { it.value.job }
-                    ),
-                    client.withProxyInfo(principal.safeUsername())
+                    )
                 )
             }
 
@@ -253,9 +223,9 @@ class JobOrchestrator(
 
     suspend fun updateState(request: JobsControlUpdateRequest, providerActor: Actor) {
         val requests = request.items.groupBy { it.jobId }
-        val comm = providers.prepareCommunication(providerActor)
+        val providerId = providers.verifyProviderIsValid(providerActor)
         db.withSession { session ->
-            val loadedJobs = loadAndVerifyProviderJobs(session, requests.keys, comm)
+            val loadedJobs = loadAndVerifyProviderJobs(session, requests.keys, providerId)
 
             for ((jobId, updates) in requests) {
                 val jobWithToken = loadedJobs[jobId] ?: error("Job not found, this should have failed earlier")
@@ -276,7 +246,7 @@ class JobOrchestrator(
                             listeners.forEach { it.onTermination(session, job) }
                         }
                     } else if (newState != null && currentState.isFinal()) {
-                        log.info("Ignoring job update for $jobId by ${comm.provider.id} (bad state transition)")
+                        log.info("Ignoring job update for $jobId by $providerId (bad state transition)")
                         continue
                     }
 
@@ -296,10 +266,16 @@ class JobOrchestrator(
             ).throwIfInternal()
         }
 
-        MetadataDescriptions.verify.call(
+        /*
+        val resp = MetadataDescriptions.verify.call(
             VerifyRequest(jobWithToken.job.files.map { it.path }),
             serviceClient
-        ).orThrow()
+        )
+
+        if (resp is IngoingCallResponse.Error) {
+            log.warn("Failed to verify metadata for job: ${jobWithToken.job.id} (${resp.statusCode} ${resp.error})")
+        }
+         */
     }
 
     suspend fun deleteJobInformation(appName: String, appVersion: String) {
@@ -314,14 +290,14 @@ class JobOrchestrator(
         request: JobsControlChargeCreditsRequest,
         providerActor: Actor,
     ): JobsControlChargeCreditsResponse {
-        val comm = providers.prepareCommunication(providerActor)
+        val providerId = providers.verifyProviderIsValid(providerActor)
         val requests = request.items.groupBy { it.id }
 
         val duplicates = ArrayList<FindByStringId>()
         val insufficient = ArrayList<FindByStringId>()
 
         db.withSession { session ->
-            val loadedJobs = loadAndVerifyProviderJobs(session, requests.keys, comm)
+            val loadedJobs = loadAndVerifyProviderJobs(session, requests.keys, providerId)
 
             for ((jobId, charges) in requests) {
                 val jobWithToken = loadedJobs[jobId] ?: error("Job should have been loaded by now")
@@ -357,7 +333,7 @@ class JobOrchestrator(
     private suspend fun loadAndVerifyProviderJobs(
         session: DBContext,
         jobIds: Set<String>,
-        comm: ProviderCommunication,
+        providerId: String,
         flags: JobDataIncludeFlags = JobDataIncludeFlags(includeParameters = true),
     ): Map<String, VerifiedJobWithAccessToken> {
         val loadedJobs = jobQueryService.retrievePrivileged(session, jobIds, flags)
@@ -365,7 +341,7 @@ class JobOrchestrator(
             throw RPCException("Not all jobs are known to UCloud", HttpStatusCode.NotFound)
         }
 
-        val ownsAllJobs = loadedJobs.values.all { (it.job).specification.product.provider == comm.provider.id }
+        val ownsAllJobs = loadedJobs.values.all { (it.job).specification.product.provider == providerId }
         if (!ownsAllJobs && !developmentMode) {
             throw RPCException("Provider is not authorized to perform these updates", HttpStatusCode.Forbidden)
         }
@@ -414,8 +390,8 @@ class JobOrchestrator(
         contentLength: Long?,
         content: ByteReadChannel,
     ) {
-        val comm = providers.prepareCommunication(providerActor)
-        val jobWithToken = loadAndVerifyProviderJobs(db, setOf(request.jobId), comm).getValue(request.jobId)
+        val providerId = providers.verifyProviderIsValid(providerActor)
+        val jobWithToken = loadAndVerifyProviderJobs(db, setOf(request.jobId), providerId).getValue(request.jobId)
 
         jobFileService.acceptFile(
             jobWithToken,
@@ -429,8 +405,8 @@ class JobOrchestrator(
         request: JobsControlRetrieveRequest,
         providerActor: Actor,
     ): Job {
-        val comm = providers.prepareCommunication(providerActor)
-        return loadAndVerifyProviderJobs(db, setOf(request.id), comm, request).getValue(request.id).job
+        val providerId = providers.verifyProviderIsValid(providerActor)
+        return loadAndVerifyProviderJobs(db, setOf(request.id), providerId, request).getValue(request.id).job
     }
 
     suspend fun extendDuration(request: BulkRequest<JobsExtendRequestItem>, userActor: Actor.User) {
@@ -461,17 +437,18 @@ class JobOrchestrator(
                 }
             }
 
-            val providers = jobs.values.map { it.job.specification.product.provider }
-                .map { providers.prepareCommunication(it) }
+            val providerIds = jobs.values.map { it.job.specification.product.provider }
 
-            for (comm in providers) {
-                comm.api.extend.call(
+            for (providerId in providerIds) {
+                providers.proxyCall(
+                    providerId,
+                    userActor,
+                    { it.api.extend },
                     bulkRequestOf(request.items.mapNotNull { extensionRequest ->
                         val (job) = jobs.getValue(extensionRequest.jobId)
-                        if (job.specification.product.provider != comm.provider.id) null
+                        if (job.specification.product.provider != providerId) null
                         else JobsProviderExtendRequestItem(job, extensionRequest.requestedTime)
-                    }),
-                    comm.client.withProxyInfo(userActor.username)
+                    })
                 ).orThrow()
             }
 
@@ -492,10 +469,11 @@ class JobOrchestrator(
             val jobs = loadAndVerifyUserJobs(session, extensions.keys, userActor, Action.CANCEL)
             val jobsByProvider = jobs.values.groupBy { it.job.specification.product.provider }
             for ((provider, providerJobs) in jobsByProvider) {
-                val comm = providers.prepareCommunication(provider)
-                comm.api.delete.call(
+                providers.proxyCall(
+                    provider,
+                    userActor,
+                    { it.api.delete },
                     bulkRequestOf(providerJobs.map { it.job }),
-                    comm.client.withProxyInfo(userActor.username)
                 ).orThrow()
             }
         }
@@ -535,9 +513,6 @@ class JobOrchestrator(
                 // NOTE(Dan): We do _not_ send the initial list of updates, instead we assume that clients will
                 // retrieve them by themselves.
                 var lastUpdate = initialJob.updates.maxByOrNull { it.timestamp }?.timestamp ?: 0L
-                val comms = providers.prepareCommunication(initialJob.specification.product.provider)
-                val api = comms.api
-                val wsClient = comms.wsClient
                 var streamId: String? = null
                 val states = JobState.values()
                 val currentState = AtomicInteger(JobState.IN_QUEUE.ordinal)
@@ -548,9 +523,12 @@ class JobOrchestrator(
                             while (isActive) {
                                 if (currentState.get() == JobState.RUNNING.ordinal) {
                                     if (logsSupported) {
-                                        api.follow.subscribe(JobsProviderFollowRequest.Init(initialJob),
-                                            wsClient,
-                                            { message ->
+                                        providers.proxySubscription(
+                                            initialJob.specification.product.provider,
+                                            actor,
+                                            { it.api.follow },
+                                            JobsProviderFollowRequest.Init(initialJob),
+                                            handler = { message ->
                                                 if (streamId == null) {
                                                     streamId = message.streamId
                                                 }
@@ -560,14 +538,19 @@ class JobOrchestrator(
                                                     sendWSMessage(
                                                         JobsFollowResponse(
                                                             emptyList(),
-                                                            listOf(JobsLog(message.rank,
-                                                                message.stdout,
-                                                                message.stderr)),
+                                                            listOf(
+                                                                JobsLog(
+                                                                    message.rank,
+                                                                    message.stdout,
+                                                                    message.stderr
+                                                                )
+                                                            ),
                                                             null
                                                         )
                                                     )
                                                 }
-                                            }).orThrow()
+                                            }
+                                        ).orThrow()
                                     }
                                     break
                                 } else {
@@ -629,9 +612,12 @@ class JobOrchestrator(
                     } finally {
                         val capturedId = streamId
                         if (capturedId != null) {
-                            api.follow.call(
+                            providers.proxyCall(
+                                initialJob.specification.product.provider,
+                                actor,
+                                { it.api.follow },
                                 JobsProviderFollowRequest.CancelStream(capturedId),
-                                wsClient
+                                useWebsockets = true
                             )
                         }
 
@@ -697,23 +683,24 @@ class JobOrchestrator(
 
             val sessions = ArrayList<OpenSessionWithProvider>()
             for ((provider, jobs) in jobsByProvider) {
-                val comms = providers.prepareCommunication(provider)
-                val (api, client) = comms
+                val providerSpec = providers.retrieveProviderSpecification(provider)
                 sessions.addAll(
-                    api.openInteractiveSession
-                        .call(
+                    providers
+                        .proxyCall(
+                            provider,
+                            actor,
+                            { it.api.openInteractiveSession },
                             bulkRequestOf(jobs.flatMap { (job) ->
                                 requestsByJobId.getValue(job.id).map { req ->
                                     JobsProviderOpenInteractiveSessionRequestItem(job, req.rank, req.sessionType)
                                 }
-                            }),
-                            client.withProxyInfo(actor.safeUsername())
+                            })
                         )
                         .orThrow()
                         .sessions
                         .map {
                             OpenSessionWithProvider(
-                                with(comms.provider) {
+                                with(providerSpec) {
                                     buildString {
                                         if (https) {
                                             append("https://")
@@ -728,7 +715,7 @@ class JobOrchestrator(
                                         }
                                     }
                                 },
-                                comms.provider.id,
+                                providerSpec.id,
                                 it
                             )
                         }
@@ -769,8 +756,12 @@ class JobOrchestrator(
             )
         }
 
-        val (api, client) = providers.prepareCommunication(providerId)
-        val response = api.retrieveUtilization.call(Unit, client).orThrow()
+        val response = providers.proxyCall(
+            providerId,
+            null,
+            { it.api.retrieveUtilization },
+            Unit
+        ).orThrow()
 
         return JobsRetrieveUtilizationResponse(
             response.capacity,

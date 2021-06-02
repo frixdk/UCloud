@@ -1,11 +1,8 @@
-import styled, {css} from "styled-components";
+import styled from "styled-components";
 import Box from "./Box";
 import * as React from "react";
-import Flex from "./Flex";
-import Truncate from "./Truncate";
-import {stopPropagationAndPreventDefault} from "UtilityFunctions";
 import {IconName} from "ui-components/Icon";
-import {Icon, Text} from "ui-components/index";
+import {Icon} from "ui-components/index";
 import {ThemeColor} from "./theme";
 import {Cursor} from "ui-components/Types";
 import {useCallback} from "react";
@@ -18,11 +15,11 @@ interface UseChildPaddingProps {
 
 function useChildPadding(
     props: UseChildPaddingProps
-): null | { marginBottom: StringOrNumber; marginTop: StringOrNumber } {
+): null | {marginBottom: StringOrNumber; marginTop: StringOrNumber} {
     return props.childPadding ? {marginBottom: props.childPadding, marginTop: props.childPadding} : null;
 }
 
-const List = styled(Box) <{ fontSize?: string; childPadding?: string | number; bordered?: boolean }>`
+const List = styled(Box) <{fontSize?: string; childPadding?: string | number; bordered?: boolean}>`
   font-size: ${props => props.fontSize};
 
   & > * {
@@ -74,7 +71,10 @@ export const ListRow: React.FunctionComponent<ListRowProps> = (props) => {
     >
         {props.icon ? <div className="row-icon">{props.icon}</div> : null}
         <div className="row-left">
-            <div className="row-left-content" onClick={doNavigate}>{props.left}</div>
+            <div className="row-left-wrapper">
+                <div className="row-left-content" onClick={doNavigate}>{props.left}</div>
+                <div className="row-left-padding" />
+            </div>
             <div className="row-left-sub">{props.leftSub}</div>
         </div>
         <div className="row-right">{props.right}</div>
@@ -93,8 +93,8 @@ export const ListRowStat: React.FunctionComponent<{
 }> = props => {
     const color: ThemeColor = props.color ?? "gray";
     const color2: ThemeColor = props.color2 ?? "white";
-    let body = <>
-        {!props.icon ? null : <Icon size={"10"} color={color} color2={color2} name={props.icon}/>}
+    const body = <>
+        {!props.icon ? null : <Icon size={"10"} color={color} color2={color2} name={props.icon} />}
         {props.children}
     </>;
 
@@ -109,6 +109,7 @@ const ListStyle = styled.div`
   transition: background-color 0.3s;
   padding: 5px 0;
   width: 100%;
+  height: 62px;
   align-items: center;
   display: flex;
 
@@ -145,6 +146,15 @@ const ListStyle = styled.div`
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
+  }
+
+  .row-left-wrapper {
+      display: flex;
+  }
+
+  .row-left-padding {
+      width: auto;
+      cursor: auto;
   }
 
   .row-left-sub {

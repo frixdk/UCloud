@@ -4,6 +4,7 @@ import dk.sdu.cloud.CommonErrorMessage
 import dk.sdu.cloud.calls.*
 import dk.sdu.cloud.defaultMapper
 import dk.sdu.cloud.service.Log
+import dk.sdu.cloud.utils.DynamicWorkerPool
 import h2o.*
 import io.ktor.http.*
 import io.ktor.utils.io.charsets.*
@@ -49,9 +50,9 @@ object HeaderValues {
         ThisWillNeverBeFreed(ContentType.Text.Html.withCharset(Charsets.UTF_8).toString())
 }
 
-@Suppress("Unused")
 object WSFrames {
     const val TEXT_FRAME: UByte = 0x1u
+    @Suppress("UNUSED")
     const val BINARY_FRAME: UByte = 0x2u
 }
 
@@ -67,7 +68,7 @@ private const val MAX_WS_SOCKETS = 1024 * 64
 private val webSocketIsOpen = atomicArrayOfNulls<Unit>(MAX_WS_SOCKETS).freeze()
 
 @SharedImmutable
-private val workers = (0 until 10).map { Worker.start(name = "WS Worker $it") }.freeze()
+private val workers = DynamicWorkerPool("WS Workers")
 
 @ThreadLocal
 private val log = Log("H2OServer")
@@ -150,9 +151,7 @@ private fun onWebSocketMessage(
     }
 
     workers
-        .random()
         .execute(
-            TransferMode.SAFE,
             { InternalWsContext(wsId, connPtr, msgString).freeze() },
             { (wsId, connPtr, msgString) ->
                 runBlocking {
@@ -251,6 +250,7 @@ private fun onWebSocketMessage(
 
                     val wsContext = WebSocketContext(request, foundCall.call, sendMessage, sendResponse, isOpen)
 
+                    log.debug("Incoming call: ${foundCall.call.fullName} (${request.toString().take(240)})")
                     val context = CallHandler(IngoingCall(AttributeContainer(), wsContext), parsedRequest, call)
                     middlewares.value.forEach { it.beforeRequest(context) }
 
@@ -307,10 +307,8 @@ private fun handleHttpRequest(
     var foundCall: CallWithHandler<Any, Any, Any>? = null
     for (callWithHandler in allCalls) {
         val (call) = callWithHandler
-        log.debug("Call: ${callWithHandler.call.name}")
         if (call.httpOrNull == null) continue
         if (call.http.method != method) {
-            log.debug("Different method")
             continue
         }
 
@@ -321,7 +319,6 @@ private fun handleHttpRequest(
                         is HttpPathSegment.Simple -> it.text
                     }
                 }).removePrefix("/").removeSuffix("/").let { "/$it" }
-        log.debug("Expected: $expectedPath but got $path")
         if (path != expectedPath) continue
         @Suppress("UNCHECKED_CAST")
         foundCall = callWithHandler as CallWithHandler<Any, Any, Any>
@@ -421,7 +418,10 @@ fun h2o_req_t.readQuery(): String? {
 private val MAX_MESSAGE_SIZE = 1024UL * 1024UL * 64UL
 
 @Suppress("RedundantUnitExpression")
-class H2OServer {
+class H2OServer(
+    private val port: Int,
+    private val showWelcomeMessage: Boolean = true,
+) {
     private val handlerBuilder = ArrayList<CallWithHandler<*, *, *>>()
     val handlers: List<CallWithHandler<*, *, *>>
         get() = handlerBuilder
@@ -468,7 +468,7 @@ class H2OServer {
         // pales in comparison to the delay introduced by the network.
         val idle = scope.alloc<uv.uv_timer_t>()
         uv_timer_init(loop.ptr, idle.ptr)
-        uv_timer_start(idle.ptr, staticCFunction { handle: CPointer<uv.uv_timer_t>? ->
+        uv_timer_start(idle.ptr, staticCFunction { _: CPointer<uv.uv_timer_t>? ->
             // This runs on the same thread as the WS code
             while (true) {
                 val frame = outgoingFrames.poll() ?: break
@@ -500,13 +500,14 @@ class H2OServer {
                 }
             }
         }, 1UL, 1UL)
+        @Suppress("unused")
         accept_ctx.ctx = ctx.ptr
         accept_ctx.hosts = config.hosts
 
         val listener = scope.alloc<uv_tcp_t>()
-        val addr = scope.alloc<uv.sockaddr_in>()
+        val addr = scope.alloc<platform.posix.sockaddr_in>()
         uv_tcp_init(ctx.loop?.reinterpret(), listener.ptr)
-        uv_ip4_addr("127.0.0.1", 8889, addr.ptr)
+        uv_ip4_addr("127.0.0.1", port, addr.ptr.reinterpret())
         check(uv_tcp_bind(listener.ptr, addr.ptr.reinterpret(), 0) == 0) { "Could not bind to address" }
         val uvListenResult = uv_listen(
             listener.ptr.reinterpret(),
@@ -536,20 +537,26 @@ class H2OServer {
         )
         check(uvListenResult == 0) { "Could not initialize socket listener" }
 
-        println(buildString {
-            append("\u001B[34m")
-            append("""
-                 __  __  ____    ___                      __     
-                /\ \/\ \/\  _`\ /\_ \                    /\ \    
-                \ \ \ \ \ \ \/\_\//\ \     ___   __  __  \_\ \      Version 2021.1.0
-                 \ \ \ \ \ \ \/_/_\ \ \   / __`\/\ \/\ \ /'_` \     Running on http://localhost:8889
-                  \ \ \_\ \ \ \L\ \\_\ \_/\ \L\ \ \ \_\ /\ \L\ \ 
-                   \ \_____\ \____//\____\ \____/\ \____\ \___,_\
-                    \/_____/\/___/ \/____/\/___/  \/___/ \/__,_ /
-                                                     
-            """.trimIndent())
-            append("\u001B[0m")
-        })
+        workers.start()
+
+        if (showWelcomeMessage) {
+            println(buildString {
+                append("\u001B[34m")
+                append(
+                    """
+                         __  __  ____    ___                      __     
+                        /\ \/\ \/\  _`\ /\_ \                    /\ \    
+                        \ \ \ \ \ \ \/\_\//\ \     ___   __  __  \_\ \      Version 2021.1.0
+                         \ \ \ \ \ \ \/_/_\ \ \   / __`\/\ \/\ \ /'_` \     Running on http://localhost:8889
+                          \ \ \_\ \ \ \L\ \\_\ \_/\ \L\ \ \ \_\ /\ \L\ \ 
+                           \ \_____\ \____//\____\ \____/\ \____\ \___,_\
+                            \/_____/\/___/ \/____/\/___/  \/___/ \/__,_ /
+                                                             
+                    """.trimIndent()
+                )
+                append("\u001B[0m")
+            })
+        }
         uv_run(ctx.loop?.reinterpret(), UV_RUN_DEFAULT)
     }
 }

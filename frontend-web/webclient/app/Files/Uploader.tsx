@@ -21,14 +21,34 @@ import FileApi = UCloud.file.orchestrator;
 import {callAPI} from "Authentication/DataHook";
 import {bulkRequestOf} from "DefaultObjects";
 import {BulkResponse} from "UCloud";
-import {ChunkedFileReader} from "Files/ChunkedFileReader";
+import {ChunkedFileReader, createLocalStorageUploadKey} from "Files/ChunkedFileReader";
 import {sizeToString} from "Utilities/FileUtilities";
 
 const maxConcurrentUploads = 5;
 const entityName = "Upload";
 const maxChunkSize = 32 * 1000 * 1000;
+const FOURTY_EIGHT_HOURS_IN_MILLIS = 2 * 24 * 3600 * 1000;
+
+interface LocalStorageFileUploadInfo {
+    chunk: number;
+    size: number;
+    response: FileApi.FilesCreateUploadResponseItem;
+    expiration: number;
+}
+
+function fetchValidUploadFromLocalStorage(path: string): LocalStorageFileUploadInfo | null {
+    const item = localStorage.getItem(createLocalStorageUploadKey(path));
+    if (item === null) return null;
+
+    const parsed = JSON.parse(item) as LocalStorageFileUploadInfo;
+    if (parsed.expiration < new Date().getTime()) return null;
+
+    return parsed;
+}
 
 async function processUpload(upload: Upload) {
+
+
     const strategy = upload.uploadResponse;
     if (!strategy) {
         upload.error = "Internal client error";
@@ -51,8 +71,14 @@ async function processUpload(upload: Upload) {
     }
 
     const theFile = files[0];
+    const fullFilePath = upload.targetPath + "/" + theFile.fullPath;
 
     const reader = new ChunkedFileReader(theFile.fileObject);
+
+    const uploadInfo = fetchValidUploadFromLocalStorage(fullFilePath);
+    if (uploadInfo !== null) reader.offset = uploadInfo.chunk;
+
+    upload.initialProgress = reader.offset;
     upload.fileSizeInBytes = reader.fileSize();
 
     function sendChunk(chunk: ArrayBuffer): Promise<void> {
@@ -86,10 +112,18 @@ async function processUpload(upload: Upload) {
 
     while (!reader.isEof() && !upload.terminationRequested) {
         await sendChunk(await reader.readChunk(maxChunkSize));
+
+        const expiration = new Date().getTime() + FOURTY_EIGHT_HOURS_IN_MILLIS;
+        localStorage.setItem(
+            createLocalStorageUploadKey(fullFilePath),
+            JSON.stringify({chunk: reader.offset, size: upload.fileSizeInBytes, response: strategy!, expiration} as LocalStorageFileUploadInfo)
+        );
     }
+
+    localStorage.removeItem(createLocalStorageUploadKey(fullFilePath));
 }
 
-const Uploader: React.FunctionComponent = props => {
+const Uploader: React.FunctionComponent = () => {
     const [uploadPath] = useGlobal("uploadPath", "/");
     const [uploaderVisible, setUploaderVisible] = useGlobal("uploaderVisible", false);
     const [uploads, setUploads] = useGlobal("uploads", []);
@@ -110,33 +144,45 @@ const Uploader: React.FunctionComponent = props => {
         if (maxUploadsToUse > 0) {
             const creationRequests: FileApi.FilesCreateUploadRequestItem[] = [];
             const actualUploads: Upload[] = [];
+            const resumingUploads: Upload[] = [];
+
             for (const upload of batch) {
                 if (upload.state !== UploadState.PENDING) continue;
                 if (creationRequests.length >= maxUploadsToUse) break;
+
+                const fullFilePath = upload.targetPath + "/" + upload.row.rootEntry.name;
+
+                const item = fetchValidUploadFromLocalStorage(fullFilePath);
+                if (item !== null) {
+                    upload.uploadResponse = item.response;
+                    resumingUploads.push(upload);
+                    upload.state = UploadState.UPLOADING;
+                    continue;
+                }
 
                 upload.state = UploadState.UPLOADING;
                 creationRequests.push({
                     supportedProtocols,
                     conflictPolicy: upload.conflictPolicy,
-                    path: upload.targetPath + "/" + upload.row.rootEntry.name
+                    path: fullFilePath,
                 });
 
                 actualUploads.push(upload);
             }
 
-            if (actualUploads.length === 0) return;
+            if (actualUploads.length + resumingUploads.length === 0) return;
 
             try {
                 const responses = (await callAPI<BulkResponse<FileApi.FilesCreateUploadResponseItem>>(
                     FileApi.files.createUpload(bulkRequestOf(...creationRequests))
                 )).responses;
 
-                let i = 0;
-                for (const response of responses) {
-                    const upload = actualUploads[i];
+                for (const [index, response] of responses.entries()) {
+                    const upload = actualUploads[index];
                     upload.uploadResponse = response;
-                    i++;
+                }
 
+                for (const upload of [...actualUploads, ...resumingUploads]) {
                     processUpload(upload)
                         .then(() => {
                             upload.state = UploadState.DONE;
@@ -150,6 +196,7 @@ const Uploader: React.FunctionComponent = props => {
                         });
                 }
             } catch (e) {
+                /* TODO(jonas): This needs to be handled for resuming uploads, I think. */
                 const errorMessage = errorMessageOrDefault(e, "Unable to start upload");
                 for (let i = 0; i < creationRequests.length; i++) {
                     actualUploads[i].state = UploadState.DONE;
@@ -179,7 +226,8 @@ const Uploader: React.FunctionComponent = props => {
             progressInBytes: 0,
             state: UploadState.PENDING,
             conflictPolicy: "RENAME",
-            targetPath: uploadPath
+            targetPath: uploadPath,
+            initialProgress: 0
         }));
 
         setUploads(uploads.concat(newUploads));
@@ -240,15 +288,15 @@ const Uploader: React.FunctionComponent = props => {
                     extra={callbacks}
                     entityNameSingular={entityName}
                 />
-                <Divider/>
+                <Divider />
 
                 <label htmlFor={"fileUploadBrowse"}>
                     <DropZoneBox onDrop={onSelectedFile} onDragEnter={preventDefault} onDragLeave={preventDefault}
-                                 onDragOver={preventDefault} slim={uploads.length > 0}>
+                        onDragOver={preventDefault} slim={uploads.length > 0}>
                         <Flex width={320} alignItems={"center"} flexDirection={"column"}>
-                            {uploads.length > 0 ? null : <UploaderArt/>}
+                            {uploads.length > 0 ? null : <UploaderArt />}
                             <Box ml={"-1.5em"}>
-                                <TextSpan mr="0.5em"><Icon name="upload"/></TextSpan>
+                                <TextSpan mr="0.5em"><Icon name="upload" /></TextSpan>
                                 <TextSpan mr="0.3em">Drop files here or</TextSpan>
                                 <i>browse</i>
                                 <input
@@ -282,14 +330,15 @@ const Uploader: React.FunctionComponent = props => {
                                     title={upload.row.rootEntry.name}
                                     width={["320px", "320px", "320px", "320px", "440px", "560px"]}
                                     fontSize={20}
-                                    children={upload.row.rootEntry.name}
-                                />
+                                >
+                                    {upload.row.rootEntry.name}
+                                </Truncate>
                             }
                             leftSub={
                                 <ListStatContainer>
                                     {!upload.fileSizeInBytes ? null :
                                         <ListRowStat icon={"upload"} color={"iconColor"} color2={"iconColor2"}>
-                                            {sizeToString(upload.progressInBytes)}
+                                            {sizeToString(upload.progressInBytes + upload.initialProgress)}
                                             {" / "}
                                             {sizeToString(upload.fileSizeInBytes)}
                                         </ListRowStat>
@@ -334,11 +383,11 @@ const operations: Operation<Upload, UploadCallback>[] = [
 
 const UploaderArt: React.FunctionComponent = props => {
     return <UploadArtWrapper>
-        <FtIcon fileIcon={{type: "FILE", ext: "png"}} size={"64px"}/>
-        <FtIcon fileIcon={{type: "FILE", ext: "pdf"}} size={"64px"}/>
-        <FtIcon fileIcon={{type: "DIRECTORY"}} size={"128px"}/>
-        <FtIcon fileIcon={{type: "FILE", ext: "mp3"}} size={"64px"}/>
-        <FtIcon fileIcon={{type: "FILE", ext: "mp4"}} size={"64px"}/>
+        <FtIcon fileIcon={{type: "FILE", ext: "png"}} size={"64px"} />
+        <FtIcon fileIcon={{type: "FILE", ext: "pdf"}} size={"64px"} />
+        <FtIcon fileIcon={{type: "DIRECTORY"}} size={"128px"} />
+        <FtIcon fileIcon={{type: "FILE", ext: "mp3"}} size={"64px"} />
+        <FtIcon fileIcon={{type: "FILE", ext: "mp4"}} size={"64px"} />
     </UploadArtWrapper>;
 };
 
@@ -364,7 +413,7 @@ const modalStyle = {
     }
 };
 
-const DropZoneBox = styled.div<{ slim?: boolean }>`
+const DropZoneBox = styled.div<{slim?: boolean}>`
   width: 100%;
   ${p => p.slim ? {height: "80px"} : {height: "280px"}}
   border-width: 2px;

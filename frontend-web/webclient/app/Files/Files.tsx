@@ -1,6 +1,6 @@
 import * as React from "react";
 import {APICallState, useCloudAPI, useCloudCommand} from "Authentication/DataHook";
-import {file, PageV2} from "UCloud";
+import {BulkResponse, file, PageV2} from "UCloud";
 import {useToggleSet} from "Utilities/ToggleSet";
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {useGlobal} from "Utilities/ReduxHooks";
@@ -8,8 +8,8 @@ import {bulkRequestOf} from "DefaultObjects";
 import {getParentPath, pathComponents, resolvePath, sizeToString} from "Utilities/FileUtilities";
 import {BreadCrumbsBase} from "ui-components/Breadcrumbs";
 import HexSpin from "LoadingIcon/LoadingIcon";
-import {extensionFromPath, joinToString} from "UtilityFunctions";
-import {Box, Divider, Flex, FtIcon, List} from "ui-components";
+import {extensionFromPath, isExtPreviewSupported, joinToString} from "UtilityFunctions";
+import {Box, Checkbox, Flex, FtIcon, List, Label, Link} from "ui-components";
 import {ListRow, ListRowStat, ListStatContainer} from "ui-components/List";
 import {NamingField} from "UtilityComponents";
 import {dateToString} from "Utilities/DateUtilities";
@@ -30,8 +30,10 @@ import {associateBy} from "Utilities/CollectionUtilities";
 import metadataApi = file.orchestrator.metadata;
 import {buildQueryString} from "Utilities/URIUtilities";
 import { SynchronizationSettings } from "./Synchronization";
+import {removeUploadFromStorage} from "./ChunkedFileReader";
+import {MAX_PREVIEW_SIZE_IN_BYTES} from "./Preview";
 
-function fileName(path: string): string {
+export function fileName(path: string): string {
     const lastSlash = path.lastIndexOf("/");
     if (lastSlash !== -1 && path.length > lastSlash + 1) {
         return path.substring(lastSlash + 1);
@@ -59,7 +61,7 @@ export const Files: React.FunctionComponent<CommonFileProps & {
     const [synchronization, setSynchronization] = useState<UFile | null>(null);
     const [favoriteCache, setFavoriteCache] = useState<Record<string, true>>({});
 
-    const [uploaderVisible, setUploaderVisible] = useGlobal("uploaderVisible", false);
+    const [, setUploaderVisible] = useGlobal("uploaderVisible", false);
 
     const reload = useCallback(() => {
         toggleSet.uncheckAll();
@@ -97,6 +99,7 @@ export const Files: React.FunctionComponent<CommonFileProps & {
     const trash = useCallback(async (batch: UFile[]) => {
         if (commandLoading) return;
         await invokeCommand(filesApi.trash(bulkRequestOf(...(batch.map(it => ({path: it.path}))))));
+        batch.forEach(f => removeUploadFromStorage(f.path));
         reload();
     }, [commandLoading, reload]);
 
@@ -108,6 +111,19 @@ export const Files: React.FunctionComponent<CommonFileProps & {
         setSynchronization(null);
     }, []);
 
+    const download = useCallback(async (batch: UFile[]) => {
+        const result = await invokeCommand<BulkResponse<file.orchestrator.FilesCreateDownloadResponseItem>>(
+            filesApi.createDownload(bulkRequestOf(
+                ...batch.map(it => ({path: it.path})),
+            ))
+        );
+
+        console.log(result?.responses);
+    }, []);
+
+    const emptyTrash = useCallback(async (batch: UFile[]) => {
+        // TODO
+    }, [commandLoading, reload]);
 
     const selectFile = useCallback((type: FileType) => {
         return new Promise<UFile>((resolve, reject) => {
@@ -125,7 +141,7 @@ export const Files: React.FunctionComponent<CommonFileProps & {
     }, [onSelectFile, setOnSelectFile]);
 
     const callbacks: FilesCallbacks = {
-        ...props, reload, startRenaming, startFolderCreation, openUploader, trash, selectFile, startShare, startSynchronization
+        ...props, reload, startRenaming, startFolderCreation, openUploader, trash, selectFile, startShare, download, emptyTrash, startSynchronization
     };
 
     const renameFile = useCallback(async () => {
@@ -138,6 +154,8 @@ export const Files: React.FunctionComponent<CommonFileProps & {
                 newPath: getParentPath(renaming) + renameRef.current?.value
             }
         )));
+
+        removeUploadFromStorage(renaming);
 
         reload();
     }, [reload, renaming, renameRef]);
@@ -167,7 +185,7 @@ export const Files: React.FunctionComponent<CommonFileProps & {
     }, [props.path]);
 
     useEffect(() => {
-        let result: Record<string, true> = {};
+        const result: Record<string, true> = {};
         for (const path in props.metadata) {
             if (!props.metadata.hasOwnProperty(path)) continue;
 
@@ -200,17 +218,23 @@ export const Files: React.FunctionComponent<CommonFileProps & {
 
         return <>
             <BreadCrumbsBase embedded={props.embedded}>
-                {breadcrumbs.length === 0 ? <HexSpin size={42}/> : null}
+                {breadcrumbs.length === 0 ? <HexSpin size={42} /> : null}
                 {breadcrumbs.map((it, idx) => (
                     <span key={it} test-tag={it} title={it}
-                          onClick={() =>
-                              navigateTo("/" + joinToString(components.slice(0, idx + breadcrumbOffset + 1), "/"))}>
-                    {it}
-                </span>
+                        onClick={() =>
+                            navigateTo("/" + joinToString(components.slice(0, idx + breadcrumbOffset + 1), "/"))}>
+                        {it}
+                    </span>
                 ))}
             </BreadCrumbsBase>
         </>;
     }, [props.path, props.embedded, collection.data]);
+
+    const fileredOperations = props.embedded ? (
+        filesOperations.filter(it => !["Move to...", "Copy to..."].includes(it.text))
+    ) : filesOperations;
+
+    const providerAllowsPreviews = true && toggleSet.checked.items.length === 0;
 
     const main = <>
         {!props.embedded ? null :
@@ -221,7 +245,7 @@ export const Files: React.FunctionComponent<CommonFileProps & {
                     location={"TOPBAR"}
                     entityNameSingular={filesEntityName}
                     extra={callbacks}
-                    operations={filesOperations}
+                    operations={fileredOperations}
                     displayTitle={false}
                 />
             </Flex>
@@ -229,13 +253,18 @@ export const Files: React.FunctionComponent<CommonFileProps & {
 
         {props.embedded ? null : breadcrumbsComponent}
 
-        <List childPadding={"8px"} bordered={true}>
+
+        <Label>
+            <Checkbox checked={toggleSet.allChecked} onChange={e => e.target.checked ? toggleSet.checkAll() : toggleSet.uncheckAll()} />
+            Select all
+        </Label>
+        <List bordered={true}>
             {!isCreatingFolder ? null : (
                 <ListRow
                     icon={
                         <>
-                            <Icon mr={10} size={24} name={"starEmpty"} color={"midGray"}/>
-                            <FtIcon fileIcon={{type: "DIRECTORY"}} size={"42px"}/>
+                            <Icon mr={10} size={24} name={"starEmpty"} color={"midGray"} />
+                            <FtIcon fileIcon={{type: "DIRECTORY"}} size={"42px"} />
                         </>
                     }
                     left={
@@ -250,95 +279,104 @@ export const Files: React.FunctionComponent<CommonFileProps & {
                 />
             )}
             {props.files.data.items.map(it => {
-                    const isFavorite = favoriteCache[it.path] ?? false;
+                const isFavorite = favoriteCache[it.path] ?? false;
 
-                    return <ListRow
-                        key={it.path}
-                        icon={
-                            <>
-                                <Icon
-                                    mr={10}
-                                    cursor={"pointer"}
-                                    size={"24"}
-                                    name={isFavorite ? "starFilled" : "starEmpty"}
-                                    color={isFavorite ? "blue" : "midGray"}
-                                    onClick={() => {
-                                        invokeCommand(metadataApi.create(bulkRequestOf({
-                                            path: it.path,
-                                            metadata: {
-                                                templateId: "favorite",
-                                                changeLog: "",
-                                                document: {"favorite": !isFavorite},
-                                                product: undefined
-                                            }
-                                        })));
+                const extension = extensionFromPath(it.path);
+                const isValidExtension = isExtPreviewSupported(extension);
+                const canPreviewFile = providerAllowsPreviews && it.type === "FILE" && isValidExtension &&
+                    (it.stats?.sizeInBytes ?? MAX_PREVIEW_SIZE_IN_BYTES) < MAX_PREVIEW_SIZE_IN_BYTES;
 
-                                        setFavoriteCache(prev => {
-                                            const newCache = {...prev};
-                                            if (isFavorite) {
-                                                delete newCache[it.path];
-                                            } else {
-                                                newCache[it.path] = true;
-                                            }
-                                            return newCache;
-                                        });
-                                    }}
-                                    hoverColor={"blue"}
-                                />
-                                <FtIcon
-                                    iconHint={it.icon}
-                                    fileIcon={{type: it.type, ext: extensionFromPath(it.path)}}
-                                    size={"42px"}
-                                />
-                            </>
-                        }
-                        left={
-                            renaming === it.path ?
-                                <NamingField
-                                    confirmText="Rename"
-                                    defaultValue={fileName(it.path)}
-                                    onCancel={() => setRenaming(null)}
-                                    onSubmit={renameFile}
-                                    inputRef={renameRef}
-                                /> : fileName(it.path)
-                        }
-                        isSelected={toggleSet.checked.has(it)}
-                        select={() => toggleSet.toggle(it)}
-                        leftSub={
-                            <ListStatContainer>
-                                {it.stats?.sizeIncludingChildrenInBytes == null || it.type !== "DIRECTORY" ? null :
-                                    <ListRowStat icon={"info"}>
-                                        {sizeToString(it.stats.sizeIncludingChildrenInBytes)}
-                                    </ListRowStat>
-                                }
-                                {it.stats?.sizeInBytes == null || it.type !== "FILE" ? null :
-                                    <ListRowStat icon={"info"}>
-                                        {sizeToString(it.stats.sizeInBytes)}
-                                    </ListRowStat>
-                                }
-                                {!it.stats?.modifiedAt ? null :
-                                    <ListRowStat icon={"edit"}>
-                                        {dateToString(it.stats.modifiedAt)}
-                                    </ListRowStat>
-                                }
-                            </ListStatContainer>
-                        }
-                        right={
-                            <Operations
-                                selected={toggleSet.checked.items}
-                                location={"IN_ROW"}
-                                entityNameSingular={filesEntityName}
-                                extra={callbacks}
-                                operations={filesOperations}
-                                row={it}
+                return <ListRow
+                    key={it.path}
+                    icon={
+                        <>
+                            <Icon
+                                mr={10}
+                                cursor="pointer"
+                                size="24"
+                                name={isFavorite ? "starFilled" : "starEmpty"}
+                                color={isFavorite ? "blue" : "midGray"}
+                                onClick={() => {
+                                    invokeCommand(metadataApi.create(bulkRequestOf({
+                                        path: it.path,
+                                        metadata: {
+                                            templateId: "favorite",
+                                            changeLog: "",
+                                            document: {"favorite": !isFavorite},
+                                            product: undefined
+                                        }
+                                    })));
+
+                                    setFavoriteCache(prev => {
+                                        const newCache = {...prev};
+                                        if (isFavorite) {
+                                            delete newCache[it.path];
+                                        } else {
+                                            newCache[it.path] = true;
+                                        }
+                                        return newCache;
+                                    });
+                                }}
+                                hoverColor={"blue"}
                             />
+                            <FtIcon
+                                iconHint={it.icon}
+                                fileIcon={{type: it.type, ext: extensionFromPath(it.path)}}
+                                size={"42px"}
+                            />
+                        </>
+                    }
+                    left={
+                        renaming === it.path ?
+                            <NamingField
+                                confirmText="Rename"
+                                defaultValue={fileName(it.path)}
+                                onCancel={() => setRenaming(null)}
+                                onSubmit={renameFile}
+                                inputRef={renameRef}
+                            /> : (canPreviewFile ?
+                                <Link to={`/files/preview/?path=${it.path}`}>{fileName(it.path)}</Link> :
+                                fileName(it.path))
+                    }
+                    isSelected={toggleSet.checked.has(it)}
+                    select={() => toggleSet.toggle(it)}
+                    leftSub={
+                        <ListStatContainer>
+                            {it.stats?.sizeIncludingChildrenInBytes == null || it.type !== "DIRECTORY" ? null :
+                                <ListRowStat icon={"info"}>
+                                    {sizeToString(it.stats.sizeIncludingChildrenInBytes)}
+                                </ListRowStat>
+                            }
+                            {it.stats?.sizeInBytes == null || it.type !== "FILE" ? null :
+                                <ListRowStat icon={"info"}>
+                                    {sizeToString(it.stats.sizeInBytes)}
+                                </ListRowStat>
+                            }
+                            {!it.stats?.modifiedAt ? null :
+                                <ListRowStat icon={"edit"}>
+                                    {dateToString(it.stats.modifiedAt)}
+                                </ListRowStat>
+                            }
+                        </ListStatContainer>
+                    }
+                    right={<>
+                        {canPreviewFile ? <Link to={`/files/preview/?path=${it.path}`}><Icon name="preview" color="black" /></Link> :
+                            <Icon name="preview" color={"lightGray"} />
                         }
-                        navigate={() => {
-                            navigateTo(it.path);
-                        }}
-                    />;
-                }
-            )}
+                        <Operations
+                            selected={toggleSet.checked.items}
+                            location={"IN_ROW"}
+                            entityNameSingular={filesEntityName}
+                            extra={callbacks}
+                            operations={fileredOperations}
+                            row={it}
+                        />
+                    </>}
+                    navigate={it.type === "FILE" ? undefined : () => {
+                        navigateTo(it.path);
+                    }}
+                />;
+            })}
         </List>
     </>;
 
@@ -376,7 +414,7 @@ export const Files: React.FunctionComponent<CommonFileProps & {
                         onRequestClose={closeShare}
                         ariaHideApp={false}
                     >
-                        {!sharing ? null : <EmbeddedShareCard path={sharing.path}/>}
+                        {!sharing ? null : <EmbeddedShareCard path={sharing.path} />}
                     </ReactModal>
 
                     <ReactModal
@@ -402,6 +440,11 @@ interface FilesCallbacks extends CommonFileProps {
     selectFile: (requiredType: FileType | null) => Promise<UFile | null>;
     startShare: (batch: UFile) => void;
     startSynchronization: (file: UFile) => void;
+
+    /* TODO */
+    download: (batch: UFile[]) => void;
+    // is batch even needed?
+    emptyTrash: (batch: UFile[]) => void;
 }
 
 const filesOperations: Operation<UFile, FilesCallbacks>[] = [
@@ -436,14 +479,26 @@ const filesOperations: Operation<UFile, FilesCallbacks>[] = [
         icon: "rename",
         primary: false,
         onClick: (selected, cb) => cb.startRenaming(selected[0]),
-        enabled: selected => selected.length === 1,
+        /* NOTE(jonas): Is this good enough? */
+        enabled: selected => selected.length === 1 && selected.every(it => it.icon === null),
     },
     {
         text: "Download",
         icon: "download",
         primary: false,
-        onClick: () => 42,
-        enabled: selected => selected.length === 1,
+        onClick: (files, cb) => cb.download(files),
+        enabled: selected => selected.length > 0 && selected.every(it => it.type === "FILE"),
+    },
+    {
+        text: "Empty trash",
+        icon: "trash",
+        primary: false,
+        onClick: (selected, cb) => {
+            cb.emptyTrash(selected);
+        },
+        enabled: (files) => files.length === 1 && files.every(it => it.icon === "DIRECTORY_TRASH"),
+        color: "red",
+        confirm: true,
     },
     {
         text: "Copy to...",
@@ -485,6 +540,8 @@ const filesOperations: Operation<UFile, FilesCallbacks>[] = [
                 )))
             )));
 
+            selected.forEach(f => removeUploadFromStorage(f.path));
+
             cb.reload();
         },
         enabled: selected => selected.length > 0,
@@ -504,13 +561,13 @@ const filesOperations: Operation<UFile, FilesCallbacks>[] = [
         color: "red",
         primary: false,
         onClick: (selected, cb) => cb.trash(selected),
-        enabled: selected => selected.length > 0,
+        enabled: selected => selected.length > 0 && selected.every(f => f.icon !== "DIRECTORY_TRASH"),
     },
     {
         text: "Properties",
         icon: "properties",
         primary: false,
-        onClick: (selected, cb) => cb.history.push(buildQueryString("/files/properties/", { path: selected[0].path })),
+        onClick: (selected, cb) => cb.history.push(buildQueryString("/files/properties/", {path: selected[0].path})),
         enabled: selected => selected.length === 1,
     },
     {
@@ -527,7 +584,7 @@ const filesOperations: Operation<UFile, FilesCallbacks>[] = [
 
 const filesEntityName = "File";
 
-const filesAclOptions: { icon: IconName; name: string, title?: string }[] = [
+const filesAclOptions: {icon: IconName; name: string, title?: string}[] = [
     {icon: "search", name: "READ", title: "Read"},
     {icon: "edit", name: "WRITE", title: "Write"},
 ];

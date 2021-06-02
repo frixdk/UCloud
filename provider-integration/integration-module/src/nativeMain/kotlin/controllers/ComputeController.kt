@@ -1,14 +1,18 @@
 package dk.sdu.cloud.controllers
 
+import dk.sdu.cloud.ServerMode
 import dk.sdu.cloud.accounting.api.ProductReference
 import dk.sdu.cloud.app.orchestrator.api.*
+import dk.sdu.cloud.calls.BulkRequest
 import dk.sdu.cloud.calls.RPCException
+import dk.sdu.cloud.freeze
 import dk.sdu.cloud.http.H2OServer
 import dk.sdu.cloud.http.OutgoingCallResponse
 import dk.sdu.cloud.http.wsContext
 import dk.sdu.cloud.plugins.ComputePlugin
 import dk.sdu.cloud.service.Loggable
 import dk.sdu.cloud.service.Logger
+import dk.sdu.cloud.utils.secureToken
 import io.ktor.http.*
 import kotlinx.atomicfu.atomicArrayOfNulls
 
@@ -16,18 +20,38 @@ class ComputeController(
     private val controllerContext: ControllerContext,
 ) : Controller {
     override fun H2OServer.configure() {
-        val computePlugin = controllerContext.plugins.compute ?: return
+        val plugins = controllerContext.plugins.compute ?: return
+        val serverMode = controllerContext.configuration.serverMode
 
-        val PROVIDER_ID = "im-test"
-        val jobs = JobsProvider(PROVIDER_ID)
-        val knownProducts = listOf(
-            ProductReference("im1", "im1", PROVIDER_ID),
-        )
+        fun findPlugin(job: Job): ComputePlugin {
+            return plugins.lookup(job.specification.product)
+        }
+
+        val jobs = JobsProvider(controllerContext.configuration.core.providerId)
+
+        fun <T> groupJobs(
+            items: List<T>,
+            jobSelector: (T) -> Job,
+        ): Map<ComputePlugin, List<T>> {
+            val result = HashMap<ComputePlugin, ArrayList<T>>()
+            for (item in items) {
+                val job = jobSelector(item)
+                val plugin = findPlugin(job)
+                val existing = result[plugin] ?: ArrayList()
+                existing.add(item)
+                result[plugin] = existing
+            }
+            return result
+        }
 
         implement(jobs.create) {
-            with(controllerContext.pluginContext) {
-                with (computePlugin) {
-                    createBulk(request)
+            if (serverMode != ServerMode.User) throw RPCException.fromStatusCode(HttpStatusCode.NotFound)
+
+            groupJobs(request.items, { it }).forEach { (plugin, group) ->
+                with(controllerContext.pluginContext) {
+                    with(plugin) {
+                        createBulk(BulkRequest(group))
+                    }
                 }
             }
 
@@ -35,32 +59,42 @@ class ComputeController(
         }
 
         implement(jobs.retrieveProducts) {
+            if (serverMode != ServerMode.Server) throw RPCException.fromStatusCode(HttpStatusCode.NotFound)
             OutgoingCallResponse.Ok(
                 JobsProviderRetrieveProductsResponse(
-                    knownProducts.map { productRef ->
-                        ComputeProductSupport(
-                            productRef,
-                            ComputeSupport(
-                                ComputeSupport.Docker(
-                                    enabled = true,
-                                    terminal = true,
-                                    logs = true,
-                                    timeExtension = false
-                                ),
-                                ComputeSupport.VirtualMachine(
-                                    enabled = false,
+                    plugins.allProducts
+                        .map { it to plugins.lookup(it) }
+                        .groupBy { it.second }
+                        .flatMap { (plugin, products) ->
+                            val support = with(controllerContext.pluginContext) {
+                                with(plugin) {
+                                    retrieveSupport()
+                                }
+                            }
+
+                            products.map { (product) ->
+                                ComputeProductSupport(
+                                    ProductReference(
+                                        product.id,
+                                        product.category,
+                                        controllerContext.configuration.core.providerId
+                                    ),
+                                    support
                                 )
-                            )
-                        )
-                    }
+                            }
+                        }
                 )
             )
         }
 
         implement(jobs.delete) {
-            with(controllerContext.pluginContext) {
-                with(computePlugin) {
-                    deleteBulk(request)
+            if (serverMode != ServerMode.User) throw RPCException.fromStatusCode(HttpStatusCode.NotFound)
+
+            groupJobs(request.items, { it }).forEach { (plugin, group) ->
+                with(controllerContext.pluginContext) {
+                    with(plugin) {
+                        deleteBulk(BulkRequest(group))
+                    }
                 }
             }
 
@@ -68,9 +102,13 @@ class ComputeController(
         }
 
         implement(jobs.extend) {
-            with(controllerContext.pluginContext) {
-                with(computePlugin) {
-                    extendBulk(request)
+            if (serverMode != ServerMode.User) throw RPCException.fromStatusCode(HttpStatusCode.NotFound)
+
+            groupJobs(request.items, { it.job }).forEach { (plugin, group) ->
+                with(controllerContext.pluginContext) {
+                    with(plugin) {
+                        extendBulk(BulkRequest(group))
+                    }
                 }
             }
 
@@ -78,15 +116,19 @@ class ComputeController(
         }
 
         val maxStreams = 1024 * 32
-        val streams = atomicArrayOfNulls<Unit>(maxStreams)
+        val streams = atomicArrayOfNulls<String>(maxStreams)
 
         implement(jobs.follow) {
-            // TODO TODO TODO STREAM IDS NEEDS TO BE UNGUESSABLE THIS ALLOWS ANYONE TO CANCEL OTHER PEOPLES STREAMS
+            if (serverMode != ServerMode.User) throw RPCException.fromStatusCode(HttpStatusCode.NotFound)
+
             when (request) {
                 is JobsProviderFollowRequest.Init -> {
+                    val plugin = findPlugin(request.job)
+
+                    val token = secureToken(64).freeze()
                     var streamId: Int? = null
                     for (i in 0 until maxStreams) {
-                        if (streams[i].compareAndSet(null, Unit)) {
+                        if (streams[i].compareAndSet(null, token)) {
                             streamId = i
                             break
                         }
@@ -100,7 +142,7 @@ class ComputeController(
 
                     val ctx = ComputePlugin.FollowLogsContext(
                         controllerContext.pluginContext,
-                        isActive = { streams[streamId].compareAndSet(Unit, Unit) && wsContext.isOpen() },
+                        isActive = { streams[streamId].compareAndSet(token, token) && wsContext.isOpen() },
                         emitStdout = { rank, message ->
                             wsContext.sendMessage(
                                 JobsProviderFollowResponse(
@@ -122,7 +164,7 @@ class ComputeController(
                     )
 
                     with(ctx) {
-                        with(computePlugin) {
+                        with(plugin) {
                             followLogs(request.job)
                         }
                     }
@@ -131,38 +173,70 @@ class ComputeController(
                 }
 
                 is JobsProviderFollowRequest.CancelStream -> {
-                    val id = request.streamId.toIntOrNull()
-                        ?: throw RPCException("Bad stream id", HttpStatusCode.BadRequest)
-                    if (id !in 0 until maxStreams) throw RPCException.fromStatusCode(HttpStatusCode.BadRequest)
+                    var idx = -1
+                    for (i in 0 until maxStreams) {
+                        if (streams[i].value == request.streamId) {
+                            idx = i
+                            break
+                        }
+                    }
+                    if (idx == -1) throw RPCException.fromStatusCode(HttpStatusCode.BadRequest)
 
-                    streams[id].compareAndSet(Unit, null)
+                    streams[idx].compareAndSet(request.streamId, null)
                     OutgoingCallResponse.Ok(JobsProviderFollowResponse("", -1))
                 }
             }
         }
 
         implement(jobs.openInteractiveSession) {
-            log.info("open interactive session $request")
-            TODO()
+            if (serverMode != ServerMode.User) throw RPCException.fromStatusCode(HttpStatusCode.NotFound)
+            val responses = ArrayList<OpenSession>()
+            groupJobs(request.items, { it.job }).forEach { (plugin, group) ->
+                with(controllerContext.pluginContext) {
+                    with(plugin) {
+                        responses.addAll(openInteractiveSessionBulk(BulkRequest(group)).sessions)
+                    }
+                }
+            }
+
+            OutgoingCallResponse.Ok(JobsProviderOpenInteractiveSessionResponse(responses))
         }
 
         implement(jobs.retrieveUtilization) {
-            OutgoingCallResponse.Ok(
-                JobsProviderUtilizationResponse(CpuAndMemory(0.0, 0L), CpuAndMemory(0.0, 0L), QueueStatus(0, 0))
-            )
+            if (serverMode != ServerMode.Server) throw RPCException.fromStatusCode(HttpStatusCode.NotFound)
+            TODO("Issue #2425")
+            /*
+            with(controllerContext.pluginContext) {
+                with(computePlugin) {
+                    OutgoingCallResponse.Ok(retrieveClusterUtilization())
+                }
+            }
+             */
         }
 
         implement(jobs.suspend) {
-            with(controllerContext.pluginContext) {
-                with(computePlugin) {
-                    suspendBulk(request)
+            if (serverMode != ServerMode.User) throw RPCException.fromStatusCode(HttpStatusCode.NotFound)
+            groupJobs(request.items, { it }).forEach { (plugin, group) ->
+                with(controllerContext.pluginContext) {
+                    with(plugin) {
+                        suspendBulk(BulkRequest(group))
+                    }
                 }
             }
+
             OutgoingCallResponse.Ok(Unit)
         }
 
         implement(jobs.verify) {
-            log.info("Verifying some jobs $request")
+            if (serverMode != ServerMode.Server) throw RPCException.fromStatusCode(HttpStatusCode.NotFound)
+            groupJobs(request.items, { it }).forEach { (plugin, group) ->
+                with(controllerContext.pluginContext) {
+                    with(plugin) {
+                        verify(group)
+                    }
+                }
+            }
+
             OutgoingCallResponse.Ok(Unit)
         }
     }
