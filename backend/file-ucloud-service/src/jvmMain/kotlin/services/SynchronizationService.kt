@@ -50,7 +50,7 @@ class SynchronizationService(
         syncthing.addFolder(
             SyncthingFolder(
                 id = id,
-                label = id,
+                label = request.path.substringAfterLast("/"),
                 devices = userDevices,
                 path = "/home/xirov/some_syncthing_test"
             )
