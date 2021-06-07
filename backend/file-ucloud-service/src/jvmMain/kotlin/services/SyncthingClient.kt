@@ -1,7 +1,13 @@
 package dk.sdu.cloud.file.ucloud.services
 
+import dk.sdu.cloud.calls.RPCException
 import dk.sdu.cloud.defaultMapper
+import dk.sdu.cloud.file.ucloud.LocalSyncthingDevice
 import dk.sdu.cloud.file.ucloud.SynchronizationConfiguration
+import dk.sdu.cloud.service.db.async.DBContext
+import dk.sdu.cloud.service.db.async.getField
+import dk.sdu.cloud.service.db.async.sendPreparedStatement
+import dk.sdu.cloud.service.db.async.withSession
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.request.*
@@ -17,6 +23,14 @@ import kotlinx.serialization.encodeToString
 data class SyncthingIgnoredFolder(
     val id: String,
     val label: String,
+    val time: String
+)
+
+@Serializable
+data class SyncthingRemoteIgnoredDevices(
+    val address: String,
+    val deviceID: String,
+    val name: String,
     val time: String
 )
 
@@ -136,7 +150,7 @@ data class SyncthingConfig(
     val gui: SyncthingGui,
     val ldap: SyncthingLdap,
     val options: SyncthingOptions,
-    val remoteIgnoredDevices: List<String> = emptyList(),
+    val remoteIgnoredDevices: List<SyncthingRemoteIgnoredDevices> = emptyList(),
     val version: Int = 35
 )
 
@@ -204,17 +218,18 @@ data class SyncthingFolderDevice(
 )
 
 class SyncthingClient(
-    val config: SynchronizationConfiguration
+    val config: SynchronizationConfiguration,
+    val db: DBContext
 ) {
     private val httpClient = HttpClient(CIO) {
         expectSuccess = false
     }
 
-    suspend fun readConfig(): SyncthingConfig {
-        val requestPath = "http://" + config.hostname + "/rest/config"
+    private suspend fun readConfig(device: LocalSyncthingDevice): SyncthingConfig {
+        val requestPath = "http://" + device.hostname + "/rest/config"
         val resp = httpClient.get<HttpResponse>(requestPath) {
             headers {
-                append("X-API-Key", config.apiKey)
+                append("X-API-Key", device.apiKey)
             }
         }
 
@@ -222,30 +237,62 @@ class SyncthingClient(
         return defaultMapper.decodeFromString(config)
     }
 
-    suspend fun writeConfig(syncthingConfig: SyncthingConfig) {
-        val requestPath = "http://" + config.hostname + "/rest/config"
-        val resp = httpClient.put<HttpResponse>(requestPath) {
-            body = TextContent(
-                defaultMapper.encodeToString(syncthingConfig),
-                ContentType.Application.Json
+    suspend fun writeConfig() {
+        config.devices.forEach { device ->
+            val result = db.withSession { session ->
+                session.sendPreparedStatement(
+                    {
+                        setParameter("localDevice", device.id)
+                    },
+                    """
+                       select id, path, access_type, d.device_id, d.user_id from file_ucloud.synchronized_folders as f
+                       inner join file_ucloud.user_devices as d on f.user_id = d.user_id
+                       where f.device_id = :localDevice
+                    """
+                )
+            }.rows
+            val oldConfig = readConfig(device)
+
+            val newConfig = oldConfig.copy(
+                devices = result.map { row ->
+                    SyncthingDevice(
+                        deviceID = row.getField(UserDevicesTable.device),
+                        name = row.getField(UserDevicesTable.device)
+                    )
+                } + listOf(SyncthingDevice(deviceID = device.id, name = device.name)),
+                folders = result.map { row ->
+                    SyncthingFolder(
+                        id = row.getField(SynchronizedFoldersTable.id),
+                        label = row.getField(SynchronizedFoldersTable.path).substringAfterLast("/"),
+                        devices = db.withSession { session ->
+                            session.sendPreparedStatement(
+                                {
+                                    setParameter("user", row.getField(UserDevicesTable.user))
+                                },
+                                """
+                                    select device_id
+                                    from file_ucloud.user_devices
+                                    where user_id = :user
+                                """
+                            ).rows.map { SyncthingFolderDevice(it.getField(UserDevicesTable.device)) }
+                        },
+                        path = row.getField(SynchronizedFoldersTable.path)
+                    )
+                }
             )
-            headers {
-                append("X-API-Key", config.apiKey)
+
+            val resp = httpClient.put<HttpResponse>("http://" + device.hostname + "/rest/config") {
+                body = TextContent(
+                    defaultMapper.encodeToString(newConfig),
+                    ContentType.Application.Json
+                )
+                headers {
+                    append("X-API-Key", device.apiKey)
+                }
             }
-        }
 
-        println(resp.content.toByteArray().toString(Charsets.UTF_8))
-    }
-
-    suspend fun addFolder(folder: SyncthingFolder) {
-        val requestPath = "http://" + config.hostname + "/rest/config/folders"
-        httpClient.post<HttpResponse>(requestPath) {
-            body = TextContent(
-                defaultMapper.encodeToString(folder),
-                ContentType.Application.Json
-            )
-            headers {
-                append("X-API-Key", config.apiKey)
+            if (resp.status != HttpStatusCode.OK) {
+                throw RPCException(resp.content.toByteArray().toString(Charsets.UTF_8), HttpStatusCode.BadRequest)
             }
         }
     }

@@ -17,10 +17,15 @@ data class CephConfiguration(
     val useCephDirectoryStats: Boolean = false
 )
 
-data class SynchronizationConfiguration(
+data class LocalSyncthingDevice(
+    val name: String = "UCloud",
     val hostname: String = "",
     val apiKey: String = "",
-    val deviceId: String = ""
+    val id: String = ""
+)
+
+data class SynchronizationConfiguration(
+    val devices: List<LocalSyncthingDevice> = emptyList()
 )
 
 
@@ -33,7 +38,8 @@ object FileUcloudService : Service {
 
         val configuration = micro.configuration.requestChunkAtOrNull("files", "ucloud") ?: Configuration()
         val cephConfig = micro.configuration.requestChunkAtOrNull("ceph") ?: CephConfiguration()
-        val syncConfig = micro.configuration.requestChunkAtOrNull("syncthing") ?: SynchronizationConfiguration()
+        val syncDevices = micro.configuration.requestChunkAtOrNull<List<LocalSyncthingDevice>>("syncthing", "devices") ?: emptyList()
+        val syncConfig = micro.configuration.requestChunkAtOrNull("syncthing") ?: SynchronizationConfiguration(syncDevices)
 
         if (micro.configuration.requestChunkAtOrNull<Boolean>("postInstalling") == true) {
             return EmptyServer
