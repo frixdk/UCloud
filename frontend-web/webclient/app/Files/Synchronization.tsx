@@ -9,6 +9,7 @@ import synchronizationApi = file.orchestrator.synchronization;
 import orchestrator = file.orchestrator;
 import { emptyPageV2 } from "DefaultObjects";
 import { TextSpan } from "ui-components/Text";
+import { copyToClipboard } from "UtilityFunctions";
 
 const Tab: React.FunctionComponent<{ selected: boolean, onClick: () => void }> = props => {
     return <SelectableText
@@ -143,7 +144,13 @@ export const SynchronizationSettings: React.FunctionComponent<{
                         <Text mb="20px">
                             The folder is being synchronized with your devices from Device ID:
                         </Text>
+                        <Flex>
                         <Input readOnly={true} value={ucloudDeviceId} />
+                        <Button onClick={() => copyToClipboard({
+                            value: ucloudDeviceId,
+                            message: "Copied " + ucloudDeviceId + " to clipboard"
+                        })}>Copy</Button>
+                        </Flex>
                         <Text mt="20px">
                             Add this as a remote device to your local instance of Syncthing to begin synchronization.
                         </Text>
