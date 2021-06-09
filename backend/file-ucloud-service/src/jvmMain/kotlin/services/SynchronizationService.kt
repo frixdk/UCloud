@@ -47,7 +47,7 @@ class SynchronizationService(
     }
 
     suspend fun addFolder(actor: Actor, request: SynchronizationAddFolderRequest) {
-        if (fsFastDirectoryStats.getRecursiveFileCount(InternalFile(request.path)) > 1000_000_000) {
+        if (fsFastDirectoryStats.getRecursiveFileCount(InternalFile(request.path)) > 1000_000) {
             throw RPCException("Number of files in directory exceeded for synchronization", HttpStatusCode.Forbidden)
         }
 

@@ -19,30 +19,44 @@ data class SynchronizedFolder(
     val device_id: String
 )
 
-typealias SynchronizationBrowseDevicesRequest = Unit
+@Serializable
+data class SynchronizationBrowseDevicesRequest(
+    val provider: String
+)
 typealias SynchronizationBrowseDevicesResponse = PageV2<SynchronizationDevice>
 
 @Serializable
 data class SynchronizationAddFolderRequest(
-    val path: String
+    val path: String,
+    val provider: String
 )
 typealias SynchronizationAddFolderResponse = Unit
 
 @Serializable
 data class SynchronizationRemoveFolderRequest(
-    val id: String
+    val id: String,
+    val provider: String
 )
 typealias SynchronizationRemoveFolderResponse = Unit
 
-typealias SynchronizationAddDeviceRequest = SynchronizationDevice
+@Serializable
+data class SynchronizationAddDeviceRequest(
+    val id: String,
+    val provider: String
+)
 typealias SynchronizationAddDeviceResponse = Unit
 
-typealias SynchronizationRemoveDeviceRequest = SynchronizationDevice
+@Serializable
+data class SynchronizationRemoveDeviceRequest(
+    val id: String,
+    val provider: String
+)
 typealias SynchronizationRemoveDeviceResponse = Unit
 
 @Serializable
 data class SynchronizationRetrieveFolderRequest(
-    val path: String
+    val path: String,
+    val provider: String
 )
 typealias SynchronizationRetrieveFolderResponse = SynchronizedFolder
 

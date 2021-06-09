@@ -10,6 +10,7 @@ import orchestrator = file.orchestrator;
 import { emptyPageV2 } from "DefaultObjects";
 import { TextSpan } from "ui-components/Text";
 import { copyToClipboard } from "UtilityFunctions";
+import { pathComponents } from "Utilities/FileUtilities";
 
 const Tab: React.FunctionComponent<{ selected: boolean, onClick: () => void }> = props => {
     return <SelectableText
@@ -27,13 +28,15 @@ const Tab: React.FunctionComponent<{ selected: boolean, onClick: () => void }> =
 export const SynchronizationSettings: React.FunctionComponent<{
     path: string;
 }> = ({path}) => {
+    const provider = pathComponents(path)[0];
+
     const [manageDevices, setManageDevices] = useState(false);
     const [devices, fetchDevices] = useCloudAPI<PageV2<orchestrator.SynchronizationDevice>>(
-        synchronizationApi.browseDevices(),
+        synchronizationApi.browseDevices({ provider }),
         emptyPageV2
     );
     const [folder, fetchFolder] = useCloudAPI<orchestrator.SynchronizedFolder|undefined>(
-        synchronizationApi.retrieveFolder({ path: path }),
+        synchronizationApi.retrieveFolder({ path: path, provider }),
         undefined
     );
 
@@ -46,8 +49,8 @@ export const SynchronizationSettings: React.FunctionComponent<{
     const addDevice = async e => {
         e.preventDefault();
         if (deviceIdRef.current && deviceIdRef.current.value.length > 0) {
-            await invokeCommand(synchronizationApi.addDevice({ id: deviceIdRef.current.value }));
-            fetchDevices(synchronizationApi.browseDevices(), true);
+            await invokeCommand(synchronizationApi.addDevice({ id: deviceIdRef.current.value, provider }));
+            fetchDevices(synchronizationApi.browseDevices({ provider }), true);
             deviceIdRef.current.value = "";
             snackbarStore.addSuccess("Added device", false);
         } else {
@@ -55,9 +58,9 @@ export const SynchronizationSettings: React.FunctionComponent<{
         }
     };
 
-    const removeDevice = async (device_id: string) => {
-        await invokeCommand(synchronizationApi.removeDevice({ id: device_id }));
-        fetchDevices(synchronizationApi.browseDevices(), true);
+    const removeDevice = async (id: string) => {
+        await invokeCommand(synchronizationApi.removeDevice({ id, provider }));
+        fetchDevices(synchronizationApi.browseDevices({ provider }), true);
         snackbarStore.addSuccess("Removed device", false);
     };
 
@@ -78,11 +81,11 @@ export const SynchronizationSettings: React.FunctionComponent<{
     
     const toggleSynchronizeFolder = async () => {
         if (!synchronizedFolder) {
-            await invokeCommand(synchronizationApi.addFolder({ path } ));
-            fetchFolder(synchronizationApi.retrieveFolder({ path: path }), true);
+            await invokeCommand(synchronizationApi.addFolder({ path, provider } ));
+            fetchFolder(synchronizationApi.retrieveFolder({ path, provider }), true);
         } else {
             if (folder.data) {
-                await invokeCommand(synchronizationApi.removeFolder({ id: folder.data.id }));
+                await invokeCommand(synchronizationApi.removeFolder({ id: folder.data.id, provider }));
                 setUcloudDeviceId(undefined);
                 setSynchronizedFolder(undefined);
             }

@@ -15,7 +15,7 @@ class SynchronizationService(
         actorAndProject: ActorAndProject,
         request: SynchronizationRetrieveFolderRequest
     ): SynchronizedFolder {
-        val comms = providers.prepareCommunication(UCLOUD_PROVIDER)
+        val comms = providers.prepareCommunication(request.provider)
 
         return comms.synchronizationApi.retrieveFolder.call(
             proxiedRequest(
@@ -28,7 +28,7 @@ class SynchronizationService(
     }
 
     suspend fun addFolder(actorAndProject: ActorAndProject, request: SynchronizationAddFolderRequest) {
-        val comms = providers.prepareCommunication(UCLOUD_PROVIDER)
+        val comms = providers.prepareCommunication(request.provider)
 
         comms.synchronizationApi.addFolder.call(
             proxiedRequest(
@@ -41,7 +41,7 @@ class SynchronizationService(
     }
 
     suspend fun removeFolder(actorAndProject: ActorAndProject, request: SynchronizationRemoveFolderRequest) {
-        val comms = providers.prepareCommunication(UCLOUD_PROVIDER)
+        val comms = providers.prepareCommunication(request.provider)
 
         comms.synchronizationApi.removeFolder.call(
             proxiedRequest(
@@ -54,7 +54,7 @@ class SynchronizationService(
     }
 
     suspend fun addDevice(actorAndProject: ActorAndProject, request: SynchronizationAddDeviceRequest) {
-        val comms = providers.prepareCommunication(UCLOUD_PROVIDER)
+        val comms = providers.prepareCommunication(request.provider)
 
         comms.synchronizationApi.addDevice.call(
             proxiedRequest(
@@ -70,7 +70,7 @@ class SynchronizationService(
         actorAndProject: ActorAndProject,
         request: SynchronizationBrowseDevicesRequest
     ): SynchronizationBrowseDevicesResponse {
-        val comms = providers.prepareCommunication(UCLOUD_PROVIDER)
+        val comms = providers.prepareCommunication(request.provider)
 
         return comms.synchronizationApi.browseDevices.call(
             proxiedRequest(
@@ -86,7 +86,7 @@ class SynchronizationService(
         actorAndProject: ActorAndProject,
         request: SynchronizationRemoveDeviceRequest
     ) {
-        val comms = providers.prepareCommunication(UCLOUD_PROVIDER)
+        val comms = providers.prepareCommunication(request.provider)
 
         return comms.synchronizationApi.removeDevice.call(
             proxiedRequest(
