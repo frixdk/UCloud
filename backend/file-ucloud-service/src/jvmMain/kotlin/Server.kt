@@ -71,7 +71,7 @@ class Server(
 
         val fastDirectoryStats = CephFsFastDirectoryStats(nativeFs)
         val syncthingClient = SyncthingClient(syncConfig, db)
-        val synchronizationService = SynchronizationService(syncthingClient, db, fastDirectoryStats)
+        val synchronizationService = SynchronizationService(syncthingClient, pathConverter, db, fastDirectoryStats)
 
         taskSystem.launchScheduler(micro.backgroundScope)
 

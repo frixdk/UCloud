@@ -24,6 +24,7 @@ object UserDevicesTable : SQLTable("user_devices") {
 
 class SynchronizationService(
     private val syncthing: SyncthingClient,
+    private val pathConverter: PathConverter,
     private val db: DBContext,
     private val fsFastDirectoryStats: CephFsFastDirectoryStats
 ) {
@@ -47,7 +48,9 @@ class SynchronizationService(
     }
 
     suspend fun addFolder(actor: Actor, request: SynchronizationAddFolderRequest) {
-        if (fsFastDirectoryStats.getRecursiveFileCount(InternalFile(request.path)) > 1000_000) {
+        val internalFile = pathConverter.ucloudToInternal(UCloudFile.create(request.path))
+
+        if (fsFastDirectoryStats.getRecursiveFileCount(internalFile) > 1000_000) {
             throw RPCException("Number of files in directory exceeded for synchronization", HttpStatusCode.Forbidden)
         }
 
@@ -64,7 +67,7 @@ class SynchronizationService(
                 {
                     setParameter("id", id)
                     setParameter("device", device.id)
-                    setParameter("path", request.path)
+                    setParameter("path", internalFile.path)
                     setParameter("user", actor.username)
                     setParameter("access", accessType)
                 },
@@ -168,11 +171,13 @@ class SynchronizationService(
     }
 
     suspend fun retrieveFolder(actor: Actor, path: String): SynchronizedFolder {
+        val internalFile = pathConverter.ucloudToInternal(UCloudFile.create(path))
+
         return db.withSession { session ->
             val folder = session.sendPreparedStatement(
                 {
                     setParameter("user", actor.username)
-                    setParameter("path", path)
+                    setParameter("path", internalFile.path)
                 },
                 """
                         select id, path, device_id
@@ -188,7 +193,9 @@ class SynchronizationService(
 
             SynchronizedFolder(
                 id = folder.first().getField(SynchronizedFoldersTable.id),
-                path = folder.first().getField(SynchronizedFoldersTable.path),
+                path = pathConverter.internalToUCloud(
+                    InternalFile(folder.first().getField(SynchronizedFoldersTable.path))
+                ).path,
                 device_id = folder.first().getField(SynchronizedFoldersTable.device)
             )
         }
