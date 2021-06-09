@@ -16,7 +16,7 @@ typealias SynchronizationProviderRemoveFolderResponse = Unit
 typealias SynchronizationProviderAddDeviceRequest = ProxiedRequest<SynchronizationAddDeviceRequest>
 typealias SynchronizationProviderAddDeviceResponse = Unit
 
-typealias SynchronizationProviderBrowseDevicesRequest = ProxiedRequest<SynchronizationBrowseDevicesRequest>
+typealias SynchronizationProviderBrowseDevicesRequest = ProxiedRequest<Unit>
 typealias SynchronizationProviderBrowseDevicesResponse = SynchronizationBrowseDevicesResponse
 
 typealias SynchronizationProviderRemoveDeviceRequest = ProxiedRequest<SynchronizationRemoveDeviceRequest>
@@ -53,6 +53,6 @@ open class SynchronizationProvider(namespace: String) : CallDescriptionContainer
 
     val browseDevices = call<SynchronizationProviderBrowseDevicesRequest, SynchronizationProviderBrowseDevicesResponse,
         CommonErrorMessage>("devices") {
-            httpBrowse(baseContext, roles = Roles.SERVICE)
+        httpBrowse(baseContext, roles = Roles.SERVICE)
     }
 }

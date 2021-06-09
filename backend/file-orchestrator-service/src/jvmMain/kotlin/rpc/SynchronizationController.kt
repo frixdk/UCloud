@@ -25,6 +25,7 @@ class SynchronizationController(private val synchronization: SynchronizationServ
         }
 
         implement(Synchronization.browseDevices) {
+            println("Call accepted")
             ok(synchronization.browseDevices(actorAndProject, request))
         }
 

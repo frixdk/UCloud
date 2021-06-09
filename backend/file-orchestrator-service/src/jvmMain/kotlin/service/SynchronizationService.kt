@@ -76,7 +76,7 @@ class SynchronizationService(
             proxiedRequest(
                 projectCache,
                 actorAndProject,
-                request
+                Unit
             ),
             comms.client
         ).orThrow()
